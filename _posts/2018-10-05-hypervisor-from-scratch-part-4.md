@@ -6,6 +6,7 @@ categories:
   - "hypervisor"
   - "tutorials"
 tags: 
+  - "hypervisor"
   - "all-context"
   - "ept"
   - "eptp"

@@ -6,6 +6,7 @@ categories:
   - "hypervisor"
   - "tutorials"
 tags: 
+  - "hypervisor"
   - "create-a-virtual-machine"
   - "how-to-create-virtual-machine"
   - "hypervisor-fundamentals"

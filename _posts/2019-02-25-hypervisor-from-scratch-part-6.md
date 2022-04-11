@@ -6,12 +6,11 @@ categories:
   - "hypervisor"
   - "tutorials"
 tags: 
+  - "hypervisor"
   - "control-registers-modification"
   - "cpuid-modification"
   - "hypervisor-from-scratch"
-  - "hypervisor-fundamentals"
   - "hypervisor-logging"
-  - "hypervisor-tutorials"
   - "msr-modification-detection"
   - "virtualize-all-logical-cores"
   - "virtualize-current-system"

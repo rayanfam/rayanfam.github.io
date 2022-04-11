@@ -6,6 +6,7 @@ categories:
   - "hypervisor"
   - "tutorials"
 tags: 
+  - "hypervisor"
   - "creating-vmm"
   - "initiating-vmx-operation"
   - "irp_mj_device_control"

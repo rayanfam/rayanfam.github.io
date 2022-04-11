@@ -6,6 +6,7 @@ categories:
   - "hypervisor"
   - "tutorials"
 tags: 
+  - "hypervisor"
   - "2mb-ept"
   - "4kb-ept"
   - "ept-hook"

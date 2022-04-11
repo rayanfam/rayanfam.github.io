@@ -6,6 +6,7 @@ categories:
   - "hypervisor"
   - "tutorials"
 tags: 
+  - "hypervisor"
   - "creating-virtual-machine"
   - "hypervisor-tutorials"
   - "intel-vt-x-tutorial"

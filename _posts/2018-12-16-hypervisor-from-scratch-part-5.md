@@ -6,6 +6,7 @@ categories:
   - "hypervisor"
   - "tutorials"
 tags: 
+  - "hypervisor"
   - "building-vmcs"
   - "configuring-vmcs"
   - "start-virtual-machine"

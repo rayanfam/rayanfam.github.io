@@ -6,6 +6,7 @@ categories:
   - "hypervisor"
   - "tutorials"
 tags: 
+  - "hypervisor"
   - "event-injection"
   - "hidden-hook"
   - "high-irql-messaging"
