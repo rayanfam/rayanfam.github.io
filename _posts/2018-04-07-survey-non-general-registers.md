@@ -28,7 +28,7 @@ These pieces of information might have some fault because of my misunderstanding
 
 ![x86-64's registers](../../assets/images/Intel.x86-64.Architecture.2012011000-page-001.jpg)
 
-[You can also download the PDF version of the above picture here!](http://rayanfam.com/wp-content/uploads/sites/2/2018/03/Intel.x86-64.Architecture.2012011000.pdf)
+[You can also download the PDF version of the above picture here!](../../assets/files/Intel.x86-64.Architecture.2012011000.pdf)
 
 I don't know if there are other registers but in the rest of the post, I'll explain about the register that I know, which is shown in the above pictures. By the way, you all should know about general purpose registers like eax , ecx, ebx,edx,esi,edi,esp,eip (or their equivalent rax,rbx,rdx,rcx,rip,rsp and etc). But non-genral purpose registers are also exists
 

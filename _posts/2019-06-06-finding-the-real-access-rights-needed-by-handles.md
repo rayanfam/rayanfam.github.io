@@ -77,7 +77,7 @@ The structure of ACCESS\_MASK is like this :
     } ACCESS_MASK;
 ```
 
-For more information you can read these [two pdfs](https://rayanfam.com/wp-content/uploads/sites/2/2019/06/Access-Mask-Blog.zip).
+For more information you can read these [two pdfs](../../assets/files/Access-Mask-Blog.zip).
 
 ## **Motivation**
 

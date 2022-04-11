@@ -2875,7 +2875,7 @@ OK, let see what we should manage and what we should not.
 
 The Hyper-V Hypervisor Top-Level Functional Specification (TLFS) describes the hypervisor's externally visible behavior to other operating system components. This specification is meant to be useful for guest operating system developers.
 
-If you want to research Hyper-V, you have to read the documentation about Hyper-V's TLFS [here](https://docs.microsoft.com/en-us/virtualization/hyper-v-on-windows/reference/tlfs), but we just want to support Hyper-V. Hence, there is documentation ([Requirements for Implementing the Microsoft Hypervisor Interface](https://rayanfam.com/wp-content/uploads/sites/2/2020/03/Requirements-for-Implementing-the-Microsoft-Hypervisor-Interface-1.pdf)) that describes the things we should do in order to support Hyper-V. Of course, we're not going to implement all of them to make our hypervisor work on Hyper-V.
+If you want to research Hyper-V, you have to read the documentation about Hyper-V's TLFS [here](https://docs.microsoft.com/en-us/virtualization/hyper-v-on-windows/reference/tlfs), but we just want to support Hyper-V. Hence, there is documentation ([Requirements for Implementing the Microsoft Hypervisor Interface](../../assets/files/Requirements-for-Implementing-the-Microsoft-Hypervisor-Interface-1.pdf)) that describes the things we should do in order to support Hyper-V. Of course, we're not going to implement all of them to make our hypervisor work on Hyper-V.
 
 ## **Out of Range MSRs**
 
@@ -3334,7 +3334,7 @@ Now, we create a log that shows a breakpoint that happened in **GUEST\_RIP** the
 
 To see the result as a gif, click the link below.
 
-[View Example as a .gif (EventInjectAndExceptionBitmap.gif)](https://rayanfam.com/wp-content/uploads/sites/2/2020/03/EventInjectAndExceptionBitmap.gif)
+[View Example as a .gif (EventInjectAndExceptionBitmap.gif)](../../assets/files/EventInjectAndExceptionBitmap.gif)
 
 ![Event Injection & Exception Bitmap Example](../../assets/images/EventInjectAndExceptionBitmap.png)
 
@@ -3374,7 +3374,7 @@ VOID HiddenHooksTest()
 
 To see the result as a gif, click the link below.
 
-[View Example as a .gif (HiddenHookExampleReadWrite.gif)](https://rayanfam.com/wp-content/uploads/sites/2/2020/03/HiddenHookExampleReadWrite.gif)
+[View Example as a .gif (HiddenHookExampleReadWrite.gif)](../../assets/files/HiddenHookExampleReadWrite.gif)
 
 ![Hidden Hooks (Read/Write)](../../assets/images/HiddenHookExampleReadWrite.png)
 
@@ -3422,7 +3422,7 @@ The hook is applied ! you can also try to use (**u nt!ExAllocatePoolWithTag**) a
 
 To see the result as a gif, click the link below.
 
-[View Example as a .gif (HiddenHookExampleExec.gif)](https://rayanfam.com/wp-content/uploads/sites/2/2020/03/HiddenHookExampleExec.gif)
+[View Example as a .gif (HiddenHookExampleExec.gif)](../../assets/files/HiddenHookExampleExec.gif)
 
 ![Hidden Hooks (Exec)](../../assets/images/HiddenHookExampleExec.png)
 
@@ -3524,7 +3524,7 @@ NTSTATUS NtCreateFileHook(
 
 To see the result as a gif, click the link below.
 
-[View Example as a .gif (SyscallHookExample.gif)](https://rayanfam.com/wp-content/uploads/sites/2/2020/03/SyscallHookExample.gif)
+[View Example as a .gif (SyscallHookExample.gif)](../../assets/files/SyscallHookExample.gif)
 
 ![Syscall Hook](../../assets/images/SyscallHookExample1.png)
 

@@ -209,7 +209,7 @@ The VMCS consists of six logical groups:
 -  VM-entry control fields: Fields that control VM entries.
 -  VM-exit information fields: Read-only fields to receive information on VM exits describing the cause and the nature of the VM exit.
 
-I found a great work which illustrates the VMCS, The PDF version is also available [here](https://rayanfam.com/wp-content/uploads/sites/2/2018/08/VMCS.pdf). 
+I found a great work which illustrates the VMCS, The PDF version is also available [here](../../assets/files/VMCS.pdf). 
 
 ![VMCS](../../assets/images/VMCS-page-001-1.jpeg)
 

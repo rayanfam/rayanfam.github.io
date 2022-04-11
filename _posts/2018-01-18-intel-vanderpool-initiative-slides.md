@@ -19,4 +19,4 @@ author:
 
 I don't know about its author actually but I should give my thanks to him/her for gathering this slides.
 
-I think it worth a lot to read ,it can be downloaded [here](http://rayanfam.com/wp-content/uploads/sites/2/2018/02/lesson17.ppt) .
+I think it worth a lot to read ,it can be downloaded [here](../../assets/files/lesson17.ppt) .
