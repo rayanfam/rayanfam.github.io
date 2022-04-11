@@ -14,6 +14,9 @@ tags:
   - "system-service-descriptor-table"
   - "windbg-extension"
 coverImage: "service-descriptor-table.jpg"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
  

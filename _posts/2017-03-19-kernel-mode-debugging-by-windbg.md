@@ -12,6 +12,9 @@ tags:
   - "vmware-and-windbg"
   - "vmware-debugging"
 coverImage: "kernel-debugging-5-1024x467.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 Hey there,

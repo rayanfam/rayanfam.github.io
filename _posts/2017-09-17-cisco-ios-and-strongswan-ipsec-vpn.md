@@ -17,6 +17,9 @@ tags:
   - "tunnel"
   - "vpn"
 coverImage: "strongswan-vpn.png"
+author:
+  name: Shahriar
+  link: https://github.com/Xcess
 ---
 
 In this blog post we will cover IPSEC tunnel between Linux StrongSWAN and Cisco IOS.

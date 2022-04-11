@@ -15,6 +15,9 @@ tags:
   - "systemd"
   - "sysvinit"
 coverImage: "Linux_kernel_unified_hierarchy_cgroups_and_systemd.png"
+author:
+  name: Shahriar
+  link: https://github.com/Xcess
 ---
 
 Hi everyone

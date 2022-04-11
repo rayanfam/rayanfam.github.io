@@ -18,6 +18,9 @@ tags:
   - "udev"
   - "vfs"
 coverImage: "filesystem_diagram.png"
+author:
+  name: Shahriar
+  link: https://github.com/Xcess
 ---
 
 I had windows 10 installed on my laptop because of serious incompatibility of ROG laptops with Linux and my desire to play some games after years of living in bash! This continued for a year and I really like windows 10 cool features like WSL and Hyper-V (with Docker!), however being in love with rolling-release distros and being fed up with windows in the past year. And the fact that I was yearning for terminal, I installed Solus OS earlier this week on a separate partition without removing windows.

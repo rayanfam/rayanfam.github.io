@@ -10,6 +10,9 @@ tags:
   - "hook-for-ransomware"
   - "ransomware"
 coverImage: "anti-ransomware-3.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 In the last few days, I was asked to give a new idea for creating an anti ransomware and now I wanna share my idea and source codes.

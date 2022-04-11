@@ -8,6 +8,9 @@ tags:
   - "helloworld"
   - "start"
 coverImage: "hello-world.jpg"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 ### **This is the first post of our blog !**

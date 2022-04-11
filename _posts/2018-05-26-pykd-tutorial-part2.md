@@ -14,6 +14,9 @@ tags:
   - "pykd-tutorial"
   - "run-pykd-command"
 coverImage: "pykd-1.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 The content of this post is the second part of PyKD Tutorials, so make sure to read [this topic](https://rayanfam.com/topics/pykd-tutorial-part1/) first, then continue reading this topic.

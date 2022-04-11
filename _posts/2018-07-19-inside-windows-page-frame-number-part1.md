@@ -20,6 +20,9 @@ tags:
   - "windows-paging"
   - "zero-thread"
 coverImage: "pfn-image.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 ## Introduction (Page Frame Number)

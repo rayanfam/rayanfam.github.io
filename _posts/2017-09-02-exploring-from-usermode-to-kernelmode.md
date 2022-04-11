@@ -11,6 +11,9 @@ tags:
   - "kernelmode-to-usermode"
   - "trace-functions-to-kernel"
 coverImage: "usermode-to-kernelmode-1-1024x614.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 There were times when I want to trace instructions from User Mode and continue tracing it into Kernel mode to reverse Windows's internal implementation with my own supplied parameters from User Mode but there were a big problem and that was, How to access User Mode when you are in a Kernel Debugger or vice versa.

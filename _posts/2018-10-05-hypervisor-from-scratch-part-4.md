@@ -23,6 +23,9 @@ tags:
   - "slat"
   - "stage-2-page-tables"
 coverImage: "Hypervisor-Part4.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 Hello guys!

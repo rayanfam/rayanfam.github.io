@@ -16,6 +16,9 @@ tags:
   - "xtables"
   - "xtables-addons"
 coverImage: "linux-tux-100360806-large.jpg"
+author:
+  name: Shahriar
+  link: https://github.com/Xcess
 ---
 
 As I was surfing the net, trying to find a way to prototype network protocols or features in Linux. I stumbled upon PacketScript.

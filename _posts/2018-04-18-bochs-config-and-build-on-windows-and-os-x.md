@@ -12,6 +12,9 @@ tags:
   - "install-bochs"
   - "install-windows-on-bochs"
 coverImage: "bochs3.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 ## Introduction

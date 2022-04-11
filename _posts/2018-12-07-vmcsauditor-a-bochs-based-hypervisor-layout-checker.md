@@ -15,6 +15,9 @@ tags:
   - "vmresume-error"
   - "vmx-error-checking"
 coverImage: "VmcsAuditor.jpg"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 # **Introduction** 

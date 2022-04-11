@@ -14,6 +14,9 @@ tags:
   - "start-with-pin-tool"
   - "use-intel-pin"
 coverImage: "pin-overview-1024x727.jpg"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 As I promised previously in Pinitor’s topic, I prepare a post about how to build your first pin tool.

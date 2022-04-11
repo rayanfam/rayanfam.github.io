@@ -17,6 +17,9 @@ tags:
   - "modprobe"
   - "module"
 coverImage: "linux-kernel-module-for-nlkb-9-638.jpg"
+author:
+  name: Shahriar
+  link: https://github.com/Xcess
 ---
 
 Hi everyone!

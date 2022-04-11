@@ -10,6 +10,9 @@ tags:
   - "change-kernel"
   - "edit-windows-internals"
 coverImage: "stupid-windows.jpg"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 In this post, I'm gonna show you how you can fool windows about its internal structure and sometimes give it wrong information about its internal capabilities or internal information which can bring you a lot of fun. (At least for me !)

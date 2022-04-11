@@ -13,6 +13,9 @@ tags:
   - "dynamically-call-function"
   - "invoke-function"
 coverImage: "CSharp-Reflectionjpg.jpg"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 In the previous posts, I’d explained about low-level languages and play around kernel-mode reversing but now let’s dig into the high-level languages. In this post, I’m gonna share a comprehensive method that took more than two weeks for me to build such small and perfect function to play with .Net framework reflection. I also share this functions in my GitHub which can be accessed through [this link](https://github.com/SinaKarvandi/UseAllOfDotNetReflection).

@@ -10,6 +10,9 @@ tags:
   - "trojan-horse-source"
   - "trojan-source"
 coverImage: "trojan_horse.jpg"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 **A simple c# Trojan Horse example**

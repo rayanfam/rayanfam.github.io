@@ -11,6 +11,9 @@ tags:
   - "x64-assembly-in-driver"
   - "x64-inline-assembly"
 coverImage: "assemly.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 As my testing always interferes with running assembly directly in kernel-level and unfortunately Microsoft no longer supports x64 inline assembly through their compilers and as I always have struggle creating a simple inline assembly project so I decided to create a post to describe how to create a Windows Driver Kit project with Inline assembly to run kernel code directly in a kernel driver.

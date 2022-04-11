@@ -8,6 +8,9 @@ tags:
   - "far-conditional-jump"
   - "jump-without-register"
 coverImage: "aseembly-jmp.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 During developing a dispatch table for some instructions in binaries, one of the challenging problem which I faced, was changing the registers state in a way that doesn’t affect the program flow!

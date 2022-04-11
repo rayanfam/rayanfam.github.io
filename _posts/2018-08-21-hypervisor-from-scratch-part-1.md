@@ -17,6 +17,9 @@ tags:
   - "using-cpu-virtualization"
   - "vmm-implementation"
 coverImage: "hypervisor-p1.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 Hello everyone!

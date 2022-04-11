@@ -17,6 +17,9 @@ tags:
   - "vmfunc"
   - "vmx-0-settings-and-1-settings"
 coverImage: "Hypervisor-part6.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 # **Introduction**

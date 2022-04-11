@@ -15,6 +15,9 @@ tags:
   - "instrument-os-x"
   - "instrument-windows"
 coverImage: "Boch-Debugger-GUI.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 There is also another post about configuring and building Bochs on Windows & OS X if you have a problem compiling Bochs, take a look at [here](https://rayanfam.com/topics/bochs-config-and-build-on-windows-and-os-x/)!

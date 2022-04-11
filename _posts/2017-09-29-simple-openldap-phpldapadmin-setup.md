@@ -11,6 +11,9 @@ tags:
   - "openldap"
   - "phpldapadmin"
 coverImage: "logo.png"
+author:
+  name: Shahriar
+  link: https://github.com/Xcess
 ---
 
 Hello everyone,

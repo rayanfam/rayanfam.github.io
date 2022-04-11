@@ -10,6 +10,9 @@ tags:
   - "changing-to-ring-1-or-2"
   - "ring-transitioning"
 coverImage: "Ring-Transition.png"
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 Have you ever thought how transitions between different rings performed?
