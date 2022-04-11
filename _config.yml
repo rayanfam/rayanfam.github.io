@@ -23,7 +23,7 @@ timezone:
 
 title: Sina & Shahriar's Blog          # the main title
 
-tagline: An aggressive out-of-order blog...   # it will display as the sub-title
+tagline: An aggressive out-of-order, superscalar blog...   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
   Sina & Shahriar's blog writing about Windows Internals, Hypervisors, Linux, and Networks.
@@ -56,7 +56,7 @@ google_site_verification:               # fill in to your verification string
 # The end of `jekyll-seo-tag` settings
 
 google_analytics:
-  id:                 # fill in your Google Analytics ID
+  id: 'G-P6M1BDG57Z'                # fill in your Google Analytics ID
   # Google Analytics pageviews report settings
   pv:
     proxy_endpoint:   # fill in the Google Analytics superProxy endpoint of Google App Engine
@@ -89,10 +89,10 @@ avatar: '/assets/images/avatar.png'
 toc: true
 
 comments:
-  active:         # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
+  active: 'disqus'        # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
   # The active options are as follows:
   disqus:
-    shortname:    # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
+    shortname: rayanfam    # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
   # utterances settings › https://utteranc.es/
   utterances:
     repo:         # <gh-username>/<repo>
