@@ -126,7 +126,3 @@ If you want to call **MyPluginFunction2** then you should use the first method 
 This post is also available on Github :
 
 [https://github.com/SinaKarvandi/UseAllOfDotNetReflection](https://github.com/SinaKarvandi/UseAllOfDotNetReflection)
-
- 
-
-This topic also published in Damghan University's publication. You can find more at [https://pubs.rayanfam.com/persian/](https://pubs.rayanfam.com/persian/).

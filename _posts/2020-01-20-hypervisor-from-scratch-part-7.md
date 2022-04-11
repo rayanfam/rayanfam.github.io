@@ -2180,7 +2180,7 @@ We come to the end of this part. I believe EPT is the most important feature tha
 
 See you guys in the next part.
 
-The 8th part is available [here](https://rayanfam.com/).
+The 8th part is available [here](https://rayanfam.com/topics/hypervisor-from-scratch-part-8/).
 
 ![Animmmmeee :)](../../assets/images/part7-anime.jpeg)
 
