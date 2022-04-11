@@ -83,7 +83,7 @@ theme_mode:   # [light|dark]
 img_cdn:
 
 # the avatar on sidebar, support local or CORS resources
-avatar:
+avatar: '/assets/images/avatar.png'
 
 # boolean type, the global switch for ToC in posts.
 toc: true
@@ -123,7 +123,7 @@ kramdown:
   syntax_highlighter: rouge
   syntax_highlighter_opts:   # Rouge Options › https://github.com/jneen/rouge#full-options
     css_class: highlight
-    # default_lang: console
+    default_lang: c
     span:
       line_numbers: false
     block:
