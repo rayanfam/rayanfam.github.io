@@ -14,11 +14,13 @@ tags:
   - "pykd-scripts"
   - "pykd-tutorial"
   - "run-pykd-command"
-coverImage: "pykd.png"
+coverImage: "../../assets/images/pykd.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/pykd.png)
 
 Using windbg script syntax is such annoying thing that almost all reverse engineers have problems dealing with it but automating debugging gives such a power that can't be easily ignored. A good solution to solve this problem is using the power and simplicity of Python and Windbg together. If you aware, Windbg also supports c-like binaries as extensions so there is a praiseworthy tool called PyKD which does the hard thing and connects Python and Windbg together in a straight and usable way. The purpose of PyKD, as they mentioned, is :
 

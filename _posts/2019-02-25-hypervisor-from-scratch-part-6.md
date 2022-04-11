@@ -16,11 +16,13 @@ tags:
   - "virtualize-current-system"
   - "vmfunc"
   - "vmx-0-settings-and-1-settings"
-coverImage: "Hypervisor-part6.png"
+coverImage: "../../assets/images/Hypervisor-part6.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/Hypervisor-part6.png)
 
 # **Introduction**
 

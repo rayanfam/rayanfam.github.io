@@ -14,11 +14,13 @@ tags:
   - "security"
   - "switch"
   - "switchport"
-coverImage: "Cisco-SF100-24-NA-AN-1.jpg"
+coverImage: "../../assets/images/Cisco-SF100-24-NA-AN-1.jpg"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
+
+![](../../assets/images/Cisco-SF100-24-NA-AN-1.jpg)
 
 Cisco switches (running IOS) have plenty of features that are critical to modern networks. Some are Cisco security features that eliminate several important attack vectors on layer 2. This is arguably the most important defense mechanism because ACLs and security mechanisms on software (layer 7) will sometimes fall short protecting the network because of the extreme complexity of communication up in this layer. So the earlier you close the holes the better!
 

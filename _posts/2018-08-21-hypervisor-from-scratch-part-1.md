@@ -16,11 +16,13 @@ tags:
   - "intel-vtx-tutorial"
   - "using-cpu-virtualization"
   - "vmm-implementation"
-coverImage: "hypervisor-p1.png"
+coverImage: "../../assets/images/hypervisor-p1.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/hypervisor-p1.png)
 
 Hello everyone!
 

@@ -22,11 +22,13 @@ tags:
   - "single-context"
   - "slat"
   - "stage-2-page-tables"
-coverImage: "Hypervisor-Part4.png"
+coverImage: "../../assets/images/Hypervisor-Part4.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/Hypervisor-Part4.png)
 
 Hello guys!
 

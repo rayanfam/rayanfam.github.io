@@ -8,11 +8,13 @@ tags:
   - "android-permissions"
   - "change-adndroid-permission"
   - "packages-xml"
-coverImage: "android-package-1-1-1024x608.png"
+coverImage: "../../assets/images/android-package-1-1-1024x608.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/android-package-1-1-1024x608.png)
 
 Yesterday me and one of my friends were working on an Android Penetration testing project. After testing some kinds of exploit then we somehow get root privilege with some kinds of limitations. In the case of this exploit we can just write to any file we want and we cannot do anything more because ASLR was preventing us to do.
 

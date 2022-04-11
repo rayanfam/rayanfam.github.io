@@ -15,11 +15,13 @@ tags:
   - "windows-server"
   - "windows-server-2012-r2"
   - "windows-server-core"
-coverImage: "cmd-1024x579.jpg"
+coverImage: "../../assets/images/cmd-1024x579.jpg"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
+
+![](../../assets/images/cmd-1024x579.jpg)
 
 Hello everyone, In this post I am going to introduce some basic commands that are used to configure Windows Server. Of course if you are using Windows Server with GUI, you may not need these command at all (except for automation maybe). However if you work in an environment in which you configure windows network on a regular basis, you need to know some basic stuff B)
 

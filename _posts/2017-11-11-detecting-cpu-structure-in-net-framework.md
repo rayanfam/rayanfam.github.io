@@ -8,11 +8,13 @@ tags:
   - "detect-64-bit-os-c"
   - "get-environment-os"
   - "x86-and-x64-c"
-coverImage: "32_64bit.jpg"
+coverImage: "../../assets/images/32_64bit.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/32_64bit.jpg)
 
 The title seems simple, just getting CPU structure to detect if your program running on an AMD64 or an Intel x86 machine.
 

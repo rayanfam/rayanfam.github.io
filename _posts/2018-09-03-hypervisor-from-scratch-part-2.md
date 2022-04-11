@@ -14,11 +14,13 @@ tags:
   - "vmm-tutorials"
   - "vmx-implementation"
   - "vmx-tutorials"
-coverImage: "Part2-Hypervisor.png"
+coverImage: "../../assets/images/Part2-Hypervisor.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/Part2-Hypervisor.png)
 
 Hi guys,
 

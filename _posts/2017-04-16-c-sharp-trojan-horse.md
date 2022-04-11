@@ -9,11 +9,13 @@ tags:
   - "c-virus-source"
   - "trojan-horse-source"
   - "trojan-source"
-coverImage: "trojan_horse.jpg"
+coverImage: "../../assets/images/trojan_horse.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/trojan_horse.jpg)
 
 **A simple c# Trojan Horse example**
 

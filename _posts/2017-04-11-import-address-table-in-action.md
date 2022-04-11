@@ -12,11 +12,13 @@ tags:
   - "import-address-table-address"
   - "orginalfirstthunk"
   - "timedatestamp"
-coverImage: "import-address-table.png"
+coverImage: "../../assets/images/import-address-table.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/import-address-table.png)
 
 Did you ever think about how different dll files with different versions and obviously with different addresses of functions work perfectly together ? The answer is Import Address Table (IAT).
 

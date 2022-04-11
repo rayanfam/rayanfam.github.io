@@ -9,11 +9,13 @@ tags:
   - "anti-ransomware-with-hook"
   - "hook-for-ransomware"
   - "ransomware"
-coverImage: "anti-ransomware-3.png"
+coverImage: "../../assets/images/anti-ransomware-3.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/anti-ransomware-3.png)
 
 In the last few days, I was asked to give a new idea for creating an anti ransomware and now I wanna share my idea and source codes.
 

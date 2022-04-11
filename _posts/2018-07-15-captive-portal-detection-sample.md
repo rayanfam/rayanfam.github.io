@@ -18,11 +18,13 @@ tags:
   - "router"
   - "uhttpd"
   - "wifidog"
-coverImage: "openwrt-1.png"
+coverImage: "../../assets/images/openwrt-1.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
+
+![](../../assets/images/openwrt-1.png)
 
 Hi everyone  
 I've been working on a project which involves a developing a captive portal system from scratch. and I'm going to gradually post more of challenges we faced and the way we solved them too.

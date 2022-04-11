@@ -11,11 +11,13 @@ tags:
   - "kernel-mode"
   - "vmware-and-windbg"
   - "vmware-debugging"
-coverImage: "kernel-debugging-5-1024x467.png"
+coverImage: "../../assets/images/kernel-debugging-5-1024x467.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/kernel-debugging-5-1024x467.png)
 
 Hey there,
 

@@ -20,11 +20,13 @@ tags:
   - "vmx-operation"
   - "vmxon"
   - "vmxon-region"
-coverImage: "hvfs-part3.png"
+coverImage: "../../assets/images/hvfs-part3.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/hvfs-part3.png)
 
 ## **Introduction**
 

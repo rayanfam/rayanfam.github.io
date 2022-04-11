@@ -20,6 +20,8 @@ author:
   link: https://twitter.com/Intel80x86
 ---
 
+![](../../assets/images/Boch-Debugger-GUI.png)
+
 There is also another post about configuring and building Bochs on Windows & OS X if you have a problem compiling Bochs, take a look at [here](https://rayanfam.com/topics/bochs-config-and-build-on-windows-and-os-x/)!
 
 In my opinion, Bochs is an amazing thing because it provides instrumentation in the lowest level of the Operating System. One of the advantages of the Boch is being able to instrument in kernel-mode, which is not available in other instrumenting tools like Intel's pin tool.

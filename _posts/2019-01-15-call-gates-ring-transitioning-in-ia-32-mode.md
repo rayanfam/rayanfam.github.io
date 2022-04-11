@@ -9,11 +9,13 @@ tags:
   - "call-gate-descriptor"
   - "changing-to-ring-1-or-2"
   - "ring-transitioning"
-coverImage: "Ring-Transition.png"
+coverImage: "../../assets/images/Ring-Transition.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/Ring-Transition.png)
 
 Have you ever thought how transitions between different rings performed?
 

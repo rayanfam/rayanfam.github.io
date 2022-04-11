@@ -14,11 +14,13 @@ tags:
   - "vmlaunch-error"
   - "vmresume-error"
   - "vmx-error-checking"
-coverImage: "VmcsAuditor.jpg"
+coverImage: "../../assets/images/VmcsAuditor.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/VmcsAuditor.jpg)
 
 # **Introduction** 
 

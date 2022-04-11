@@ -11,11 +11,13 @@ tags:
   - "config-bochs"
   - "install-bochs"
   - "install-windows-on-bochs"
-coverImage: "bochs3.png"
+coverImage: "../../assets/images/bochs3.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/bochs3.png)
 
 ## Introduction
 

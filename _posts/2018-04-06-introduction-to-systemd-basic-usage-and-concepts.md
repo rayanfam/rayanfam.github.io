@@ -14,11 +14,13 @@ tags:
   - "sysadmin"
   - "systemd"
   - "sysvinit"
-coverImage: "Linux_kernel_unified_hierarchy_cgroups_and_systemd.png"
+coverImage: "../../assets/images/Linux_kernel_unified_hierarchy_cgroups_and_systemd.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
+
+![](../../assets/images/Linux_kernel_unified_hierarchy_cgroups_and_systemd.png)
 
 Hi everyone
 

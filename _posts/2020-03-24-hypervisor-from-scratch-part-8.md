@@ -23,11 +23,13 @@ tags:
   - "vmfunc"
   - "vpid-in-hypervisor"
   - "wpp-tracing"
-coverImage: "part-8-hvfs.png"
+coverImage: "../../assets/images/part-8-hvfs.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/part-8-hvfs.png)
 
 ## **Introduction**
 

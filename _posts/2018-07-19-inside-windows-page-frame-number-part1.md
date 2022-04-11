@@ -19,11 +19,13 @@ tags:
   - "windows-mmpfn-structure"
   - "windows-paging"
   - "zero-thread"
-coverImage: "pfn-image.png"
+coverImage: "../../assets/images/pfn-image.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/pfn-image.png)
 
 ## Introduction (Page Frame Number)
 

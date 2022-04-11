@@ -16,11 +16,13 @@ tags:
   - "python"
   - "python3"
   - "qt"
-coverImage: "Qt_logostrap_CMYK-1024x512.png"
+coverImage: "../../assets/images/Qt_logostrap_CMYK-1024x512.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
+
+![](../../assets/images/Qt_logostrap_CMYK-1024x512.png)
 
 Hi everyone, in this blog post I want to explain how to start developing desktop applications using Qt and Python. We will use PyQt5 module in order to connect Qt with Python. Qt was originally designed for use with C++ but it has many benefits which helped its growth and compability on all major desktop platforms (Windows, Linux, Mac OS). A link to a sample program I created is also given at the end of the post in order to help you understand the basics and maybe use it as a skeleton for your project.
 

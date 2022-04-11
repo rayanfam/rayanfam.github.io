@@ -17,11 +17,13 @@ tags:
   - "page-management-in-windows"
   - "pfn"
   - "pfn-database"
-coverImage: "chameleon.jpeg"
+coverImage: "../../assets/images/chameleon.jpeg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/chameleon.jpeg)
 
 Hey there,
 

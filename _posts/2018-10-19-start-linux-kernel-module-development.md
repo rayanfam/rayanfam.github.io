@@ -16,11 +16,13 @@ tags:
   - "make"
   - "modprobe"
   - "module"
-coverImage: "linux-kernel-module-for-nlkb-9-638.jpg"
+coverImage: "../../assets/images/linux-kernel-module-for-nlkb-9-638.jpg"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
+
+![](../../assets/images/linux-kernel-module-for-nlkb-9-638.jpg)
 
 Hi everyone!
 

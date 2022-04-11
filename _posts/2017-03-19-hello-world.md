@@ -7,11 +7,13 @@ tags:
   - "begining"
   - "helloworld"
   - "start"
-coverImage: "hello-world.jpg"
+coverImage: "../../assets/images/hello-world.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/hello-world.jpg)
 
 ### **This is the first post of our blog !**
 

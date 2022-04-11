@@ -17,11 +17,13 @@ tags:
   - "vmlaunch-0x7"
   - "vmlaunch-0x8"
   - "vmlaunch-error"
-coverImage: "fifth-part.png"
+coverImage: "../../assets/images/fifth-part.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/fifth-part.png)
 
 # **Introduction**
 

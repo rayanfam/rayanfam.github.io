@@ -17,11 +17,13 @@ tags:
   - "process_query_limited_information"
   - "real-access-rights"
   - "xrefs-ida-python"
-coverImage: "Access-rights.png"
+coverImage: "../../assets/images/Access-rights.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/Access-rights.png)
 
 ## **Introduction**
 

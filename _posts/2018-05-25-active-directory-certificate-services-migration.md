@@ -18,11 +18,13 @@ tags:
   - "network"
   - "pki"
   - "windows-server"
-coverImage: "microsoft-active-directory_w_600.png"
+coverImage: "../../assets/images/microsoft-active-directory_w_600.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
+
+![](../../assets/images/microsoft-active-directory_w_600.png)
 
 # Active Directory Certificate Services
 

@@ -10,11 +10,13 @@ tags:
   - "ldap"
   - "openldap"
   - "phpldapadmin"
-coverImage: "logo.png"
+coverImage: "../../assets/images/logo.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
+
+![](../../assets/images/logo.png)
 
 Hello everyone,
 

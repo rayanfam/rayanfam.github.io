@@ -10,11 +10,13 @@ tags:
   - "change-virtual-address"
   - "kernel-mode-to-user-mode"
   - "ring0-to-ring3"
-coverImage: "kernelmode-usermode.jpg"
+coverImage: "../../assets/images/kernelmode-usermode.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/kernelmode-usermode.jpg)
 
 Well, it's somehow an odd topic but sometimes it could be really helpful in some situations.
 

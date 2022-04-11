@@ -15,11 +15,13 @@ tags:
   - "windows-callbacks"
   - "windows-internals-tutorial"
   - "windows-objects"
-coverImage: "reversing-windows-internals-part-1-1.png"
+coverImage: "../../assets/images/reversing-windows-internals-part-1-1.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
+
+![](../../assets/images/reversing-windows-internals-part-1-1.png)
 
 ## **Introduction**
 
