@@ -218,17 +218,6 @@ Here is the results, you can use them if you don't have IDA Pro:
 
 ![](../../assets/images/result.png)
 
-Results
-
-A complete list of result :
-
-[https://ntdebug.com/files/access\_masks/ObReferenceObjectByHandle.txt](https://ntdebug.com/files/access_masks/ObReferenceObjectByHandle.txt)
-
-[https://ntdebug.com/files/access\_masks/ObReferenceObjectByHandleWithTag.txt](https://ntdebug.com/files/access_masks/ObReferenceObjectByHandleWithTag.txt)
-
-[https://ntdebug.com/files/access\_masks/CmObReferenceObjectByHandle.txt](https://ntdebug.com/files/access_masks/CmObReferenceObjectByHandle.txt)
-
-[https://ntdebug.com/files/access\_masks/ObpReferenceObjectByHandleWithTag.txt](https://ntdebug.com/files/access_masks/ObpReferenceObjectByHandleWithTag.txt)
 
 Note: If you want to use the results, you can find functions which start with (NT\*) that's because these functions have a pair in user-mode ntdll, so if your user-mode function ends to a ntdll native function then you can search for the same function and see the reall access rights.
 
