@@ -15,13 +15,13 @@ tags:
   - "packetscript"
   - "xtables"
   - "xtables-addons"
-coverImage: "../../assets/images/linux-tux-100360806-large.jpg"
+coverImage: "../../assets/images/linux-tux-large.jpg"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
 
-![](../../assets/images/linux-tux-100360806-large.jpg)
+![](../../assets/images/linux-tux-large.jpg)
 
 As I was surfing the net, trying to find a way to prototype network protocols or features in Linux. I stumbled upon PacketScript.
 
@@ -90,7 +90,7 @@ iptables v1.6.0: LUA: --script parameter required
 Try `iptables -h' or 'iptables --help' for more information.
 ```
 
-![](../../assets/images/18-Figure3.1-1.png)
+![](../../assets/images/iptables-lua.png)
 
 * * *
 

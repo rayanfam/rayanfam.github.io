@@ -14,13 +14,13 @@ tags:
   - "vmlaunch-error"
   - "vmresume-error"
   - "vmx-error-checking"
-coverImage: "../../assets/images/VmcsAuditor.jpg"
+coverImage: "../../assets/images/VMCS-auditor-cover-2.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/VmcsAuditor.jpg)
+![](../../assets/images/VMCS-auditor-cover-2.jpg)
 
 # **Introduction** 
 
@@ -38,7 +38,7 @@ You can check these lists by your own and if you can't understand what is the ex
 
 Unfortunately, Bochs emulator is really slow (as the nature of emulating) and sometimes have lots of problems with stability but there are lots of cool features that implemented in this emulator and one of them is VMX support. VMCS Auditor is a copy of Bochs emulator in a user-mode application. It asks you for each field of VMCS Layout and tells you what was your mistake.
 
-![VMCS-Auditor](../../assets/images/VMCS-Auditor.png)
+![VMCS-Auditor](../../assets/images/VMCS-auditor-cover-1.png)
 
 Keep in mind, Bochs is just an implementation of Intel's VMX behavior and by no mean 100% precise so there might be some problems which Bochs is not able to detect.
 
@@ -70,7 +70,7 @@ rdmsr 0x481
 
 The above command's result is illustrated below.
 
-![VMCS-Auditor-RDMSR](../../assets/images/VMCS-Auditor-RDMSR.png)
+![VMCS-Auditor-RDMSR](../../assets/images/VMCS-auditor-with-RDMSR.png)
 
 The following MSRs representing my own system's MSRs for VMX.
 

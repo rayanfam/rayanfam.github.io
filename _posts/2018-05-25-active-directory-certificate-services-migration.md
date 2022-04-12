@@ -18,13 +18,13 @@ tags:
   - "network"
   - "pki"
   - "windows-server"
-coverImage: "../../assets/images/microsoft-active-directory_w_600.png"
+coverImage: "../../assets/images/microsoft-active-directory.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
 
-![](../../assets/images/microsoft-active-directory_w_600.png)
+![](../../assets/images/microsoft-active-directory.png)
 
 # Active Directory Certificate Services
 
@@ -69,7 +69,7 @@ _This method was used to migrate a Windows server 2003 AD CS installation to Wi
 
 1. Open AD CS management panel (Certificate Authority) and **Backup CA** by right-clicking the main entry on the tree-view.
     
-    \[caption id="attachment\_837" align="alignnone" width="567"\]![Backup CA on ADCS](../../assets/images/backupca01.jpg) courtesy of mpgnotes.wordpress.com\[/caption\]
+    \[caption id="attachment\_837" align="alignnone" width="567"\]![Backup CA on ADCS](../../assets/images/backup-ca-01.jpg) courtesy of mpgnotes.wordpress.com\[/caption\]
     
      
 2. Export the following registry key: ****HKLM\\System\\CurrentControlSet\\Services\\CertSvc\\Configuration****

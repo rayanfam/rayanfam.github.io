@@ -5,7 +5,7 @@ coverImage: "tuts2-2.jpg"
 order: 2
 ---
 
-![](../../assets/images/tuts2-2.jpg)
+![](../../assets/images/tutorials-cover.jpg)
 
 > # Hypervisor From Scratch
 > 

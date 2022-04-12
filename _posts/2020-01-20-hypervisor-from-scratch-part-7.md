@@ -25,13 +25,13 @@ tags:
   - "second-level-address-translation"
   - "slat"
   - "vmcall"
-coverImage: "../../assets/images/hypervisor-from-scratch-part-7.png"
+coverImage: "../../assets/images/hypervisor-from-scratch-7-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/hypervisor-from-scratch-part-7.png)
+![](../../assets/images/hypervisor-from-scratch-7-cover.png)
 
 ## **Introduction**
 
@@ -117,7 +117,7 @@ The full source code of this tutorial is available on GitHub :
 - **Conclusion**
 - **References**
 
-![Aniiiiime :)](../../assets/images/anime-girl-aqua-blue-4k-gu-2880x1800.jpg)
+![Aniiiiime :)](../../assets/images/anime-girl-aqua-blue.jpg)
 
 # **Implementing Functions to Manage Vmcalls**
 
@@ -257,7 +257,7 @@ Now let's explain them more precisely.
 
 Memory type range registers (MTRRs) are a set of processor supplementary capabilities control registers that provide system software with control of how accesses to memory ranges by the CPU are cached. It uses a set of programmable model-specific registers (MSRs), which are special registers provided by most modern CPUs. Possible access modes to memory ranges can be uncached, write-through, write-combining, write-protect, and write-back. In write-back mode, writes are written to the CPU's cache, and the cache is marked dirty so that its contents are written to memory later.
 
-![](../../assets/images/MemoryTypesInMTRRs.png)
+![](../../assets/images/memory-types-in-MTRRs.png)
 
 In old x86 architecture systems, mainly where separate chips provided the cache outside of the CPU package, this function was controlled by the chipset itself and configured through BIOS settings, when the CPU cache was moved inside the CPU, the CPUs implemented fixed-range MTRRs.
 
@@ -317,7 +317,7 @@ We implement a function called "**EptCheckFeatures,"** this function checks to s
 
 Before creating a map from memory regions, It's good to see how Windbg shows the MTRR regions and their caching policies using the "!mtrr" command.
 
-![!mtrr windbg](../../assets/images/mtrr.png)
+![!mtrr windbg](../../assets/images/MTRR-windbg.png)
 
 As you can see in the above picture, Windows prefers to use Fixed Range Registers (Fixed-support enabled) and variable range registers.
 
@@ -325,7 +325,7 @@ I'll talk about fixed range registers later in this article.
 
 In order to read MTRRs, we start by reading the **VCNT** value of **IA32\_MTRRCAP** MSR (0xFE), which determines the number of variable MTRRs (Number of regions).
 
-![](../../assets/images/IA32_MTRRCAP.png)
+![](../../assets/images/IA32-MTRRCAP.png)
 
 The next step is to iterate through each MTRR variable; we read **MSR\_IA32\_MTRR\_PHYSBASE0** and **MSR\_IA32\_MTRR\_PHYSMASK0** for each range and check if the range is valid or not (based on **IA32\_MTRR\_PHYSMASK\_REGISTER.Valid** bit).
 
@@ -431,7 +431,7 @@ There are other MTRR registers called **Fixed Range Registers** as its name impl
 
 These ranges are showed in the following table:
 
-![](../../assets/images/Fixed-range-MTRRs.png)
+![](../../assets/images/fixed-ranges-MTRRs.png)
 
 As you can see, the start of physical RAM is defined by these fixed range registers, which are for performance and legacy reasons.
 
@@ -441,7 +441,7 @@ Keep in mind that caching policy for each region of RAM is defined by MTRRs for 
 
 For further reading, you can read Intel SDM (Chapter 11 volume 3 A - 11.11 MEMORY TYPE RANGE REGISTERS (MTRRS) and 11.12 PAGE ATTRIBUTE TABLE (PAT)).
 
-![Anime :)](../../assets/images/anime-part7-hv.jpg)
+![Anime :)](../../assets/images/anime-girl-watching-city.jpg)
 
 ## **Virtualizing Current System's Memory using EPT**
 
@@ -766,7 +766,7 @@ In the case of EPT Violation, **Exit Qualification** shows that the reason why t
 
 The following table shows the structure of **Exit Qualification** and each bit's meaning for **EPT Violation**.
 
-![](../../assets/images/Exit-qualification-ept-violation.png)
+![](../../assets/images/exit-qualification-for-ept-violation.png)
 
 Now that we have all the details, we need to pass them to **EptHandlePageHookExit,** and we deal with it in the next sections.
 
@@ -828,7 +828,7 @@ VOID EptHandleMisconfiguration(UINT64 GuestAddress)
 
 Our hypervisor starts virtualizing MMU by calling **EptLogicalProcessorInitialize,** which sets a 64-bit value called **EPTP**. The following table shows the structure of **EPTP**. If you look at part 4, we have this table in that part too, but there is a change here, bit 7 was reserved at the time I wrote part 4, and now it has something to do with [shadow stacks](http://windows-internals.com/cet-on-windows/).
 
-![](../../assets/images/new-eptp-table.png)
+![](../../assets/images/new-EPTP-table.png)
 
 **EptLogicalProcessorInitialize** calls **EptAllocateAndCreateIdentityPageTable** to allocate identity table (as described above).
 
@@ -1611,7 +1611,7 @@ typedef struct _INVEPT_DESC
 }INVEPT_DESC, * PINVEPT_DESC;
 ```
 
-![](../../assets/images/invept-descriptor.png)
+![](../../assets/images/INVEPT-descriptor-definition.png)
 
 We'll use our assembly function in another function called **Invept**.
 
@@ -1734,7 +1734,7 @@ The last thing is you can't execute **INVEPT** in vmx non-root mode as it causes
 
 That's it all for INVEPT.
 
-![Anime :)](../../assets/images/Anime-for-microcode2.jpg)
+![Anime :)](../../assets/images/anime-snowman.jpg)
 
 # **Fixing Previous Design Issues**
 
@@ -2048,7 +2048,7 @@ In the previous versions of our driver, we ignored RSP and save some trash inste
 
 After meltdown mitigation, Windows uses **MOV CR3, RSP**, and as we saved trash instead of RSP, then you change **CR3** to an invalid value, and it silently crashes with _TRIPLE FAULT_ VM-Exit. It won’t give you the exact error.
 
-![](../../assets/images/rsp-problem1.png)
+![](../../assets/images/rsp-problem-1.png)
 
 For fixing this issue, we add the following code to **HvHandleControlRegisterAccess,** so each time when a vm-exit occurs, we change the RSP to the correct value.
 
@@ -2182,7 +2182,7 @@ See you guys in the next part.
 
 The 8th part is available [here](https://rayanfam.com/topics/hypervisor-from-scratch-part-8/).
 
-![Animmmmeee :)](../../assets/images/part7-anime.jpeg)
+![Animmmmeee :)](../../assets/images/anime-girl-walking-moon.jpeg)
 
 # **References**
 

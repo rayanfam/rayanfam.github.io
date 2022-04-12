@@ -17,13 +17,13 @@ tags:
   - "process_query_limited_information"
   - "real-access-rights"
   - "xrefs-ida-python"
-coverImage: "../../assets/images/Access-rights.png"
+coverImage: "../../assets/images/access-rights-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/Access-rights.png)
+![](../../assets/images/access-rights-cover.png)
 
 ## **Introduction**
 
@@ -117,7 +117,7 @@ The first thing we need to know is how Windows checks for the desired access. Th
 
 If you search for this function in Ntoskrnl.exe using IDA Pro, you'll see something like this :
 
-![Functions to check for access rights of a handle](../../assets/images/ObReferenceObjectByHandleInIDA.png)
+![Functions to check for access rights of a handle](../../assets/images/ObReferenceObjectByHandle-IDA.png)
 
 Functions to check for access rights of a handle
 
@@ -129,7 +129,7 @@ NtOpenProcessToken Decompiled Source
 
 From the _ObpReferenceObjectByHandleWithTag_ you can see that the contarary still remains in MSDN. If you look at the second argument to ObpReferenceObjectByHandleWithTag you can see 0x1000 and it's, of course, PROCESS\_QUERY\_LIMITED\_INFORMATION while the MSDN have mentioned something else.
 
-![PROCESS_QUERY_LIMITED_INFORMATION](../../assets/images/PROCESS_QUERY_LIMITED_INFORMATION.png)
+![PROCESS_QUERY_LIMITED_INFORMATION](../../assets/images/query-limited-information.png)
 
 PROCESS\_QUERY\_LIMITED\_INFORMATION
 
@@ -216,7 +216,7 @@ for ref in CodeRefsTo(ea, 1):
 
 Here is the results, you can use them if you don't have IDA Pro:
 
-![](../../assets/images/result.png)
+![](../../assets/images/result-of-handles-from-IDA.png)
 
 
 Note: If you want to use the results, you can find functions which start with (NT\*) that's because these functions have a pair in user-mode ntdll, so if your user-mode function ends to a ntdll native function then you can search for the same function and see the reall access rights.
@@ -227,7 +227,7 @@ In this post, you saw how it might be different, the real implementation over do
 
 That's it guys, hope you enjoy it.
 
-![Aniiiiiiiiiime :)](../../assets/images/anime-for-never-trust-msdn.jpg)
+![Aniiiiiiiiiime :)](../../assets/images/anime-watching-computer.jpg)
 
 # **References**
 

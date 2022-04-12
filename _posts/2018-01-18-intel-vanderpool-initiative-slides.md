@@ -9,13 +9,13 @@ tags:
   - "intel-vt-x"
   - "virtual-machine-control-structure"
   - "vmcs"
-coverImage: "../../assets/images/20180118_152017-1024x777.png"
+coverImage: "../../assets/images/virtualization-technology-vanderpool.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/20180118_152017-1024x777.png)
+![](../../assets/images/virtualization-technology-vanderpool.png)
 
 > A few hours ago, I was working on Intel VT-x which enables a hardware support for virtualization then I saw the following slides which gives me lots of information about Hypervisor instructions,VMM, Virtual machine control structure (VMCS) and other practical information.
 

@@ -10,13 +10,13 @@ tags:
   - "windows-driver-kit-inline-assembly"
   - "x64-assembly-in-driver"
   - "x64-inline-assembly"
-coverImage: "../../assets/images/assemly.png"
+coverImage: "../../assets/images/assembly-table.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/assemly.png)
+![](../../assets/images/assembly-table.png)
 
 As my testing always interferes with running assembly directly in kernel-level and unfortunately Microsoft no longer supports x64 inline assembly through their compilers and as I always have struggle creating a simple inline assembly project so I decided to create a post to describe how to create a Windows Driver Kit project with Inline assembly to run kernel code directly in a kernel driver.
 
@@ -26,15 +26,15 @@ Let's get down to business.
 
 First of all, you should have Windows WDK support in your visual studio, just follow the steps [here](https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk), then after downloading Windows Driver Kit and Windows SDK then you can create a WDK Project in your visual studio like this :
 
-![Create Project](../../assets/images/KMDF-Create-Project.png)
+![Create Project](../../assets/images/create-kmdf-project.png)
 
 So I created a project named **MyDriver** after that you should add some files to your project. As you might know, you should create a .asm file beside your .**c (code)** and .**h (header)** files thus I created two files named (**source.cpp**)
 
-![add cpp](../../assets/images/Add-Cpp-To-Driver.png)
+![add cpp](../../assets/images/add-cpp-file-to-driver.png)
 
 and the other file is **source.asm**.
 
-![Add Assembly file](../../assets/images/Add-ASM.png)
+![Add Assembly file](../../assets/images/add-asm-file.png)
 
 I made a simple assembly function (Masm) along with a simple driver entry function, you can add these files to your project. For example the following lines for **source.asm**.
 
@@ -110,11 +110,11 @@ Almost in all current Windows versions (<=Window 7) you should disable **Driver 
 
 If you see some errors like this in your building process,
 
-![Error](../../assets/images/WDK-Asm-error.png)
+![Error](../../assets/images/WDK-asm-file-error.png)
 
 Then make sure to add your **driver entry** in **properties -> Linker -> All Options -> search for the entry point**.
 
- ![Add entry](../../assets/images/WDK-Change-Entry.png)
+ ![Add entry](../../assets/images/WDK-change-driver-entry.png)
 
 That should solve the problem.
 

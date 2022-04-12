@@ -9,13 +9,13 @@ tags:
   - "call-gate-descriptor"
   - "changing-to-ring-1-or-2"
   - "ring-transitioning"
-coverImage: "../../assets/images/Ring-Transition.png"
+coverImage: "../../assets/images/ring-transitions-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/Ring-Transition.png)
+![](../../assets/images/ring-transitions-cover.png)
 
 Have you ever thought how transitions between different rings performed?
 
@@ -151,7 +151,7 @@ They’re from a special system-segment, known as the TSS (Task State Segment). 
 
 Intel defines a call-gate descriptor like this (in x86 environment):
 
-![](../../assets/images/32-Bit-Call-Gate.png)
+![](../../assets/images/32-bit-call-gates.png)
 
 ```
 typedef struct CALL_GATE32 {
@@ -181,7 +181,7 @@ typedef struct CALL_GATE32 {
 
 The above descriptor is also available in AMD64 and it defines like the following picture.
 
-![](../../assets/images/64-Bit-Call-Gate.png)
+![](../../assets/images/64-bit-call-gates.png)
 
 ```
 typedef struct CALL_GATE
@@ -268,7 +268,7 @@ void CreateCallGateStruct(int address , int gdtr , int GDTIndex) {
 }
 ```
 
-![](../../assets/images/BreakHandler.png)
+![](../../assets/images/break-handler.png)
 
 Finding A Handler in Kernel
 

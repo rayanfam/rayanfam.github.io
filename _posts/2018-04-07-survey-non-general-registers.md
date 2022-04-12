@@ -14,13 +14,13 @@ tags:
   - "tr-register"
   - "xmm-register"
   - "ymm-registers"
-coverImage: "../../assets/images/Intel.x86-64.Architecture.2012011000-page-001.jpg"
+coverImage: "../../assets/images/intel-x86-64-registers.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/Intel.x86-64.Architecture.2012011000-page-001.jpg)
+![](../../assets/images/intel-x86-64-registers.jpg)
 
 Hi guys,
 
@@ -28,7 +28,7 @@ In the past few days, I was searching about non-general purpose register then I 
 
 These pieces of information might have some fault because of my misunderstandings about some of them, if you see any fault then please tell me in the comments!
 
-![x86-64's registers](../../assets/images/Intel.x86-64.Architecture.2012011000-page-001.jpg)
+![x86-64's registers](../../assets/images/intel-x86-64-registers.jpg)
 
 [You can also download the PDF version of the above picture here!](../../assets/files/Intel.x86-64.Architecture.2012011000.pdf)
 

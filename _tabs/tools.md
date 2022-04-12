@@ -10,7 +10,7 @@ HyperDbg debugger is an open-source, hypervisor-assisted user-mode, and kernel-m
 
 [https://hyperdbg.org](https://hyperdbg.org)
 
-![](../../assets/images/Artboard-2.png)
+![](../../assets/images/hyperdbg-cat-wallpaper.png)
 
 # **Windbg2IDA** Plugin
 

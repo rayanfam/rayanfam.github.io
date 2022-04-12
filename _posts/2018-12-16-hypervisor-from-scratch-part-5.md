@@ -17,13 +17,13 @@ tags:
   - "vmlaunch-0x7"
   - "vmlaunch-0x8"
   - "vmlaunch-error"
-coverImage: "../../assets/images/fifth-part.png"
+coverImage: "../../assets/images/hypervisor-from-scratch-part-5-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/fifth-part.png)
+![](../../assets/images/hypervisor-from-scratch-part-5-cover.png)
 
 # **Introduction**
 
@@ -70,7 +70,7 @@ Most of this topic derived from **Chapter 24 – (VIRTUAL MACHINE CONTROL STRUCT
 
 This part is highly inspired from [Hypervisor For Beginner](https://github.com/rohaaan/hypervisor-for-beginners) and some of methods are exactly like what implemented in that project.
 
-![](../../assets/images/animeeey.png)
+![](../../assets/images/anime-girl-in-city.png)
 
 # **VMX Instructions**
 
@@ -333,7 +333,7 @@ Now it's time to read some theories before configuring VMCS.
 
 In order to control our guest features, we have to set some fields in our VMCS. The following tables represent the Primary Processor-Based VM-Execution Controls and Secondary Processor-Based VM-Execution Controls.
 
-![Primary-Processor-Based-VM-Execution-Controls](../../assets/images/Primary-Processor-Based-VM-Execution-Controls.png)
+![Primary-Processor-Based-VM-Execution-Controls](../../assets/images/primary-processor-based-vm-execution-controls-fields.png)
 
 We define the above table like this:
 
@@ -361,7 +361,7 @@ We define the above table like this:
 
 In the earlier versions of VMX, there is nothing like Secondary Processor-Based VM-Execution Controls. Now if you want to use the secondary table you have to set the 31st bit of the first table otherwise it's like the secondary table field with zeros.
 
-![Secondary-Processor-Based-VM-Execution-Controls](../../assets/images/Secondary-Processor-Based-VM-Execution-Controls.png)
+![Secondary-Processor-Based-VM-Execution-Controls](../../assets/images/secondary-processor-based-vm-execution-controls-fields.png)
 
 The definition of the above table is this (we ignore some bits, you can define them if you want to use them in your hypervisor):
 
@@ -375,7 +375,7 @@ The definition of the above table is this (we ignore some bits, you can define t
 
 The VM-entry controls constitute a 32-bit vector that governs the basic operation of VM entries.
 
-![VM-Entry-Controls](../../assets/images/VM-Entry-Controls.png)
+![VM-Entry-Controls](../../assets/images/vm-entry-controls-fields.png)
 
 // VM-entry Control Bits 
 #define VM\_ENTRY\_IA32E\_MODE             0x00000200
@@ -387,7 +387,7 @@ The VM-entry controls constitute a 32-bit vector that governs the basic operatio
 
 The VM-exit controls constitute a 32-bit vector that governs the basic operation of VM exits.
 
-![VM-Exit-Controls](../../assets/images/VM-Exit-Controls.png)
+![VM-Exit-Controls](../../assets/images/vm-exit-controls-fields.png)
 
 // VM-exit Control Bits 
 #define VM\_EXIT\_IA32E\_MODE              0x00000200
@@ -399,7 +399,7 @@ The VM-exit controls constitute a 32-bit vector that governs the basic operation
 
 The pin-based VM-execution controls constitute a 32-bit vector that governs the handling of asynchronous events (for example: interrupts). We'll use it in the future parts, but for now let define it in our Hypervisor.
 
-![Pin-Based-VM-Execution-Controls](../../assets/images/Pin-Based-VM-Execution-Controls.png)
+![Pin-Based-VM-Execution-Controls](../../assets/images/pin-based-vm-execution-controls-fields.png)
 
 ```
 #define PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT        0x00000001
@@ -422,7 +422,7 @@ The following activity states are defined:
 
 • Interruptibility state (32 bits). The IA-32 architecture includes features that permit certain events to be blocked for a period of time. This field contains information about such blocking. Details and the format of this field are given in Table below.
 
-![Interruptibility-State](../../assets/images/Interruptibility-State.png)
+![Interruptibility-State](../../assets/images/VMCS-interruptibility-state.png)
 
 # **Configuring VMCS**
 
@@ -1286,7 +1286,7 @@ The sixth part is also available [here](https://rayanfam.com/topics/hypervisor-f
 
 That's it! Wasn't it easy ?!
 
-![:)](../../assets/images/anime.jpg)
+![:)](../../assets/images/anime-girls-drinking-tea.jpg)
 
 # **Conclusion**
 

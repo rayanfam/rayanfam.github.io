@@ -17,13 +17,13 @@ tags:
   - "page-management-in-windows"
   - "pfn"
   - "pfn-database"
-coverImage: "../../assets/images/chameleon.jpeg"
+coverImage: "../../assets/images/chameleon-2.jpeg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/chameleon.jpeg)
+![](../../assets/images/chameleon-2.jpeg)
 
 Hey there,
 
@@ -120,7 +120,7 @@ In our case, (2012000h/1000h) is equal to 2012, so our PFN Record Number is 2012
 
 There is also another command called **!pte** which gives your PFN Number too. Let's verify if we found the correct value.
 
-![PFN Record Number](../../assets/images/PFNRecord.png)
+![PFN Record Number](../../assets/images/pfn-record-windbg.png)
 
 Ok, **!pte** and our result are the same. Now let's find its record. First, you should get the **nt!\_MmPfn**'s size.
 
@@ -197,7 +197,7 @@ From the first line, you should understand how to change page attributes for you
 
 Let's see...
 
-![Convert page pfn to pte](../../assets/images/PteInPFN.png)
+![Convert page pfn to pte](../../assets/images/PTE-in-PFN.png)
 
 The Page Table Entry should be converted to binary to see its attributes. First I get the PTE Adress values and then convert it to binary format using **.formats**.
 
@@ -209,7 +209,7 @@ Note that I choose the first one because its **Physical-Page Base Address** is e
 
 The following image shows its bits position and meaning. (The last one is PTE.)
 
-![Paging Tables](../../assets/images/Paging.png)
+![Paging Tables](../../assets/images/regular-paging-structures.png)
 
 ## Windbg !vm extension
 

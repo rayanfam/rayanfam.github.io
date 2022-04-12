@@ -16,13 +16,13 @@ tags:
   - "virtualize-current-system"
   - "vmfunc"
   - "vmx-0-settings-and-1-settings"
-coverImage: "../../assets/images/Hypervisor-part6.png"
+coverImage: "../../assets/images/hypervisor-from-scratch-6-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/Hypervisor-part6.png)
+![](../../assets/images/hypervisor-from-scratch-6-cover.png)
 
 # **Introduction**
 
@@ -120,7 +120,7 @@ Although there are some exceptions, now, you should understand the purpose of **
 
 I really recommend seeing the result of **AdjustControls** specifically for **MSR\_IA32\_VMX\_PROCBASED\_CTLS** and **MSR\_IA32\_VMX\_PROCBASED\_CTLS2** as you might unintentionally set some of the bits to 1 so you should have a plan for handling some VM-Exits based on your specific processor.
 
-![](../../assets/images/anime-girl-wallpaper.jpg)
+![](../../assets/images/anime-girl-bloom.jpg)
 
 # **VMX-Fixed Bits in CR0 and CR4**
 
@@ -683,7 +683,7 @@ As you can see the following picture shows how Exit Qualifications can be interp
 
 Note that **EXIT\_QUALIFCATION** is somehow a general VMCS field that in some situations like VM-Exits caused by Invalid VMCS Layout, Control Register Modifications, I/O Bitmaps and other events gives an additional information about the reason of VM-Exit, this is an important part of managing VM-Exits.
 
-![](../../assets/images/CR-Access.png)
+![](../../assets/images/control-register-access.png)
 
 Now, as you can see from the above picture, let's make some variables to describe the situation based on **EXIT\_QUALIFICATION**.
 
@@ -1412,19 +1412,19 @@ Now it's time to test our hypervisor.
 
 First, we have to load our driver.
 
-![](../../assets/images/RunningHVFS1.png)
+![](../../assets/images/running-HVFS-1.png)
 
 Running Driver
 
 Then our **DriverEntry** is called, so we have to run our user-mode application to virtualize all the cores.
 
-![](../../assets/images/RunningHVFS2.png)
+![](../../assets/images/running-HVFS-2.png)
 
 Hypervisor From Scratch App
 
 You can see that if your press any key or close this window then you call **DrvClose** and restore the state **(VMXOF**F).
 
-![](../../assets/images/RunningHVFS3.png)
+![](../../assets/images/running-HVFS-3.png)
 
 Driver log
 
@@ -1434,25 +1434,25 @@ All the cores are now under hypervisor.
 
 Now let's test the presence of hypervisor, for this case, I used Immunity Debugger to execute CPUID with custom EAX. You can use any other debugger or any custom application.
 
-![](../../assets/images/CPUID_Handle1.png)
+![](../../assets/images/cpuid-handle-1.png)
 
 Setting 0x40000001 as RAX
 
 You have to manually set the EAX to **HYPERV\_CPUID\_INTERFACE** (**0x40000001**). Then execute **CPUID**.
 
-![](../../assets/images/CPUID_Handle2.png)
+![](../../assets/images/cpuid-handle-2.png)
 
 HVFS is in RAX
 
 As you can see **HVFS** (0x48564653) is on **EAX** so we successfully hooked the CPUID execution using our hypervisor.
 
-![](../../assets/images/CPUID_Handle3.png)
+![](../../assets/images/cpuid-handle-3.png)
 
 Test HYPERV\_CPUID\_INTERFACE without hypervisor
 
 Now you have to close the user-mode app window, so it execute VMXOFF on all cores, let's test the above example again.
 
-![](../../assets/images/CPUID_Handle4.png)
+![](../../assets/images/cpuid-handle-4.png)
 
 Test CPUID without hypervisor
 
@@ -1468,13 +1468,13 @@ In our **VirtualizeCurrentSystem** function, the following line is added.
 	SetMSRBitmap(0xc0000082, ProcessorID, TRUE, TRUE);
 ```
 
-![](../../assets/images/MSRBitmap1.png)
+![](../../assets/images/MSR-bitmap-1.png)
 
 Windbg Local Debugger (RDMSR & WRMSR)
 
 In the remote debugger system, you can see the result as follows,
 
-![](../../assets/images/MSRBitmap2.png)
+![](../../assets/images/MSR-bitmap-2.png)
 
 Remote Kernel Debugger RDMSR Execution Detected !
 
@@ -1482,7 +1482,7 @@ The execution of RDMSR is detected.
 
 That's it all folks.
 
-![](../../assets/images/anime-p6-1.jpg)
+![](../../assets/images/anime-girl-reading-book.jpg)
 
 # **Conclusion**
 

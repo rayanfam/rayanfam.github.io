@@ -17,13 +17,13 @@ tags:
   - "tutorial"
   - "udev"
   - "vfs"
-coverImage: "../../assets/images/filesystem_diagram.png"
+coverImage: "../../assets/images/filesystem-diagram.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
 
-![](../../assets/images/filesystem_diagram.png)
+![](../../assets/images/filesystem-diagram.png)
 
 I had windows 10 installed on my laptop because of serious incompatibility of ROG laptops with Linux and my desire to play some games after years of living in bash! This continued for a year and I really like windows 10 cool features like WSL and Hyper-V (with Docker!), however being in love with rolling-release distros and being fed up with windows in the past year. And the fact that I was yearning for terminal, I installed Solus OS earlier this week on a separate partition without removing windows.
 
@@ -273,7 +273,7 @@ UUID=f9fe0b69-a280-415d-a03a-a32752370dee none  swap   defaults       
 
 ## Modernizing mounting
 
-![](../../assets/images/systemd-featured.png)
+![](../../assets/images/systemd-image.png)
 
 In the early 2000s, the first attempt to cope with this was called HAL - Hardware Abstraction Layer, which did what it said on the tin, provided a layer between device nodes and the user of the nodes, so storage devices (and other hardware) can be added and removed without rebooting this system and without rewriting the /etc/fstab file.
 

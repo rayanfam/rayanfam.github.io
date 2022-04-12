@@ -11,13 +11,13 @@ tags:
   - "kernel-mode"
   - "vmware-and-windbg"
   - "vmware-debugging"
-coverImage: "../../assets/images/kernel-debugging-5-1024x467.png"
+coverImage: "../../assets/images/kernel-debugging-5.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/kernel-debugging-5-1024x467.png)
+![](../../assets/images/kernel-debugging-5.png)
 
 Hey there,
 
@@ -61,13 +61,13 @@ In Windbg go to File > Kernel Debug...
 
 Now go to COM tab and set your serial port name (From what you choose in VMWare.)
 
-![](../../assets/images/kernel-debugging-4-1024x536.png)
+![](../../assets/images/kernel-debugging-4.png)
 
 then click OK and restart the VMWare.
 
 After restarting Windows you should see something like this :
 
-![](../../assets/images/kernel-debugging-5-1024x467.png)
+![](../../assets/images/kernel-debugging-5.png)
 
 Then your're done ...
 

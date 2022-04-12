@@ -11,13 +11,13 @@ tags:
   - "config-bochs"
   - "install-bochs"
   - "install-windows-on-bochs"
-coverImage: "../../assets/images/bochs3.png"
+coverImage: "../../assets/images/bochs-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/bochs3.png)
+![](../../assets/images/bochs-cover.png)
 
 ## Introduction
 
@@ -31,7 +31,7 @@ From IBM :
 
 > Java technology implements just-in-time (JIT) compilation to work around some of the inefficiencies, similar to Transmeta and numerous other emulation solutions (including QEMU, another platform emulation solution similar to Bochs). But Bochs also achieves efficient emulation (up to 100 million instructions per second \[MIPS\] on a modern processor) while also being portable. Bochs was developed purely in the `C++` language for interpreted x86 instruction execution and platform emulation.
 
-![Bochs](../../assets/images/bochs.gif)
+![Bochs](../../assets/images/bochs-log.gif)
 
  
 
@@ -416,7 +416,7 @@ Select **continue and don't ask again** if a prompt comes to the screen then res
 
 If you see the following picture, then you're done.
 
-![final-bochs](../../assets/images/final-bochs.png)
+![final-bochs](../../assets/images/bochs-starting-windows.png)
 
 By now, you should've configured Bochs, Let's use more features of Bochs in the [next post](http://rayanfam.com/topics/bochs-emulator-debug-and-instrument/). ([Bochs Emulator - Debug & Instrument](http://rayanfam.com/topics/bochs-emulator-debug-and-instrument/)).
 

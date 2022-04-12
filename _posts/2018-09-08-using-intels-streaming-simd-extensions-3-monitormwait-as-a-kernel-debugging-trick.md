@@ -10,10 +10,10 @@ tags:
   - "intel-streaming-simd-extensions-3"
   - "intel-synchronization-agent"
   - "monitor-mwait-instructions"
-coverImage: "../../assets/images/Intel-Inside.jpg"
+coverImage: "../../assets/images/intel-inside-cover.jpg"
 ---
 
-![](../../assets/images/Intel-Inside.jpg)
+![](../../assets/images/intel-inside-cover.jpg)
 
 ## **Introduction**
 
@@ -106,7 +106,7 @@ A good answer in [StackOverflow](https://stackoverflow.com/questions/27087912/wr
 
 The equivalent of MWAIT and Monitor in other processors is MIPS'LL/Pause.
 
-![](../../assets/images/Anime-Girl-Computer-Animated-Wallpaper.jpg)
+![](../../assets/images/anime-girl-computer-animated.jpg)
 
 ## **References**
 

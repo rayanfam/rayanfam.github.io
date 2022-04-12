@@ -13,13 +13,13 @@ tags:
   - "run-intel-pin-tool"
   - "start-with-pin-tool"
   - "use-intel-pin"
-coverImage: "../../assets/images/pin-overview-1024x727.jpg"
+coverImage: "../../assets/images/pin-overview.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/pin-overview-1024x727.jpg)
+![](../../assets/images/pin-overview.jpg)
 
 As I promised previously in Pinitor’s topic, I prepare a post about how to build your first pin tool.
 
@@ -115,7 +115,7 @@ make.exe obj-intel64/inscount0.dll
 
 Note: If your tool source file is like “inscount0.cpp” then you should use be “inscount0.dll”, I mean its name should be same as source code except its extension which changes from .cpp to .dll.
 
-![](../../assets/images/build-pin-tool-1024x568.png)
+![](../../assets/images/build-pin-tool.png)
 
 Please note as I mentioned above you should change Environment Variable in the case of x64 and x86 version.
 
@@ -125,7 +125,7 @@ To run your pin tool you should run the following command.
 
 Pin –t \\source\\tools\\ManualExamples\\inscount0.dll – cmd.exe /c dir
 
-![](../../assets/images/build-pin-tool2-1024x568.png)
+![](../../assets/images/build-pin-tool-2.png)
 
 I just instrument cmd.exe using pin by inscount0.dll tool. I also pass the dir as an argument to cmd.exe.
 

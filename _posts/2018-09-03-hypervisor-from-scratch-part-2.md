@@ -14,13 +14,13 @@ tags:
   - "vmm-tutorials"
   - "vmx-implementation"
   - "vmx-tutorials"
-coverImage: "../../assets/images/Part2-Hypervisor.png"
+coverImage: "../../assets/images/hypervisor-from-scratch-2-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/Part2-Hypervisor.png)
+![](../../assets/images/hypervisor-from-scratch-2-cover.png)
 
 Hi guys,
 
@@ -141,7 +141,7 @@ NTSTATUS DrvClose(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
 
 Now let's see IRP MJ Functions list and other types of Windows Driver Kit handlers routine.
 
-![](../../assets/images/anime1.png)
+![](../../assets/images/anime-girl-white.png)
 
 ## **IRP Major Functions List**
 
@@ -301,13 +301,13 @@ Now just compile your driver.
 
 In order to load our driver (MyHypervisorDriver) first download OSR Driver Loader, then run Sysinternals DbgView as administrator make sure that your DbgView captures the kernel (you can check by going Capture -> Capture Kernel).
 
-![Enable Capturing Event](../../assets/images/CaptureKernel.png)
+![Enable Capturing Event](../../assets/images/capture-kernel.png)
 
 After that open the OSR Driver Loader (go to OsrLoader -> kit-> WNET -> AMD64 -> FRE) and open OSRLOADER.exe (in an x64 environment). Now if you built your driver, find .sys file (in MyHypervisorDriver\\x64\\Debug\\ should be a file named: "MyHypervisorDriver.sys"), in OSR Driver Loader click to browse and select (MyHypervisorDriver.sys) and then click to "Register Service" after the message box that shows your driver registered successfully, you should click on "Start Service".
 
 Please note that you should have [WDK](https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk) installed for your Visual Studio in order to be able building your project.
 
-![Load Driver in OSR Driver Loader](../../assets/images/osrdriverloader.png)
+![Load Driver in OSR Driver Loader](../../assets/images/osr-driver-loader-gui.png)
 
 Now come back to DbgView, then you should see that your driver loaded successfully and a message "**\[\*\] DriverEntry Called.** " should appear.
 
@@ -315,7 +315,7 @@ If there is no problem then you're good to go, otherwise, if you have a problem 
 
 Keep in mind that now you registered your driver so you can use **SysInternals WinObj** in order to see whether "**MyHypervisorDevice**" is available or not.
 
-![WinObj](../../assets/images/devices_winobg.png)
+![WinObj](../../assets/images/winobj-devices.png)
 
 ## **The Problem with DbgView**
 
@@ -352,13 +352,13 @@ Now change it value to 0xffffffff.
 
 lkd> eb fffff801\`f5211808 ff ff ff ff
 
-![kd_DEFAULT_Mask](../../assets/images/kd_DEFAULT_Mask.png)
+![kd_DEFAULT_Mask](../../assets/images/kd-DEFAULT-Mask.png)
 
 After that, you should see the results and now you'll good to go.
 
 Remember this is an essential step for the rest of the topic, because if we can't see any kernel detail then we can't debug.
 
-![DbgView](../../assets/images/DbgView.png)
+![DbgView](../../assets/images/osrdriverloader-dbgview.png)
 
 ## **Detecting Hypervisor Support**
 
@@ -465,7 +465,7 @@ int main()
 
 The final result:
 
-![User-mode app](../../assets/images/VMXDetection.png)
+![User-mode app](../../assets/images/vmx-detection.png)
 
 ## **Enabling VMX Operation**
 
@@ -531,7 +531,7 @@ At last, you should call the following function from the user-mode:
 
 If you see the following result, then you completed the second part successfully.
 
-![Final Show](../../assets/images/final-pic.png)
+![Final Show](../../assets/images/hypervisor-loaded.png)
 
 **Important Note:** Please consider that your .asm file should have a different name from your driver main file (.c file) for example if your driver file is "Source.c" then using the name "Source.asm" causes weird linking errors in Visual Studio, you should change the name of you .asm file to something like "SourceAsm.asm" to avoid these kinds of linker errors.
 
@@ -545,7 +545,7 @@ Note: Please keep in mind that hypervisors change during the time because new fe
 
 The third part is also available [here](https://rayanfam.com/topics/hypervisor-from-scratch-part-3/).
 
-![](../../assets/images/anime2.jpg)
+![](../../assets/images/aninme-girl-watching-monitor.jpg)
 
 ## References
 

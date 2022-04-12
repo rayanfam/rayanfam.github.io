@@ -13,13 +13,13 @@ tags:
   - "proxy"
   - "squid"
   - "squid3"
-coverImage: "../../assets/images/squid_proxy_logo.png"
+coverImage: "../../assets/images/squid-proxy-logo.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
 
-![](../../assets/images/squid_proxy_logo.png)
+![](../../assets/images/squid-proxy-logo.png)
 
 Hi everyone!
 

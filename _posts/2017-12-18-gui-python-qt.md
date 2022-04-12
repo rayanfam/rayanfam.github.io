@@ -16,13 +16,13 @@ tags:
   - "python"
   - "python3"
   - "qt"
-coverImage: "../../assets/images/Qt_logostrap_CMYK-1024x512.png"
+coverImage: "../../assets/images/Qt-logostrap-CMYK.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
 
-![](../../assets/images/Qt_logostrap_CMYK-1024x512.png)
+![](../../assets/images/Qt-logostrap-CMYK.png)
 
 Hi everyone, in this blog post I want to explain how to start developing desktop applications using Qt and Python. We will use PyQt5 module in order to connect Qt with Python. Qt was originally designed for use with C++ but it has many benefits which helped its growth and compability on all major desktop platforms (Windows, Linux, Mac OS). A link to a sample program I created is also given at the end of the post in order to help you understand the basics and maybe use it as a skeleton for your project.
 
@@ -30,11 +30,11 @@ First we start "Qt Designer" which helps us create a GUI for our application. Th
 
 We drag and drop two buttons and a text label into our main window. We will also give them meaningful names: "prev\_button" and "next\_button". "TextLabel" name seems fine for now.
 
-\[caption id="attachment\_358" align="alignnone" width="4536"\]![Qt Designer screenshot](../../assets/images/qt_designer_start-1024x548.png) Qt Designer\[/caption\]
+\[caption id="attachment\_358" align="alignnone" width="4536"\]![Qt Designer screenshot](../../assets/images/Qt-designer-start.png) Qt Designer\[/caption\]
 
 We can change item properties using the "property editor" on the right:
 
-\[caption id="attachment\_359" align="alignnone" width="1241"\]![Qt Designer Property Editor screenshot](../../assets/images/qt_property_editor-677x1024.png) Qt Designer Property Editor\[/caption\]
+\[caption id="attachment\_359" align="alignnone" width="1241"\]![Qt Designer Property Editor screenshot](../../assets/images/Qt-property-editor.png) Qt Designer Property Editor\[/caption\]
 
 In the panel under "Property Editor" you can also see the name "_Signal/Slot Editor_" which is an important functionality in Qt. but for now we won't cover this and only stick to the very basics.
 

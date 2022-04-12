@@ -15,13 +15,13 @@ tags:
   - "windows-callbacks"
   - "windows-internals-tutorial"
   - "windows-objects"
-coverImage: "../../assets/images/reversing-windows-internals-part-1-1.png"
+coverImage: "../../assets/images/reversing-windows-internals-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/reversing-windows-internals-part-1-1.png)
+![](../../assets/images/reversing-windows-internals-cover.png)
 
 ## **Introduction**
 
@@ -70,7 +70,7 @@ In this part, I'm gonna describe some internal structures and functions relating
 - **Conclusion**
 - **References**
 
-![Aniiiiiime :)](../../assets/images/winsec-anime1.jpg)
+![Aniiiiiime :)](../../assets/images/anime-girl-butterfly.jpg)
 
 ## **What is a Handle?**
 
@@ -92,7 +92,7 @@ handle windows\system
 
 This command shows every handle for each process in which their handle name contains "**windows\\system**". The name match is case-insensitive and the fragment specified can be anywhere in the paths you are interested in. You can imagine how this way can be used to find what process(es) are opening a specific file when you try to remove them.
 
-![Handles](../../assets/images/image.png)
+![Handles](../../assets/images/reversing-windows-internal-3.png)
 
 ## **Finding all the handles in User-mode**
 
@@ -100,11 +100,11 @@ One interesting thing in Windows is if you are in **Integrity Level >= Medium**,
 
 The PoC for this way is available on GitHub ([https://github.com/SinaKarvandi/Process-Magics/tree/master/EnumAllHandles](https://github.com/SinaKarvandi/Process-Magics/tree/master/EnumAllHandles)) and you can see the results from the following images.
 
-![Dumping all handles](../../assets/images/EnumAllHandles2.png)
+![Dumping all handles](../../assets/images/enum-all-handles-2.png)
 
 Now you can see all the handles even from other processes (like system process) with an unprivileged (non-elevated UAC) user.
 
-![All kernel handles and addresses](../../assets/images/EnumAllHandles1.png)
+![All kernel handles and addresses](../../assets/images/enum-all-handles-1.png)
 
 ## **Handles In Windows Kernel**
 
@@ -167,7 +167,7 @@ There is a command (**!handle**) in windbg which used to show the details about 
 
 The following picture describes the details of each field in **!handle**.
 
-![!handle windbg](../../assets/images/windbg_handle.png)
+![!handle windbg](../../assets/images/windbg-handle.png)
 
 ## **Changing Handles GrantedAccess**
 
@@ -301,7 +301,7 @@ After running driver, you have to see each handle request to processes or thread
 
 Finally, we'll get the following results :
 
-![Callback results](../../assets/images/obregistercallback_log.png)
+![Callback results](../../assets/images/ObRegisterCallback-log.png)
 
 # **Handle Creation Process**
 
@@ -398,17 +398,17 @@ char PreviousMode2);
 
 In **PsOpenProcess**, it first checks whether the handle pointer resides to valid user-mode address then it limits the user-mode handles to **0x1df2**. From the following picture, you can see this limitation on handles and their meanings.
 
-![IDA Decompiled Source](../../assets/images/image.png)
+![IDA Decompiled Source](../../assets/images/reversing-windows-internal-3.png)
 
 In the case of kernel **attributes**, it limits the handle to the following values.
 
-![IDA Decompiled Source](../../assets/images/PsOpenProcess-Attribute-kernell.png)
+![IDA Decompiled Source](../../assets/images/PsOpenProcess-attributes-kernel.png)
 
 As you can see, you don't have access to **OBJ\_KERNEL\_HANDLE** and **OBJ\_VALID\_ATTRIBUTES** in user-mode and also some undocumented values **0x11800** which is not revealed by Microsoft.
 
 In **PsOpenProcess**, the next check is for **SeDebugPrivilege**. As you might know, this is one of the powerful privileges in Windows that causes to bypass any Privilege checks and give the needed accesses directly. You might see it in tools like **Mimikatz**. It then passes it to the **SePrivilegedServiceAuditAlarm**. **SePrivilegedServiceAuditAlarm** is to be called whenever a privileged system service is attempted.
 
-![IDA Decompiled Source](../../assets/images/SeDebugPriv.png)
+![IDA Decompiled Source](../../assets/images/SeDebugPrivilege.png)
 
 Finally, **PsOpenProcess** calls **ObOpenObjectByPointer**.
 
@@ -518,7 +518,7 @@ From the above structure, you can see the cases where **ObpCreateHandle** might 
 
 If the handle is requested from kernel-mode then "**ObpKernelHandleTable**" is used as the handle table and if it's a user-mode application then it calls **ObReferenceProcessHandleTable**.
 
-![IDA Decompiled Source](../../assets/images/image-1.png)
+![IDA Decompiled Source](../../assets/images/reversing-windows-internal-1.png)
 
 The above function (**ObReferenceProcessHandleTable**), first checks whether it can acquire **RundownProtect** or not. When run-down protection is in effect, the driver can safely access the object without the risk that the object will be deleted before the access completes. You can imagine that if you use [ExAcquireRundownProtection](https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-exacquirerundownprotection) on this field (**RundownProtect**) then each attempt to create a handle by the special process will cause a **0xC000010A** error (_An attempt was made to access an exiting process._).
 
@@ -530,7 +530,7 @@ After that, **ObpCreateHandle** calls some undocumented Callbacks (**_SecurityPr
 
 Don't worry if things are not clear, after reading the last part (about **ObjectTypes**) you can return here and read it once again and sure you'll understand it.
 
-![IDA Decompiled Source](../../assets/images/image-2.png)
+![IDA Decompiled Source](../../assets/images/reversing-windows-internal-2.png)
 
 As you can see, these object type callbacks called for each object separately and it's not specific to a special object (e.g Process, Thread, or Desktop objects).
 
@@ -542,13 +542,13 @@ This limitation is done by the following check, which checks whether object type
 
 Later, we have a section called "**Finding Types which support callback**", it describes how to find these object types but keep in mind, if you set Support Callback bit of an object manually, then PatchGuard comes in and leads to a BSOD.
 
-![IDA Decompiled Source](../../assets/images/PreOperationCallbacksChecks.png)
+![IDA Decompiled Source](../../assets/images/PreOperationCallbacks-checks.png)
 
 In order to assign a handle, it first acquires a lock to _**HANDLE\_TABLE**.**HandleTableLock**_ and then search through **_HANDLE\_TABLE.FreeLists_**. If there isn't any empty place in our handle table (based on **NextHandleNeedingPool** index) then it tries to allocate a new handle table entry for the specified handle table using **ExpAllocateHandleTableEntrySlow**.
 
 Now, it's time to compute the handle's value.
 
-![IDA Decompiled Source](../../assets/images/ComputeHandle.png)
+![IDA Decompiled Source](../../assets/images/compute-handle.png)
 
 When the handle is computed, it calls **ExpSetHandleExtraInfo** which gets the **HandleTable** and **Handle** and sets the **\_HANDLE\_TABLE\_ENTRY\_INFO** to the handle entry.
 
@@ -577,7 +577,7 @@ This behavior will be changed in the future if Windows starts supporting **S**up
 
 The last step is calling **ObpPostInterceptHandleCreate** this function calls **ObpCallPostOperationCallbacks** and its responsible for calling Post Operation Callbacks.
 
-![Animmmeeeee :)](../../assets/images/anime-for-part1-wininternal.jpg)
+![Animmmeeeee :)](../../assets/images/anime-moon.jpg)
 
 # **ObjectTypes in Windows**
 
@@ -796,7 +796,7 @@ Take a look at the following slides from [**NTarakanov**](https://twitter.com/NT
 
 The reason why they XORed **TypeIndex** with **nt!ObHeaderCookie** is the fact that it's possible to modify the **nt!\_OBJECT\_HEADER.TypeIndex** of each object (for example in the case of a pool overflow), And then it would be possible to point to other **\_OBJECT\_TYPE**s like **ALPC\_OBJECT** and trigger this vulnerability (pool overflow) as it was possible to control the behavior of callbacks in these objects.
 
-![Pool over flow (DKOHM)](../../assets/images/DKOHM.png)
+![Pool over flow (DKOHM)](../../assets/images/object-data-corruption.png)
 
 The following picture is copied from [this post](https://medium.com/@ashabdalhalim/a-light-on-windows-10s-object-header-typeindex-value-e8f907e7073a) which describes how he understands it by reversing **nt!ObGetObjectType** , you can do the same thing and it works.
 
@@ -826,7 +826,7 @@ Now that we know what the object type is, it's time to dig deeper into Windows *
 
 The first and easiest way is using Windbg's "**!object \\ObjectTypes**" or using tools like [SysInternals' WinObj](https://docs.microsoft.com/en-us/sysinternals/downloads/winobj).
 
-![WinObj](../../assets/images/image.png)
+![WinObj](../../assets/images/reversing-windows-internal-3.png)
 
 Using windbg , you'll get the following results but the result of my tests shows that this command's results is not complete, that's why we need a third way to explore the kernel types. WinObj also won't show a complete result.
 
@@ -1335,7 +1335,7 @@ kd> dt nt!_OBJECT_TYPE 0xffffd689`fd0943b0+20+30 -y Name
 
 The result is not really surprising, previously [Alex](https://twitter.com/aionescu) and other friends told me that Windows 10 TH2 starts supporting "**ExDesktopOObjectType**".
 
-![OperationRegisteration](../../assets/images/OperationRegistration.png)
+![OperationRegisteration](../../assets/images/operation-registration-structure.png)
 
 There are also another important fields in **\_OBJECT\_TYPE\_INITIALIZER** for example you can find the **ValidAccessMask** for that object or find the related functions from **DumpProcedure**, **OpenProcedure**, **CloseProcedure**, **DeleteProcedure**, **ParseProcedure**, **ParseProcedureEx**, **SecurityProcedure**, **QueryNameProcedure**, and **OkayToCloseProcedure**. For example in process type we have the following functions (These are the callbacks that internally used by Microsoft and it's not revealed to drivers) :
 
@@ -1534,7 +1534,7 @@ Keep in mind that these modifications on callbacks are prohibited due to the pre
 
 Finally, the results are:
 
-![TypeInfoCallbacksHooker Driver](../../assets/images/TypeInfoCallbacksHooker.png)
+![TypeInfoCallbacksHooker Driver](../../assets/images/type-info-callbacks-hooks.png)
 
 ## **Conclusion**
 
@@ -1546,7 +1546,7 @@ I'm not actively working on these series but I'll try to post new parts as soon 
 
 That's it guys, hope you enjoy reading this post.
 
-![Aniiiime :D](../../assets/images/winsec-amine2.jpg)
+![Aniiiime :D](../../assets/images/anime-girl-night.jpg)
 
 # **References**
 

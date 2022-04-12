@@ -16,13 +16,13 @@ tags:
   - "intel-vtx-tutorial"
   - "using-cpu-virtualization"
   - "vmm-implementation"
-coverImage: "../../assets/images/hypervisor-p1.png"
+coverImage: "../../assets/images/hypervisor-from-scratch-1-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/hypervisor-p1.png)
+![](../../assets/images/hypervisor-from-scratch-1-cover.png)
 
 Hello everyone!
 
@@ -62,7 +62,7 @@ OSR Driver Loader which can be downloaded [here](https://www.osronline.com/arti
 
 [SysInternals DebugView](https://docs.microsoft.com/en-us/sysinternals/downloads/debugview) for printing the **DbgPrint()** results.
 
-![Chameleon](../../assets/images/chameleon-.jpg)
+![Chameleon](../../assets/images/chameleon-1.jpg)
 
 ## **Creating a Test Environment**
 
@@ -148,7 +148,7 @@ To do this, press and hold the shift key and restart your computer. You should s
 3. Click on **Restart**.
 4. On the Startup Settings screen press 7 or F7 to disable driver signature enforcement.
 
-![Disable DSE](../../assets/images/DSE.png)
+![Disable DSE](../../assets/images/driver-signature-enforcement-boot-menu.png)
 
 The latest thing I remember is enabling Windows Debugging messages through registry, in this way you can get **DbgPrint()** results through **SysInternals DebugView**.
 
@@ -170,7 +170,7 @@ Thas's ok, you can use Vmware's (or any other virtualization product) **nested v
 
 Then make sure to enable the following features in your VM.
 
-![VMWare Nested Virtualization](../../assets/images/nested-virtualization-vmware2.png)
+![VMWare Nested Virtualization](../../assets/images/nested-virtualization-vmware-2.png)
 
 And also, set your VM to BIOS instead of UEFI.
 
@@ -213,9 +213,9 @@ The VMCS consists of six logical groups:
 
 I found a great work which illustrates the VMCS, The PDF version is also available [here](../../assets/files/VMCS.pdf). 
 
-![VMCS](../../assets/images/VMCS-page-001-1.jpeg)
+![VMCS](../../assets/images/VMCS-page-layout-1.jpeg)
 
-![VMCS](../../assets/images/VMCS-page-002-1.jpg)
+![VMCS](../../assets/images/VMCS-page-layout-2.jpg)
 
 Don't worry about the fields, I'll explain most of them clearly in the later parts, just remember VMCS Structure varies between different version of a processor.
 

@@ -10,13 +10,13 @@ tags:
   - "debug-native-function"
   - "kernelmode-to-usermode"
   - "trace-functions-to-kernel"
-coverImage: "../../assets/images/usermode-to-kernelmode-1-1024x614.png"
+coverImage: "../../assets/images/usermode-to-kernelmode-1.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/usermode-to-kernelmode-1-1024x614.png)
+![](../../assets/images/usermode-to-kernelmode-1.png)
 
 There were times when I want to trace instructions from User Mode and continue tracing it into Kernel mode to reverse Windows's internal implementation with my own supplied parameters from User Mode but there were a big problem and that was, How to access User Mode when you are in a Kernel Debugger or vice versa.
 
@@ -36,13 +36,13 @@ To get process location then :
 
 .process /i AboveAddress
 
-![](../../assets/images/usermode-to-kernelmode-1-1024x614.png)
+![](../../assets/images/usermode-to-kernelmode-1.png)
 
 Which will notify you when the processor reaches to this process.
 
 Remember you can also view current process by simply calling !thread as shown below :
 
-![](../../assets/images/usermode-to-kernelmode-2-1024x615.png)
+![](../../assets/images/usermode-to-kernelmode-2.png)
 
 Next step is to let windbg continue and it will notify you whenever it reaches to the desired process, so press g.
 
@@ -58,7 +58,7 @@ And wait till all current modules symbol become loaded.
 
 After that you can see that user-mode modules loaded successfully and you get something like :
 
-![](../../assets/images/usermode-to-kernelmode-3-1024x615.png)
+![](../../assets/images/usermode-to-kernelmode-3.png)
 
 lm nt
 
@@ -70,7 +70,7 @@ Let's continue until the process calls the NtQuerySystemInformation ...
 
 The following picture shows how it performs :
 
-![](../../assets/images/usermode-to-kernelmode-4-1024x617.png)
+![](../../assets/images/usermode-to-kernelmode-4.png)
 
 Ok, everything is ready to step in or step out in windbg by the way you can't debug like that :(
 
@@ -80,7 +80,7 @@ This problem can be solved by disabling the breakpoint so every time the kernel 
 
 I always use bl in order to view and disable my breakpoints.
 
-![](../../assets/images/usermode-to-kernelmode-5-1024x614.png)
+![](../../assets/images/usermode-to-kernelmode-5.png)
 
 That is it!
 

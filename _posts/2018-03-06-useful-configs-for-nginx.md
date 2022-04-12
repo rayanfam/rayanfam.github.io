@@ -16,13 +16,13 @@ tags:
   - "php-fpm"
   - "proxy"
   - "webserver"
-coverImage: "../../assets/images/NGINX.png"
+coverImage: "../../assets/images/NGINX-logo.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
 
-![](../../assets/images/NGINX.png)
+![](../../assets/images/NGINX-logo.png)
 
 After posting the first of my _linux SysAdmin quick config sample series_ titled "Useful Configs for squid" (which you can read [here](https://rayanfam.com/topics/useful-config-squid3/)). I decided to write another post, this time about the powerful and popular web/cache server **NGINX**!
 

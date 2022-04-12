@@ -20,13 +20,13 @@ tags:
   - "vmx-operation"
   - "vmxon"
   - "vmxon-region"
-coverImage: "../../assets/images/hvfs-part3.png"
+coverImage: "../../assets/images/hypervisor-from-scratch-3-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/hvfs-part3.png)
+![](../../assets/images/hypervisor-from-scratch-3-cover.png)
 
 ## **Introduction**
 
@@ -198,7 +198,7 @@ There is an old, yet great topic [here](https://www.codeproject.com/Articles/957
 
 I think we're done with WDK basics, its time to see how we can use Windows in order to build our VMM.
 
-![](../../assets/images/Sad-Anime.jpg)
+![](../../assets/images/anime-girl-blue-moon.jpg)
 
 * * *
 
@@ -505,7 +505,7 @@ Now, our VMXON Region is ready and we're good to go.
 
 A logical processor uses virtual-machine control data structures (VMCSs) while it is in VMX operation. These manage transitions into and out of VMX non-root operation (VM entries and VM exits) as well as processor behavior in VMX non-root operation. This structure is manipulated by the new instructions VMCLEAR, VMPTRLD, VMREAD, and VMWRITE.
 
-![VMX Life cycle](../../assets/images/VMXLifecycle.png)
+![VMX Life cycle](../../assets/images/vmx-lifecycle.png)
 
 The above picture illustrates the lifecycle VMX operation on VMCS Region.
 
@@ -540,7 +540,7 @@ There are no other ways to modify the launch state of a VMCS (it cannot be modif
 
 The following picture illustrates the contents of a VMCS Region.
 
-![VMCS Region](../../assets/images/Init-VMCS.png)
+![VMCS Region](../../assets/images/init-VMCS-structure.png)
 
 The following code is responsible for allocating VMCS Region :
 
@@ -657,7 +657,7 @@ Ok, It's almost done!
 
 ## **Testing our VMM**
 
-![](../../assets/images/at_work_computer.jpg)
+![](../../assets/images/anime-girl-sitting.jpg)
 
 Let's create a test case for our code, first a function for Initiating VMXON and VMCS Regions through all logical processor.
 
@@ -734,11 +734,11 @@ NTSTATUS DrvClose(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
 
 Now, run the code, In the case of creating the handle (You can see that our regions allocated successfully).
 
-![VMX Regions](../../assets/images/VMXONandVMCS.png)
+![VMX Regions](../../assets/images/VMXON-and-VMCS.png)
 
 And when we call **CloseHandle** from user mode:
 
-![VMXOFF](../../assets/images/TerminateVMX.png)
+![VMXOFF](../../assets/images/terminate-vmx.png)
 
 ## **Source code**
 

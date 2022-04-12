@@ -14,13 +14,13 @@ tags:
   - "sysadmin"
   - "systemd"
   - "sysvinit"
-coverImage: "../../assets/images/Linux_kernel_unified_hierarchy_cgroups_and_systemd.png"
+coverImage: "../../assets/images/linux-kernel-unified-hierarchy-cgroups-and-systemd.png"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
 
-![](../../assets/images/Linux_kernel_unified_hierarchy_cgroups_and_systemd.png)
+![](../../assets/images/linux-kernel-unified-hierarchy-cgroups-and-systemd.png)
 
 Hi everyone
 
@@ -30,7 +30,7 @@ For example, by using systemd unit files you can completely get rid of using cro
 
  
 
-![systemd logo](../../assets/images/systemd_logo.gif)
+![systemd logo](../../assets/images/systemd-logo.gif)
 
 * * *
 

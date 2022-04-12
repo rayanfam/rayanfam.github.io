@@ -29,7 +29,7 @@ So I made this Asciinema for "chrooting bind 9 in debian 8" (systemd)
 
 \[click on it\]
 
-[![](../../assets/images/98472.png)](https://asciinema.org/a/98472)
+[![](../../assets/images/mknod-terminal.png)](https://asciinema.org/a/98472)
 
 Let me know of any inaccuracies or suggestions as usual :)
 

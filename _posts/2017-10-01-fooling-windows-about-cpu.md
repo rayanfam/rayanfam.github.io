@@ -9,13 +9,13 @@ tags:
   - "change-cpu"
   - "change-kernel"
   - "edit-windows-internals"
-coverImage: "../../assets/images/stupid-windows.jpg"
+coverImage: "../../assets/images/kids-watching-laptop.jpg"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/stupid-windows.jpg)
+![](../../assets/images/kids-watching-laptop.jpg)
 
 In this post, I'm gonna show you how you can fool windows about its internal structure and sometimes give it wrong information about its internal capabilities or internal information which can bring you a lot of fun. (At least for me !)
 
@@ -352,7 +352,7 @@ dq gs:\[0\]
 
 you can also use !pcr which gives you almost the same result :)
 
-![](../../assets/images/kpcr-1024x1009.png)
+![](../../assets/images/kpcr-structure.png)
 
 So, now we have where the \_KPCR is located and now we should simply use :
 
@@ -360,13 +360,13 @@ dt <Address> nt!\_KPCR
 
 And after finding the pcrb now we should use dt in order to map the result into the \_kpcrb structure.
 
-![](../../assets/images/kprcb-827x1024.png)
+![](../../assets/images/kprcb-structure.png)
 
  
 
 If you want to be sure that you are in a right place you can search for Vendor string as follows :
 
-![](../../assets/images/vendorstring-1024x977.png)
+![](../../assets/images/hypervisor-vendor-string.png)
 
  
 
@@ -374,7 +374,7 @@ It gives you kinds of hex which is equal to "GenuineIntel" and this is, of cours
 
  
 
-![](../../assets/images/vendorstringAscii-1024x903.png)
+![](../../assets/images/hypervisor-vendor-string-ascii.png)
 
  
 
@@ -382,7 +382,7 @@ After this, we know that we are in a right place so let see other fields in orde
 
 After studying this structure now I see something that is so familiar to me and that is "Mhz".
 
-![](../../assets/images/Mhz.png)
+![](../../assets/images/Mhz-field-in-windows.png)
 
  
 
@@ -390,13 +390,13 @@ Can you see my CPU's Mhz value ?!  Let me see my windows properties.
 
  
 
-![](../../assets/images/VMProperties-1024x607.png)
+![](../../assets/images/vm-properties-1.png)
 
  
 
 Ok, this is what we see previously, Doesn't it ?!
 
-![](../../assets/images/Calc-645x1024.png)
+![](../../assets/images/calc-hex-computation.png)
 
  
 
@@ -404,13 +404,13 @@ This value (2.71 GHz) exactly equals to 0xA98 so changing this value must be int
 
 I find this value and changing it to 0x10 which is equal to 16 in decimal.
 
-![](../../assets/images/MhzValue-1024x497.png)
+![](../../assets/images/processor-Mhz-value.png)
 
  
 
 So we modified the value from 0x98 to 0x10 and now we want to see if it takes effect in system information or not, so let's view system properties again.
 
-![](../../assets/images/VMProperties2-1024x614.png)
+![](../../assets/images/vm-properties-2.png)
 
  
 

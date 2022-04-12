@@ -11,17 +11,17 @@ tags:
   - "ipsec"
   - "network"
   - "tunnel"
-coverImage: "../../assets/images/gre-ipsec-tunnel-transport-2.gif"
+coverImage: "../../assets/images/gre-ipsec-tunnel-transport.gif"
 author:
   name: Shahriar
   link: https://github.com/Xcess
 ---
 
-![](../../assets/images/gre-ipsec-tunnel-transport-2.gif)
+![](../../assets/images/gre-ipsec-tunnel-transport.gif)
 
 # **Cisco GRE over IPSEC**
 
-\[caption id="" align="alignnone" width="626"\]![gre-ipsec-diagram](../../assets/images/Image-9-17-17-at-10.26.jpg) **gre/ipsec diagram**\[/caption\]
+\[caption id="" align="alignnone" width="626"\]![gre-ipsec-diagram](../../assets/images/gre-over-ipsec.jpg) **gre/ipsec diagram**\[/caption\]
 
 In the following is a sample configuration for GRE/IPSEC in Cisco IOS devices. you can tailor this to your needs (changing encryption algorithms, IP addresses etc), just remember to make sure they are the same on both sides (except for IP of course).
 

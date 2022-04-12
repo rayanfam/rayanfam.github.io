@@ -19,13 +19,13 @@ tags:
   - "windows-mmpfn-structure"
   - "windows-paging"
   - "zero-thread"
-coverImage: "../../assets/images/pfn-image.png"
+coverImage: "../../assets/images/pfn-1-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/pfn-image.png)
+![](../../assets/images/pfn-1-cover.png)
 
 ## Introduction (Page Frame Number)
 
@@ -51,7 +51,7 @@ The Page Frame Number consists of lists that describe the state of some pages, 
 
 A great picture derived from [here](https://flylib.com/books/en/4.491.1.69/1/) which shows how the PFN database lists are related to each other :
 
-![PFN](../../assets/images/pfn.gif)
+![PFN](../../assets/images/pfn-structure.gif)
 
 These lists are used to manage memory in "page faults" state in the way that everytime a "page fault" occurs, Windows tries to find an available page form, **Zero List**, if the list is empty then it gets one from **Freed List** and zeroes the page and use it, on the other hand, if the **Freed List** is also empty then it goes to the **Standby List** and zeroes that page.
 

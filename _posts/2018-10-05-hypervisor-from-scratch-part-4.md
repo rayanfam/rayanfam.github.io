@@ -22,13 +22,13 @@ tags:
   - "single-context"
   - "slat"
   - "stage-2-page-tables"
-coverImage: "../../assets/images/Hypervisor-Part4.png"
+coverImage: "../../assets/images/hypervisor-from-scratch-4-cover.png"
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
-![](../../assets/images/Hypervisor-Part4.png)
+![](../../assets/images/hypervisor-from-scratch-4-cover.png)
 
 Hello guys!
 
@@ -64,13 +64,13 @@ Shadow page tables are used by the hypervisor to keep track of the state of phys
 
 In this case, VMM maintains shadow page tables that map guest-virtual pages directly to machine pages and any guest modifications to V->P tables synced to VMM V->M shadow page tables.
 
-![](../../assets/images/Shadow-page-table-1.png)
+![](../../assets/images/shadow-page-tables-1.png)
 
 By the way, using Shadow Page Table is not recommended today as always lead to VMM traps (which result in a vast amount of VM-Exits) and losses the performance due to the TLB flush on every switch and another caveat is that there is a memory overhead due to shadow copying of guest page tables.
 
 # **Hardware-assisted paging (Extended Page Table)**
 
-![Nothing Special :)](../../assets/images/anime-girl4-2.jpg)
+![Nothing Special :)](../../assets/images/anime-girl-designing.jpg)
 
 To reduce the complexity of Shadow Page Tables and avoiding the excessive vm-exits and reducing the number of TLB flushes, EPT, a hardware-assisted paging strategy implemented to increase the performance.
 
@@ -114,7 +114,7 @@ SPT:
 
 If you want to see whether your system supports EPT on Intel processor or NPT on AMD processor without using assembly (CPUID), you can download **coreinfo.exe** from Sysinternals, then run it. The last line will show you if your processor supports EPT or NPT.
 
-![](../../assets/images/support-ept.png)
+![](../../assets/images/EPT-support.png)
 
 # **EPT Translation**
 
@@ -132,13 +132,13 @@ Just think about the above sentence one more time!
 
 So your target physical address should be divided into 4 part, the first 9 bits points to EPT PML4E (note that PML4 base address is in EPTP), the second 9 bits point the EPT PDPT Entry (the base address of PDPT comes from EPT PML4E), the third 9 bits point to EPT PD Entry (the base address of PD comes from EPT PDPTE) and the last 9 bit of the guest physical address point to an entry in EPT PT table (the base address of PT comes form EPT PDE) and now the EPT PT Entry points to the host physical address of the corresponding page.
 
-![EPT Translation](../../assets/images/ept-translation.png)
+![EPT Translation](../../assets/images/EPT-translations.png)
 
 You might ask, as a simple Virtual to Physical Address translation involves accessing 4 physical address, so what happens ?! 
 
 The answer is the processor internally translates all tables physical address one by one, that's why paging and accessing memory in a guest software is slower than regular address translation. The following picture illustrates the operations for a Guest Virtual Address to Host Physical Address.
 
-![](../../assets/images/Full-Translation.png)
+![](../../assets/images/EPT-full-translation.png)
 
 If you want to think about x86 EPT virtualization,  assume, for example, that CR4.PAE = CR4.PSE = 0. The translation of a **32-bit** linear address then operates as follows:
 
@@ -156,7 +156,7 @@ Keep in mind that address **never** translates through EPT, when there is no acc
 
 Now that we know some basics, let's implement what we've learned before. Based on Intel manual we should write (VMWRITE) EPTP or Extended-Page-Table Pointer to the VMCS. The EPTP structure described below.
 
-![Extended-Page-Table Pointer](../../assets/images/EPTP.png)
+![Extended-Page-Table Pointer](../../assets/images/EPTP-structure.png)
 
 The above tables can be described using the following structure :
 
@@ -177,7 +177,7 @@ Each entry in all EPT tables is 64 bit long. EPT PML4E and EPT PDPTE and EPT PD 
 
 An EPT entry is something like this :
 
-![EPT Entries](../../assets/images/ept-entries.png)
+![EPT Entries](../../assets/images/EPT-entries.png)
 
 Ok, Now we should implement tables and the first table is PML4. The following table shows the format of an EPT PML4 Entry (PML4E).
 
@@ -451,7 +451,7 @@ All the above page tables should be aligned to 4KByte boundaries but as long as 
 
 Our implementation consist of 4 tables, therefore, the full layout is like this:
 
-![EPT Layout](../../assets/images/EPT-Layout.png)
+![EPT Layout](../../assets/images/EPT-layout.png)
 
 # **Accessed and Dirty Flags in EPTP**
 
@@ -472,7 +472,7 @@ addresses. None of the modern OSs use this feature yet.
 
 PML5 is also applying to both EPT and regular paging mechanism.
 
-![](../../assets/images/pml5e.png)
+![](../../assets/images/PML5E-structure.png)
 
 Translation begins by identifying a 4-KByte naturally aligned EPT PML5 table. It is located at the physical address specified in bits 51:12 of EPTP. An EPT PML5 table comprises 512 64-bit entries (EPT PML5Es). An EPT PML5E is selected using the physical address defined as follows.
 
@@ -498,7 +498,7 @@ Have a good time!
 
 # 
 
-![Animeeeeeeee ](../../assets/images/anime-girl4.jpg)
+![Animeeeeeeee ](../../assets/images/anime-girl-playing.jpg)
 
 # References
 
