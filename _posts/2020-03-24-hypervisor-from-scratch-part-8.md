@@ -3336,7 +3336,7 @@ Now, we create a log that shows a breakpoint that happened in **GUEST\_RIP** the
 
 To see the result as a gif, click the link below.
 
-[View Example as a .gif (EventInjectAndExceptionBitmap.gif)](../../assets/files/event-inject-and-exception-bitmap.gif)
+[View Example as a .gif (event-inject-and-exception-bitmap.gif)](../../assets/images/event-inject-and-exception-bitmap.gif)
 
 ![Event Injection & Exception Bitmap Example](../../assets/images/event-inject-and-exception-bitmap.png)
 
@@ -3376,7 +3376,7 @@ VOID HiddenHooksTest()
 
 To see the result as a gif, click the link below.
 
-[View Example as a .gif (HiddenHookExampleReadWrite.gif)](../../assets/files/hidden-hook-example-read-write.gif)
+[View Example as a .gif (hidden-hook-example-read-write.gif)](../../assets/images/hidden-hook-example-read-write.gif)
 
 ![Hidden Hooks (Read/Write)](../../assets/images/hidden-hook-example-read-write.png)
 
@@ -3424,7 +3424,7 @@ The hook is applied ! you can also try to use (**u nt!ExAllocatePoolWithTag**) a
 
 To see the result as a gif, click the link below.
 
-[View Example as a .gif (HiddenHookExampleExec.gif)](../../assets/files/hidden-hook-example-exec.gif)
+[View Example as a .gif (hidden-hook-example-exec.gif)](../../assets/images/hidden-hook-example-exec.gif)
 
 ![Hidden Hooks (Exec)](../../assets/images/hidden-hook-example-exec.png)
 
@@ -3526,7 +3526,7 @@ NTSTATUS NtCreateFileHook(
 
 To see the result as a gif, click the link below.
 
-[View Example as a .gif (SyscallHookExample.gif)](../../assets/files/syscall-hook-example-1.gif)
+[View Example as a .gif (syscall-hook-example-1.gif)](../../assets/images/syscall-hook-example-1.gif)
 
 ![Syscall Hook](../../assets/images/syscall-hook-example-2.png)
 
