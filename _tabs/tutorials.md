@@ -5,6 +5,8 @@ coverImage: "tuts2-2.jpg"
 order: 2
 ---
 
+![](../../assets/images/tuts2-2.jpg)
+
 > # Hypervisor From Scratch
 > 
 > - [Hypervisor From Scratch – Part 1: Basic Concepts & Configure Testing Environment](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/)
