@@ -18,6 +18,7 @@ tags:
   - "real-access-rights"
   - "xrefs-ida-python"
 coverImage: "../../assets/images/access-rights-cover.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86
