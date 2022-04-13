@@ -99,7 +99,7 @@ Enter-PSSession –Computername
 
 # specifying credentials be like:
 
-Enter-PSSession –Computername "WINSRV2" –Credential "LAB\\administrator"
+Enter-PSSession –Computername "WINSRV2" –Credential "LAB\administrator"
 ```
 
 or if you want to run a command of multiple machines in parallel:

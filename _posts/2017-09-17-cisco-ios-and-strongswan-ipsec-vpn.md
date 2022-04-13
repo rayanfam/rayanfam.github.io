@@ -32,7 +32,7 @@ Cisco IOS configuration is very similar to [previous post.](/topics/gre-over-ip
 
 Here are the configuration files:
 
-### **IOS Configuration:**
+## IOS Configuration
 
 ```
  crypto isakmp policy 1
@@ -81,7 +81,7 @@ route outside 192.168.6.0 255.255.255.0 20.0.0.2
 access-list 105 permit ip 192.168.5.0 0.0.0.255 192.168.6.0 0.0.0.255
 ```
 
-### **StrongSWAN configuration:**
+## StrongSWAN configuration
 
 **_/etc/ipsec.conf_**
 
@@ -100,7 +100,7 @@ conn site2site
            keyexchange=ikev1
            pfs=no
            auto=start
-           remote\_peer\_type=cisco
+           remote_peer_type=cisco
 ```
 
 **_/etc/ipsec.secret_**
@@ -112,7 +112,7 @@ conn site2site
 **_/etc/sysctl.conf_**
 
 ```
-ip\_forward=1 (uncomment)
+ip_forward=1 (uncomment)
 
 # sysctl -p (run command)
 ```

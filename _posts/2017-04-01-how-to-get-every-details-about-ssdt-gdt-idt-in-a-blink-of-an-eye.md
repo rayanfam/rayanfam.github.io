@@ -35,7 +35,7 @@ nt!NtMapUserPhysicalPagesScatter:
 fffff800‘013728b0 488bc4 mov rax,rsp
 lkd> u dwo(nt!KiServiceTable+4)+nt!KiServiceTable L1
 nt!NtWaitForSingleObject:
-fffff800‘012b83a0 4c89442418 mov \[rsp+0x18\],r8
+fffff800‘012b83a0 4c89442418 mov [rsp+0x18],r8
 ```
 
 Which wasn't what I really wants to, but can somehow help cause as I read in one of the articles about Patchguard bypassing,

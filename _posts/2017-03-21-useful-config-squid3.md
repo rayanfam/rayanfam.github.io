@@ -60,13 +60,13 @@ _Note that using forward proxy compared to transparent proxying has better perfo
 **Caching forward proxy with basic file authentication:**
 
 ```
-http\_port 3128
-cache\_dir ufs /var/spool/squid3 100 16 256
-auth\_param basic program /usr/lib/squid3/basic\_ncsa\_auth
+http_port 3128
+cache_dir ufs /var/spool/squid3 100 16 256
+auth_param basic program /usr/lib/squid3/basic_ncsa_auth
 /etc/squid3/passwords
-auth\_param basic realm proxy
-acl authenticated proxy\_auth REQUIRED
-http\_access allow authenticated
+auth_param basic realm proxy
+acl authenticated proxy_auth REQUIRED
+http_access allow authenticated
 ```
 
 _Authentication is not available with transparent proxy (obviously...duh)_
@@ -76,13 +76,13 @@ _Authentication is not available with transparent proxy (obviously...duh)_
 **Caching forward proxy with LDAP authentication:**
 
 ```
-http\_port 3128
-cache\_dir ufs /var/spool/squid3 100 16 256
-auth\_param basic program /usr/lib/squid3/basic\_ldap\_auth -v 3 -b
+http_port 3128
+cache_dir ufs /var/spool/squid3 100 16 256
+auth_param basic program /usr/lib/squid3/basic_ldap_auth -v 3 -b
 "dc=rio,dc=local" -f uid=%s 192.168.100.10
-auth\_param basic realm proxy
-acl authenticated proxy\_auth REQUIRED
-http\_access allow authenticated
+auth_param basic realm proxy
+acl authenticated proxy_auth REQUIRED
+http_access allow authenticated
 ```
 
 _This LDAP config can't be used with Active Directory. That's because unlike openldap (default config), AD DS doesn't allow a user to bind to its ldap database without presenting a valid user (Binding DN). If you want to use this config with AD DS or a securely and properly configured OpenLDAP, you should specify the binding DN in the auth\_param line using "-D" for more info visit [Official Squid Guide on ActiveDirectory](http://wiki.squid-cache.org/ConfigExamples/Authenticate/WindowsActiveDirectory) (which has way more than necessary info and may be a little confusing, just use the syntax from the last part of the guide, I hope it works!)_
@@ -92,13 +92,13 @@ _This LDAP config can't be used with Active Directory. That's because unlike ope
 **Caching forward proxy with PAM authentication:**
 
 ```
-http\_port 3128
-cache\_dir ufs /var/spool/squid3 100 16 256
-auth\_param basic program /usr/lib/squid3/basic\_pam\_auth
-auth\_param basic realm proxy
-acl authenticated proxy\_auth REQUIRED
-http\_access allow authenticated
-shutdown\_lifetime 3
+http_port 3128
+cache_dir ufs /var/spool/squid3 100 16 256
+auth_param basic program /usr/lib/squid3/basic_pam_auth
+auth_param basic realm proxy
+acl authenticated proxy_auth REQUIRED
+http_access allow authenticated
+shutdown_lifetime 3
 ```
 
 _Basically for authentication with local linux users..._
@@ -108,27 +108,27 @@ _Basically for authentication with local linux users..._
 **Caching forward proxy with RADIUS authentication:**
 
 ```
-http\_port 3128
-cache\_dir ufs /var/spool/squid3 100 16 256
-auth\_param basic program /usr/lib/squid3/basic\_radius\_auth -f
+http_port 3128
+cache_dir ufs /var/spool/squid3 100 16 256
+auth_param basic program /usr/lib/squid3/basic_radius_auth -f
 /etc/squid3/radius-cred
-auth\_param basic realm proxy
-acl authenticated proxy\_auth REQUIRED
-http\_access allow authenticated
+auth_param basic realm proxy
+acl authenticated proxy_auth REQUIRED
+http_access allow authenticated
 ```
 
 **Caching forward proxy with domain filtering and PAM authentication:**
 
 ```
-http\_port 3128
+http_port 3128
 acl toblock dstdomain .block.rio.local
-cache\_dir ufs /var/spool/squid3 100 16 256
-auth\_param basic program /usr/lib/squid3/basic\_pam\_auth
-auth\_param basic realm proxy
-acl authenticated proxy\_auth REQUIRED
-http\_access deny toblock
-http\_access allow authenticated
-shutdown\_lifetime 3
+cache_dir ufs /var/spool/squid3 100 16 256
+auth_param basic program /usr/lib/squid3/basic_pam_auth
+auth_param basic realm proxy
+acl authenticated proxy_auth REQUIRED
+http_access deny toblock
+http_access allow authenticated
+shutdown_lifetime 3
 ```
 
 _You can use all types of access-list in Squid. Which allows for really flexible and powerful access control for your users._

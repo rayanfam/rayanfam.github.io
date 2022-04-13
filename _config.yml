@@ -21,12 +21,12 @@ timezone:
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: Sina & Shahriar's Blog          # the main title
+title: Rayanfam Blog          # the main title
 
 tagline: An aggressive out-of-order, superscalar blog...   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
-  Sina & Shahriar's blog writing about Windows Internals, Hypervisors, Linux, and Networks.
+  We write about Windows Internals, Hypervisors, Linux, and Networks.
 
 # fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
 url: ''
@@ -40,7 +40,7 @@ twitter:
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
-  name: Sina & Shahriar's Blog
+  name: Rayanfam Blog
   email: sina@rayanfam.com              # change to your email address
   links:
     # The first element serves as the copyright owner's link

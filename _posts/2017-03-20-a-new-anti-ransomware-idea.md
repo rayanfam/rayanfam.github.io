@@ -21,7 +21,7 @@ In the last few days, I was asked to give a new idea for creating an anti ransom
 
 The Full Source Code Is Available at : [https://github.com/SinaKarvandi/Redemption-Anti-Ransomware/](https://github.com/SinaKarvandi/Redemption-Anti-Ransomware/)
 
-**Introduction**
+## Introduction
 
 In the raise of computers in this century and as they largely used in transferring and storing sensitive data, Ransomware is a big danger which can compromise everything in a blink of an eye and causes huge loss of data or money,
 
@@ -33,7 +33,7 @@ This kind of malware is dependent on Cryptography functions and I/O activities a
 
 The bad thing is that there is no permanent method to avoid such a malware (and it seems never be) because of billions of I/O activities that take place asynchronously in a system but being innovative can give security researchers an opportunity to evacuate a vast amount of ransomware and make it really hard and sometimes nearly impossible for bad guys to reach to their target, but as mentioned before there are many sophisticated way that could circumvent and bypass this protections. In the following article , we will show you our method of controlling ransomware which is a combination of previously invented methods and new methods to improve the detection and dismissing ransomware.
 
-**Assumption**
+## Assumption
 
 We build our new method based on this assumptions:
 
@@ -61,13 +61,13 @@ We make more than 450 formats of extensions (that could be developed by users ea
 
 The extensions that we audit by default is listed below.
 
-**Audit Extension**
+## Audit Extension
 
 .yuv, .ycbcra, .xis, .x3f, .x11, .wpd, .tex, .sxg, .stx, .st8, .st5, .srw, .srf, .sr2, .sqlitedb, .sqlite3, .sqlite, .sdf, .sda, .sd0, .s3db, .rwz, .rwl, .rdb, .rat, .raf, .qby, .qbx, .qbw, .qbr, .qba, .py, .psafe3, .plc, .plus\_muhd, .pdd, .p7c, .p7b, .oth, .orf, .odm, .odf, .nyf, .nxl, .nx2, .nwb, .ns4, .ns3, .ns2, .nrw, .nop, .nk2, .nef, .ndd, .myd, .mrw, .moneywell, .mny, .mmw, .mfw, .mef, .mdc, .lua, .kpdx, .kdc, .kdbx, .kc2, .jpe, .incpas, .iiq, .ibz, .ibank, .hbk, .gry, .grey, .gray, .fhd, .fh, .ffd, .exf, .erf, .erbsql, .eml, .dxg, .drf, .dng, .dgc, .des, .der, .ddrw, .ddoc, .dcs, .dc2, .db\_journal, .csl, .csh, .crw, .craw, .cib, .ce2, .ce1, .cdrw, .cdr6, .cdr5, .cdr4, .cdr3, .bpw, .bgt, .bdb, .bay, .bank, .backupdb, .backup, .back, .awg, .apj, .ait, .agdl, .ads, .adb, .acr, .ach, .accdt, .accdr, .accde, .ab4, .3pr, .3fr, .vmxf, .vmsd, .vhdx, .vhd, .vbox, .stm, .st7, .rvt, .qcow, .qed, .pif, .pdb, .pab, .ost, .ogg, .nvram, .ndf, .m4p, .m2ts, .log, .hpp, .hdd, .groups, .flvv, .edb, .dit, .dat, .cmt, .bin, .aiff, .xlk, .wad, .tlg, .st6, .st4, .say, .sas7bdat, .qbm, .qbb, .ptx, .pfx, .pef, .pat, .oil, .odc, .nsh, .nsg, .nsf, .nsd, .nd, .mos, .indd, .iif, .fpx, .fff, .fdb, .dtd, .design, .ddd, .dcr, .dac, .cr2, .cdx, .cdf, .blend, .bkp, .al, .adp, .act, .xlr, .xlam, .xla, .wps, .tga, .rw2, .r3d, .pspimage, .ps, .pct, .pcd, .m4v, .fxg, .flac, .eps, .dxb, .drw, .dot, .db3, .cpi, .cls, .cdr, .arw, .ai, .aac, .thm, .srt, .save, .safe, .rm, .pwm, .pages, .obj, .mlb, .md, .mbx, .lit, .laccdb, .kwm, .idx, .html, .flf, .dxf, .dwg, .dds, .csv, .css, .config, .cfg, .cer, .asx, .aspx, .aoi, .accdb, .7zip, .1cd, .xls, .wab, .rtf, .prf, .ppt, .oab, .msg, .mapimail, .jnt, .doc, .dbx, .contact, .n64, .m4a, .m4u, .m3u, .mid, .wma, .flv, .3g2, .mkv, .3gp, .mp4, .mov, .avi, .asf, .mpeg, .vob, .mpg, .wmv, .fla, .swf, .wav, .mp3, .qcow2, .vdi, .vmdk, .vmx, .wallet, .upk, .sav, .re4, .ltx, .litesql, .litemod, .lbf, .iwi, .forge, .das, .d3dbsp, .bsa, .bik, .asset, .apk, .gpg, .aes, .ARC, .PAQ, .tar.bz2, .tbk, .bak, .tar, .tgz, .gz, .7z, .rar, .zip, .djv, .djvu, .svg, .bmp, .png, .gif, .raw, .cgm, .jpeg, .jpg, .tif, .tiff, .NEF, .psd, .cmd, .bat, .sh, .class, .jar, .java, .rb, .asp, .cs, .brd, .sch, .dch, .dip, .pl, .vbs, .vb, .js, .asm, .pas, .cpp, .php, .ldf, .mdf, .ibd, .MYI, .MYD, .frm, .odb, .dbf, .db, .mdb, .sql, .SQLITEDB, .SQLITE3, .011, .010, .009, .008, .007, .006, .005, .004, .003, .002, .001, .pst, .onetoc2, .asc, .lay6, .lay, .ms11 (Security copy), .ms11, .sldm, .sldx, .ppsm, .ppsx, .ppam, .docb, .mml, .sxm, .otg, .odg, .uop, .potx, .potm, .pptx, .pptm, .std, .sxd, .pot, .pps, .sti, .sxi, .otp, .odp, .wb2, .123, .wks, .wk1, .xltx, .xltm, .xlsx, .xlsm, .xlsb, .slk, .xlw, .xlt, .xlm, .xlc, .dif, .stc, .sxc, .ots, .ods, .hwp, .602, .dotm, .dotx, .docm, .docx, .DOT, .3dm, .max, .3ds, .xml, .txt, .CSV, .uot, .RTF, .pdf, .XLS, .PPT, .stw, .sxw, .ott, .odt, .DOC, .pem, .p12, .csr, .crt, .key
 
 Please note that the users can add their own extensions on the above list.
 
-**Implementation**
+## Implementation
 
 In a non-technical point of view, we create honeypots all over the computer and scan for interested files in directories to make a Critical Zone Table (CZT).
 
@@ -91,7 +91,7 @@ The approach of Honeypot methodology is to Suspend and Kill then delete every pr
 
 Even this method can be bypassed but it’s still a good and precise way for detecting ransomware, because there is no reason for any process to modify the files that doesn’t interfere with them and you can be more than one hundred percent sure that it wants to do something evil.
 
-**Technical Preview**
+## Technical Preview
 
 Even the best method for implementing this approach is to write a customized file system driver but the lack of signing causes us to bring another solution.
 
@@ -99,29 +99,29 @@ We use FileSystemWatcher which is .Net Framework library to detect any modificat
 
 When anything detected no one can give us any hint that what process was responsible for that change then we use NtSystemInfo which use Windows API NTQuerySystemInformation for searching and enumerating handles form all available Windows Processes then if we find anything, inject our customized function to that process but if not detected anything then continue listening for a while and if it continues without detection the CMF flag is disappeared and shows that no process wants to change any other file in CMF.
 
-**Modification Kinds**
+## Modification Kinds
 
 In this methodology we just enumerate delete and modify as a harmful alert for Watchdog.
 
 Delete is always an alert but in the case of modification we simply compare the result before and after the modification and backup from files which has a large amount of modified content, this achieved by using SimMetric Libraries by implementing Byte similarities by Jaro–Winkler distance and Smith-Waterman string similarity algorithms and the average of this two algorithms gives us a number which 50% or more modification rings an alert for backup but less than this number is ignored.
 
-**Benefits**
+## Benefits
 
 The best benefit for this method is it can make all process continue their cycles without any error.
 
 False Positive result will cause users to disable their anti ransomware but the main idea behind this anti ransomware is to allow system work properly even it is infected with ransomware or with applications which are for good purpose but act like ransomware or have ransomware behavior which is common.
 
-**Conclusion**
+## Conclusion
 
 The method described above is a good way to prevent the majority of ransomware attacks but even there are lots of circumstances but it could prevent all massive changes in hard drive which is main idea of ransomware and it could defuse all general and massive encrypt purpose ransomware and make a real-time backup and let process continue without any false positive result that can be a reason to Denial of Service by some anti ransomware.
 
-**Resources**
+## Resources
 
 ReadFile: [https://msdn.microsoft.com/en-us/library/windows/desktop/aa365467(v=vs.85).aspx](https://msdn.microsoft.com/en-us/library/windows/desktop/aa365467(v=vs.85).aspx) WriteFile: [https://msdn.microsoft.com/en-us/library/windows/desktop/aa365747(v=vs.85).aspx](https://msdn.microsoft.com/en-us/library/windows/desktop/aa365747(v=vs.85).aspx) Import Address Table: [https://en.wikipedia.org/wiki/Portable\_Executable#Import\_Table](https://en.wikipedia.org/wiki/Portable_Executable#Import_Table) Similarity Test: [https://asecuritysite.com/forensics/simstring](https://asecuritysite.com/forensics/simstring) Jaro-Winkler: [https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler\_distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance) Waternan: [https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman\_algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm)
 
  
 
-### **Some Pictures from the UI of this Anti Ransomware :**
+## Some Pictures from the UI
 
 ![](../../assets/images/anti-ransomware-1.png)
 

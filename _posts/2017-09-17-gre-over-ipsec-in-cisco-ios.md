@@ -32,7 +32,6 @@ The best guide for learning how IPSec works: [http://nvlpubs.nist.gov/nistpubs/
 ```
 R1(config)# interface Tunnel0
 R1(config-if)# ip address 172.16.0.1 255.255.255.0
-_##better performance when packets not fragmeted##_
 R1(config-if)# ip mtu 1400
 R1(config-if)# ip tcp adjust-mss 1360
 R1(config-if)# tunnel source 1.1.1.10

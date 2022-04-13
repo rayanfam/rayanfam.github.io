@@ -32,4 +32,4 @@ These steps are run in a fresh debian wheezy (7) installation:
 
 LDAP authentication can be used with a lot of services like Apache web authentication, FreeRADIUS, Cisco network devices, etc. which we will go over one by one in future posts.
 
-any comments are appreciated as always.
+Any comments are appreciated as always.
