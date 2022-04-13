@@ -46,27 +46,28 @@ So it boils down to this:
 
 * * *
 
-## Implementation on OpenWRT:
+# Implementation on OpenWRT
 
 I will explain the steps necessary for detection in OpenWRT, using iptables and uhttpd, the default webserver on OpenWRT.
 
-### IPTables:
+## IPTables
 
 This is really easy. Here are the rules:
 
+```
 #start iptables for captive portal
 
-```
+
 /usr/sbin/iptables -t filter -I FORWARD 1 --protocol tcp --sport 53 --jump ACCEPT
 /usr/sbin/iptables -t filter -I FORWARD 1 --protocol udp --sport 53 --jump ACCEPT
 /usr/sbin/iptables -t filter -I FORWARD 1 --protocol tcp --dport 53 --jump ACCEPT
 /usr/sbin/iptables -t filter -I FORWARD 1 --protocol udp --dport 53 --jump ACCEPT
 /usr/sbin/iptables -t filter -I FORWARD 5 -j DROP
-/usr/sbin/iptables -t nat -A prerouting\_lan\_rule --protocol tcp --dport 80 --jump DNAT --to-destination $(uci get network.lan.ipaddr):80
-```
+/usr/sbin/iptables -t nat -A prerouting_lan_rule --protocol tcp --dport 80 --jump DNAT --to-destination $(uci get network.lan.ipaddr):80
 
 #the line above does this, but you don't need to specify the ip manually
-#/usr/sbin/iptables -t nat -A prerouting\_lan\_rule --protocol tcp --dport 80 --jump DNAT --to-destination 192.168.100.1:80
+#/usr/sbin/iptables -t nat -A prerouting_lan_rule --protocol tcp --dport 80 --jump DNAT --to-destination 192.168.100.1:80
+```
 
 1. The first four rules accept all packets with source or destination port of 53 (domain name system)
 2. The 5th rule denies all other connections
@@ -76,7 +77,7 @@ This is really easy. Here are the rules:
 - It is a very good idea to rate limit DNS packets per ip using **hashlimit** iptables module, As this setup has no defense against **DNS tunnels** and covert channels, effectively bypassing all restrictions.
 - There sure are better ways to do this (such as only allowing outbound dport 53 and permitting established connections back, etc), but this guide focuses only on captive portal detection.
 
-### HTTP Redirect:
+## HTTP Redirect
 
 _The webserver is only needed for redirect, so it can be a separate light webserver running on another port too (like 8000), you change DNAT port in iptables only. So this can be a very basic webserver._
 
@@ -86,11 +87,11 @@ You should change **/e_tc__/uhttpd/redir.json_** _like this:_
 
 ```
 {
-	"fallback": \[
-		\[ "if", \[ "regex", "REQUEST\_URI", \[ "/\*" \] \],
-			\[ "rewrite", "/" \]
-		\]
-	\]
+	"fallback": [
+		[ "if", [ "regex", "REQUEST_URI", [ "/*" ] ],
+			[ "rewrite", "/" ]
+		]
+	]
 }
 ```
 

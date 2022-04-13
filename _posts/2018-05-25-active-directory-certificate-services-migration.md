@@ -72,11 +72,16 @@ _This method was used to migrate a Windows server 2003 AD CS installation to Wi
 ![Backup CA on ADCS](../../assets/images/backup-ca-01.jpg)
     
      
-2. Export the following registry key: ****HKLM\\System\\CurrentControlSet\\Services\\CertSvc\\Configuration****
+2. Export the following registry key: 
+
+```
+HKLM\System\CurrentControlSet\Services\CertSvc\Configuration
+```
+
 3. you can use this command : 
 
 ```
-reg export “HKLM\\System\\CurrentControlSet\\Services\\CertSvc\\Configuration” c:\\cabackupregistry.reg /y
+reg export "HKLM\System\CurrentControlSet\Services\CertSvc\Configuration" c:\cabackupregistry.reg /y
 ```
 
 4. Remove AD CS Role from the original server (Windows Server 2003 here)

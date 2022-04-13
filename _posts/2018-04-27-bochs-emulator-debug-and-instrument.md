@@ -328,7 +328,7 @@ The best reference for describing the above functions is Instrument.txt which ex
  
  These callback functions are a feedback from various system devices.
  
-### Known problems:
+### Known problems
  
  1\. BX\_INSTR\_LIN\_ACCESS doesn't work when repeat-speedups feature is enabled.
  
