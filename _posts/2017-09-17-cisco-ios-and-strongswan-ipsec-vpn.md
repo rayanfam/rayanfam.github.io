@@ -13,7 +13,7 @@ tags:
   - "linux"
   - "opensource"
   - "openswan"
-  - "strongswan
+  - "strongswan"
   - "tunnel"
   - "vpn"
 coverImage: "../../assets/images/strongswan-vpn.png"
