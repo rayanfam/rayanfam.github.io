@@ -23,15 +23,19 @@ It causes me to explore the solutions about far jumps and far calls but actually
 
 One of the solutions was to put the final address in the stack, then use ret in order to change xip (rip or eip).
 
+```
 push 0xdeadbeef
 ret
+```
 
 It is somehow a good solution, its fast and is really recommended, but the thing is I don’t want to change the stack state either! Even one of my friends told me that changing the above addresses of the stack doesn’t affect a regular compiler’s flow but I think it might be better, not to modify stack because I want to publish its source and it might cause the problem in abnormal programs in future.
 
 And of course another solution was using registers like :
 
+```
 mov %eax,0xdeadbeef
 jmp %eax
+```
 
 It’s clear that it causes nasty problems because the rest of program flow don’t know about %eax changes so it uses a wrong value and we can’t do any further modification.
 
@@ -39,15 +43,20 @@ It’s clear that it causes nasty problems because the rest of program flow don�
 
 I solved the above problem by using the following code, in at&t syntax (in x86):
 
+```
 jmp \*0f(%eip)
 0: .int 0x12345678
+```
 
 The above instruction, jumps to 0x12345678 in x86 and you can see the result of compiling and disassembling it :
 
+```
 Sinas-MBP:Desktop sina$ clang -c aa.asm -m32
+```
 
 And to Dissemble it using objdump use the following format :
 
+```
 Sinas-MBP:Desktop sina$ objdump -d aa.o
 
 aa.o: file format Mach-O 32-bit i386
@@ -57,16 +66,22 @@ Disassembly of section \_\_TEXT,\_\_text:
 0: ff 25 00 00 00 00 jmpl \*0
 6: 78 56 js 86 <\_\_text+0x5E>
 8: 34 12 xorb $18, %al
+```
 
 In the case of x64 version of above code you can use the rip instead of eip and change the int to quad because you need more space for x64 addressing.
 
+```
 jmp \*0f(%rip)
 0: .quad 0x1234567890
+```
 
+```
 Sinas-MBP:Desktop sina$ clang -c aa.asm
+```
 
 To Dissemble it using objdump use the following format :
 
+```
 Sinas-MBP:Desktop sina$ objdump -d aa.o
 
 aa.o: file format Mach-O 64-bit x86-64
@@ -79,6 +94,7 @@ Disassembly of section \_\_TEXT,\_\_text:
 9: 34 12 xorb $18, %al
 b: 00 00 addb %al, (%rax)
 d: 00 
+```
 
 The above code jumps to 0x1234567890.
 
@@ -90,11 +106,13 @@ So how can we solve this ?
 
 Simply, use relative conditional jumps with a combination of above jmp, so that the conditional jump can do what it expects to base on the flags and then it can decide to jump over an instruction (in our case jump to a far address) or can perform the above jmp.
 
-\# for jz addr
+```
+# for jz addr
 jnz 1f
-jmp \*0f(%rip)
+jmp *0f(%rip)
 0: .quad addr
 1:
+```
 
 ## Final Thoughts
 

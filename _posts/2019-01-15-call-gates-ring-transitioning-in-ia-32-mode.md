@@ -270,7 +270,6 @@ void CreateCallGateStruct(int address , int gdtr , int GDTIndex) {
 
 ![](../../assets/images/break-handler.png)
 
-Finding A Handler in Kernel
 
 Let's execute the above code and see the results.
 
@@ -306,7 +305,6 @@ eq 80b5b000+(0x8*0x64) ffff8176ec000008fffffcd4
 
 ![](../../assets/images/call-gate-structure.png)
 
-Windbg Structure Generator
 
 If you look more precisely at the above code, you can see that, the last part is the definition of **callGate** array. This array chooses GDT index which your call-gate descriptor is located.
 
@@ -326,8 +324,6 @@ We select 320 (10100'0'000), RPL (000) TI (0 because our descriptor is on GDT, n
 The last part is executing our FAR CALL. After the execution of this call we will be in our dispatcher address with Kernel Privilege Level. By now you should be aware of how to go to other rings (e.g ring 1,2) by modifying the above structures and the selectors.
 
 ![](../../assets/images/usermode-far-call.png)
-
-CALL to Another Ring
 
 The last thing is you should handle this situation and finally return to the previous rings using **lret.**
 

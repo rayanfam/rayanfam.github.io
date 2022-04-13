@@ -74,6 +74,7 @@ There is a good article [here](https://resources.infosecinstitute.com/writing-a-
 
 The whole driver is this :
 
+```
 #include <ntddk.h>
 #include <wdf.h>
 #include <wdm.h>
@@ -81,44 +82,45 @@ The whole driver is this :
 extern void inline AssemblyFunc1(void);
 extern void inline AssemblyFunc2(void);
 
-VOID DrvUnload(PDRIVER\_OBJECT  DriverObject);
-NTSTATUS DriverEntry(PDRIVER\_OBJECT  pDriverObject, PUNICODE\_STRING  pRegistryPath);
+VOID DrvUnload(PDRIVER_OBJECT  DriverObject);
+NTSTATUS DriverEntry(PDRIVER_OBJECT  pDriverObject, PUNICODE_STRING  pRegistryPath);
 
-#pragma alloc\_text(INIT, DriverEntry)
-#pragma alloc\_text(PAGE, Example\_Unload)
+#pragma alloc_text(INIT, DriverEntry)
+#pragma alloc_text(PAGE, Example_Unload)
 
-NTSTATUS DriverEntry(PDRIVER\_OBJECT  pDriverObject, PUNICODE\_STRING  pRegistryPath)
+NTSTATUS DriverEntry(PDRIVER_OBJECT  pDriverObject, PUNICODE_STRING  pRegistryPath)
 {
-	NTSTATUS NtStatus = STATUS\_SUCCESS;
+	NTSTATUS NtStatus = STATUS_SUCCESS;
 	UINT64 uiIndex = 0;
-	PDEVICE\_OBJECT pDeviceObject = NULL;
-	UNICODE\_STRING usDriverName, usDosDeviceName;
+	PDEVICE_OBJECT pDeviceObject = NULL;
+	UNICODE_STRING usDriverName, usDosDeviceName;
 
 	DbgPrint("DriverEntry Called.");
 
 	RtlInitUnicodeString(&usDriverName, L"\\Device\\MyHypervisor");
 	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\MyHypervisor");
 
-	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE\_DEVICE\_UNKNOWN, FILE\_DEVICE\_SECURE\_OPEN, FALSE, &pDeviceObject);
+	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &pDeviceObject);
 
-	if (NtStatus == STATUS\_SUCCESS)
+	if (NtStatus == STATUS_SUCCESS)
 	{
 		pDriverObject->DriverUnload = DrvUnload;
-		pDeviceObject->Flags |= IO\_TYPE\_DEVICE;
-		pDeviceObject->Flags &= (~DO\_DEVICE\_INITIALIZING);
+		pDeviceObject->Flags |= IO_TYPE_DEVICE;
+		pDeviceObject->Flags &= (~DO_DEVICE_INITIALIZING);
 		IoCreateSymbolicLink(&usDosDeviceName, &usDriverName);
 	}
 	return NtStatus;
 }
 
-VOID DrvUnload(PDRIVER\_OBJECT  DriverObject)
+VOID DrvUnload(PDRIVER_OBJECT  DriverObject)
 {
-	UNICODE\_STRING usDosDeviceName;
+	UNICODE_STRING usDosDeviceName;
 	DbgPrint("DrvUnload Called rn");
 	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\MyHypervisor");
 	IoDeleteSymbolicLink(&usDosDeviceName);
 	IoDeleteDevice(DriverObject->DeviceObject);
 }
+```
 
 **AssemblyFunc1** and **AssemblyFunc2** are two external functions that defined as inline x64 assembly code.
 
@@ -126,18 +128,20 @@ Our driver needs to register a device so that we can communicate with our virtua
 
 The following code is responsible for creating a new device :
 
+```
 	RtlInitUnicodeString(&usDriverName, L"\\Device\\MyHypervisor");
 	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\MyHypervisor");
 
-	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE\_DEVICE\_UNKNOWN, FILE\_DEVICE\_SECURE\_OPEN, FALSE, &pDeviceObject);
+	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &pDeviceObject);
 
-	if (NtStatus == STATUS\_SUCCESS)
+	if (NtStatus == STATUS_SUCCESS)
 	{
 		pDriverObject->DriverUnload = DrvUnload;
-		pDeviceObject->Flags |= IO\_TYPE\_DEVICE;
-		pDeviceObject->Flags &= (~DO\_DEVICE\_INITIALIZING);
+		pDeviceObject->Flags |= IO_TYPE_DEVICE;
+		pDeviceObject->Flags &= (~DO_DEVICE_INITIALIZING);
 		IoCreateSymbolicLink(&usDosDeviceName, &usDriverName);
 	}
+```
 
 If you use Windows, then you should disable Driver Signature Enforcement to load your driver, that's because Microsoft prevents any not verified code to run in Windows Kernel (Ring 0).
 
@@ -223,136 +227,23 @@ Don't worry about the fields, I'll explain most of them clearly in the later par
 
 VMX introduces the following new instructions.
 
-| 
-Intel Mnemonic
 
+| Intel Mnemonic |                     Description                    |
+|:--------------:|:--------------------------------------------------:|
+| INVEPT         | Invalidate Translations Derived from EPT           |
+| INVVPID        | Invalidate Translations Based on VPID              |
+| VMCALL         | Call to VM Monitor                                 |
+| VMCLEAR        | Clear Virtual-Machine Control Structure            |
+| VMFUNC         | Invoke VM function                                 |
+| VMLAUNCH       | Launch Virtual Machine                             |
+| VMRESUME       | Resume Virtual Machine                             |
+| VMPTRLD        | Load Pointer to Virtual-Machine Control Structure  |
+| VMPTRST        | Store Pointer to Virtual-Machine Control Structure |
+| VMREAD         | Read Field from Virtual-Machine Control Structure  |
+| VMWRITE        | Write Field to Virtual-Machine Control Structure   |
+| VMXOFF         | Leave VMX Operation                                |
+| VMXON          | Enter VMX Operation                                |
 
-
- | 
-
-Description
-
-
-
- |
-| --- | --- |
-| 
-
-INVEPT
-
- | 
-
-Invalidate Translations Derived from EPT
-
- |
-| 
-
-INVVPID
-
- | 
-
-Invalidate Translations Based on VPID
-
- |
-| 
-
-VMCALL
-
- | 
-
-Call to VM Monitor
-
- |
-| 
-
-VMCLEAR
-
- | 
-
-Clear Virtual-Machine Control Structure
-
- |
-| 
-
-VMFUNC
-
- | 
-
-Invoke VM function
-
- |
-| 
-
-VMLAUNCH
-
- | 
-
-Launch Virtual Machine
-
- |
-| 
-
-VMRESUME
-
- | 
-
-Resume Virtual Machine
-
- |
-| 
-
-VMPTRLD
-
- | 
-
-Load Pointer to Virtual-Machine Control Structure
-
- |
-| 
-
-VMPTRST
-
- | 
-
-Store Pointer to Virtual-Machine Control Structure
-
- |
-| 
-
-VMREAD
-
- | 
-
-Read Field from Virtual-Machine Control Structure
-
- |
-| 
-
-VMWRITE
-
- | 
-
-Write Field to Virtual-Machine Control Structure
-
- |
-| 
-
-VMXOFF
-
- | 
-
-Leave VMX Operation
-
- |
-| 
-
-VMXON
-
- | 
-
-Enter VMX Operation
-
- |
 
 ### **Life Cycle of VMM Software**
 

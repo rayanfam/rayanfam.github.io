@@ -39,14 +39,19 @@ For actually being able to read/write into a device, you should mount it first. 
 
 in order to mount a volume you should invoke the mount command. First, you will create a directory (should be empty)
 
-\# mkdir /mnt/mydata
+```
+# mkdir /mnt/mydata
+```
 
 Then you mount the volume to that:
 
-\# mount /dev/sda1 /mnt/mydata
+```
+# mount /dev/sda1 /mnt/mydata
+```
 
 To see all mounted volumes and their options you can use **mount** command or **findmnt** (both are provided by util-linux and are available in all distros):
 
+```
 $ findmnt
 
 TARGET                                SOURCE                 FSTYPE          OPTIONS
@@ -91,7 +96,9 @@ TARGET                                SOURCE  �
 ├─/snap/chromium/412                  /dev/loop4             squashfs        ro,nodev,relatime
 ├─/snap/core/5328                     /dev/loop3             squashfs        ro,nodev,relatime
 └─/snap/telegram-desktop/270          /dev/loop5             squashfs        ro,nodev,relatime
+```
 
+```
 $ mount
 sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
 proc on /proc type proc (rw,nosuid,noexec,relatime)
@@ -133,39 +140,52 @@ tmpfs on /run/snapd/ns type tmpfs (rw,nosuid,nodev,mode=755)
 nsfs on /run/snapd/ns/chromium.mnt type nsfs (rw)
 none on /dev/shm type tmpfs (rw,relatime)
 /dev/sda2 on /run/media/shahriar/Data type fuseblk (rw,nosuid,nodev,relatime,user\_id=0,group\_id=0,default\_permissions,allow\_other,blksize=4096,uhelper=udisks2)
+```
 
 For unmounting the device you should use **umount**:
 
 _either the device containing the file system or the mount point can be specified._
 
-\# umount /dev/sda1
+
+```
+# umount /dev/sda1
 
 # umount /mnt/mydata
+```
 
 ## A word about permissions
 
 All device files created in /dev are only accessible to root. Therefore in a general sense, **only root can mount stuff**. This is very important and you need to keep that in mind. If a filesystem has Linux permission support (linux native filesystems like ext2, ext3, ext4, btrfs, xfs, etc), they are leveraged and files on the drive are treated like other files in your linux system. But some filesystems like FAT derivatives (FAT32, exFAT, etc) are not capable of storing permission information. So by default they become only available too root unless you specify some options at mount time to allow other users. consider this example:
 
+```
 replace xxx with uid/gid of user
 
 # mount -t vfat /dev/sda6 /media/FAT32 -o rw,uid=xxx,gid=xxx
+```
 
 also this neat one-liner which mounts them accessible to your user:
 
+```
 $ sudo mount -t vfat /dev/sda6 /media/FAT32 -o rw,uid=$(id -u),gid=$(id -g)
+```
 
 or all users…
 
-\# mount -t vfat  /dev/sda6 /media/FAT32 -o rw,umask=0000
+```
+# mount -t vfat  /dev/sda6 /media/FAT32 -o rw,umask=0000
+```
 
 ## Filesystems
 
 A filesystem controls how data is stored and retrieved. usually necessary options and filesystem are detected by the mount command, but you can specify them manually like this:
 
-\# mount -t ntfs /dev/sda1 /mnt/mydata
+```
+# mount -t ntfs /dev/sda1 /mnt/mydata
+```
 
 _You can view all filesystems supported by your **kernel** by reading this file:_
 
+```
 $ cat /proc/filesystems
 
 nodev  sysfs
@@ -200,6 +220,7 @@ nodev  mqueue
 nodev  fuse
 nodev  fusectl
 nodev  overlay
+```
 
 The first column signifies whether the file system is mounted on a block device. Those beginning with **nodev** are not mounted on a device. The second column lists the names of the file systems supported.
 
@@ -207,6 +228,7 @@ _The mount command cycles through the file systems listed here when one is not s
 
 To see existing filesystems on drives use lsblk command like this:
 
+```
 $ lsblk -f
 
 NAME   FSTYPE   LABEL    UUID                                 MOUNTPOINT
@@ -227,6 +249,7 @@ sdb                                      �
 ├─sdb3                                                       
 └─sdb4 ntfs              560A18780A1856F9                    
 sr0                                                           
+```
 
 (loop devices are apparently being used by snapd. I will write about it in another article, it's very cool!)
 
@@ -250,17 +273,20 @@ The mount command will use fstab, if just one of either directory or device is g
 
 All specified devices within /etc/fstab will be automatically mounted on startup and when the **\-a** flag is used with mount, unless the **noauto** option is specified. Devices that are listed and not present will result in an error unless the **nofail** option is used.
 
+```
 $ cat /etc/fstab
 
 # <device>             <dir>         <type>    <options>             <dump> <fsck>
 /dev/sda1              /             ext4      noatime               0      1
 /dev/sda2              none          swap      defaults              0      0
 /dev/sda3              /home         ext4      noatime               0      2
+```
 
 It is very recommended to use UUID or other unique identifiers instead of relying on kernel name descriptors (sda1, sdb2, …) as **they may change after reboot**!
 
 _UUID is the preferred method. You can find out the UUID with **lsblk -f**_ 
 
+```
 $ cat /etc/fstab
 
 # <device>                                <dir> <type> <options>                                                                                            <dump> <fsck>
@@ -268,7 +294,7 @@ UUID=CBB6-24F2                            /boot vfat�
 UUID=0a3407de-014b-458b-b5c1-848e92a327a3 /     ext4   defaults                                                                                             0      1
 UUID=b411dc99-f0a0-4c87-9e05-184977be8539 /home ext4   defaults                                                                                             0      2
 UUID=f9fe0b69-a280-415d-a03a-a32752370dee none  swap   defaults                                                                                             0      0
-
+```
 * * *
 
 ## Modernizing mounting
@@ -296,6 +322,7 @@ _We will cover the use of **udisksctl** for basic mounting/unmounting in this po
 
  To see a list of disks attached to the system (serial numbers are replaced):
 
+```
 $ udisksctl status
 
 MODEL                     REVISION  SERIAL               DEVICE
@@ -303,19 +330,26 @@ MODEL                     REVISION  SERIAL        �
 Samsung SSD 860 EVO 500GB XXXXXXX  XXXXXXXXXXX      sda    
 SanDisk SD8S   XXXXXXX  XXXXXXXXXXX         sdb    
 SlimtypeDVD A    XXXXXXX      XXXXXXXXXXX sr0    
+```
 
 To see detailed info about disk:
 
+```
 $ udiskctl dump
 <output not shown due to length>
+```
 
 To actually mount a filesystem using this new tool:
 
+```
 udisksctl mount -b /dev/sdb1
+```
 
 And then to unmount:
 
+```
 udisksctl unmount -b /dev/sdb1
+```
 
 ### systemd mount units
 
@@ -325,11 +359,13 @@ Adding entries in fstab is no longer the main way to mount a device at startup. 
 
 Example systemd .mount file:
 
-\[Mount\]
+```
+[Mount]
 What=/dev/disk/by-uuid/9269aa88-3a31-4299-bbb1-4e528a89d222
 Where=/mnt/mydata
 Type=ext4
 Options=defaults
+```
 
 **_Important:_** _Mount units must be named after the mount point directories they control._
 
@@ -337,28 +373,35 @@ _Example: the mount point /home/lennart must be configured in a unit file home-l
 
 So we create a file like this:
 
-\# vim /etc/systemd/system/mnt-mydata.mount
+```
+# vim /etc/systemd/system/mnt-mydata.mount
 
-\[Unit\]
+[Unit]
 Description=Mount Some of my files to empty mydata dir
 
-\[Mount\]
+[Mount]
 What=/dev/disk/by-uuid/9269aa88-3a31-4299-bbb1-4e528a89d222
 Where=/mnt/mydata
 Type=ext4
 Options=defaults
+```
 
 Of course you should signal systemd to load the unit file after you’re done editing:
 
-\# systemctl daemon-reload
+```
+# systemctl daemon-reload
 # systemctl start mnt-mydata.mount
+```
 
 You can view state of the mount like other units:
 
-\# systemctl status mnt-mydata.mount
+```
+# systemctl status mnt-mydata.mount
+```
 
 **_Important:_** _If you want it to be mounted on each boot, you should also include an \[Install\] section in the unit file__:_
 
+```
 \[Unit\]
 Description=Mount Some of my files to empty mydata dir
 
@@ -370,10 +413,13 @@ Options=defaults
  
 \[Install\]
 WantedBy=multi-user.target
+```
 
- And the enable the unit to be started at boot:
+And the enable the unit to be started at boot:
 
-\# systemctl enable mnt-backups.mount
+```
+# systemctl enable mnt-backups.mount
+```
 
 * * *
 

@@ -160,8 +160,9 @@ Now that we know some basics, let's implement what we've learned before. Based o
 
 The above tables can be described using the following structure :
 
+```
 // See Table 24-8. Format of Extended-Page-Table Pointer
-typedef union \_EPTP {
+typedef union _EPTP {
 	ULONG64 All;
 	struct {
 		UINT64 MemoryType : 3; // bit 2:0 (0 = Uncacheable (UC) - 6 = Write - back(WB))
@@ -171,7 +172,8 @@ typedef union \_EPTP {
 		UINT64 PML4Address : 36;
 		UINT64 Reserved2 : 16;
 	}Fields;
-}EPTP, \*PEPTP;
+}EPTP, *PEPTP;
+```
 
 Each entry in all EPT tables is 64 bit long. EPT PML4E and EPT PDPTE and EPT PD are the same but EPT PTE has some minor differences.
 
@@ -185,8 +187,9 @@ Ok, Now we should implement tables and the first table is PML4. The following ta
 
 PML4E can be a structure like this :
 
+```
 // See Table 28-1. 
-typedef union \_EPT\_PML4E {
+typedef union _EPT_PML4E {
 	ULONG64 All;
 	struct {
 		UINT64 Read : 1; // bit 0
@@ -201,7 +204,8 @@ typedef union \_EPT\_PML4E {
 		UINT64 Reserved2 : 4; // bit 51:N
 		UINT64 Ignored3 : 12; // bit 63:52
 	}Fields;
-}EPT\_PML4E, \*PEPT\_PML4E;
+}EPT_PML4E, *PEPT_PML4E;
+```
 
 As long as we want to have a 4-level paging, the second table is EPT Page-Directory-Pointer-Table (PDTP), the following picture illustrates the format of PDPTE :
 
@@ -209,8 +213,9 @@ As long as we want to have a 4-level paging, the second table is EPT Page-Direct
 
 PDPTE's structure is like this :
 
+```
 // See Table 28-3
-typedef union \_EPT\_PDPTE {
+typedef union _EPT_PDPTE {
 	ULONG64 All;
 	struct {
 		UINT64 Read : 1; // bit 0
@@ -225,7 +230,8 @@ typedef union \_EPT\_PDPTE {
 		UINT64 Reserved2 : 4; // bit 51:N
 		UINT64 Ignored3 : 12; // bit 63:52
 	}Fields;
-}EPT\_PDPTE, \*PEPT\_PDPTE;
+}EPT_PDPTE, *PEPT_PDPTE;
+```
 
 For the third table of paging we should implement an EPT Page-Directory Entry (PDE) as described below:
 
@@ -233,8 +239,9 @@ For the third table of paging we should implement an EPT Page-Directory Entry (P
 
 PDE's structure:
 
+```
 // See Table 28-5
-typedef union \_EPT\_PDE {
+typedef union _EPT_PDE {
 	ULONG64 All;
 	struct {
 		UINT64 Read : 1; // bit 0
@@ -249,7 +256,8 @@ typedef union \_EPT\_PDE {
 		UINT64 Reserved2 : 4; // bit 51:N
 		UINT64 Ignored3 : 12; // bit 63:52
 	}Fields;
-}EPT\_PDE, \*PEPT\_PDE;
+}EPT_PDE, *PEPT_PDE;
+```
 
 The last page is EPT which is described below.
 
@@ -259,8 +267,9 @@ PTE will be :
 
 Note that you have, EPTMemoryType, IgnorePAT, DirtyFlag and SuppressVE in addition to the above pages.
 
+```
 // See Table 28-6
-typedef union \_EPT\_PTE {
+typedef union _EPT_PTE {
 	ULONG64 All;
 	struct {
 		UINT64 Read : 1; // bit 0
@@ -278,7 +287,8 @@ typedef union \_EPT\_PTE {
 		UINT64 Ignored3 : 11; // bit 62:52
 		UINT64 SuppressVE : 1; // bit 63
 	}Fields;
-}EPT\_PTE, \*PEPT\_PTE;
+}EPT_PTE, *PEPT_PTE;
+```
 
 There are other types of implementing page walks ( 2 or 3 level paging) and if you set the 7th bit of PDPTE (Maps 1 GB) or the 7th bit of PDE (Maps 2 MB) so instead of implementing 4 level paging (like what we want to do for the rest of the topic) you set those bits but keep in mind that the corresponding tables are different. These tables described in (Table 28-4. Format of an EPT Page-Directory Entry (PDE) that Maps a 2-MByte Page) and (Table 28-2. Format of an EPT Page-Directory-Pointer-Table Entry (PDPTE) that Maps a 1-GByte Page). Alex Ionescu's [SimpleVisor](https://github.com/ionescu007/SimpleVisor) is an example of implementing in this way.
 
@@ -290,68 +300,80 @@ Let's see the rest of the code, the following code is the **Initialize\_EPTP** f
 
 Note that the **PAGED\_CODE()** macro ensures that the calling thread is running at an IRQL that is low enough to permit paging.
 
-UINT64 Initialize\_EPTP()
+```
+UINT64 Initialize_EPTP()
 {
-	PAGED\_CODE();
+	PAGED_CODE();
         ...
+```
 
 First of all, allocating EPTP and put zeros on it.
 
+```
 	// Allocate EPTP
-	PEPTP EPTPointer = ExAllocatePoolWithTag(NonPagedPool, PAGE\_SIZE, POOLTAG);
+	PEPTP EPTPointer = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
 	if (!EPTPointer) {
 		return NULL;
 	}
-	RtlZeroMemory(EPTPointer, PAGE\_SIZE);
+	RtlZeroMemory(EPTPointer, PAGE_SIZE);
+```
 
 Now, we need a blank page for our EPT PML4 Table.
 
+```
 	//	Allocate EPT PML4
-	PEPT\_PML4E EPT\_PML4 = ExAllocatePoolWithTag(NonPagedPool, PAGE\_SIZE, POOLTAG);
-	if (!EPT\_PML4) {
+	PEPT_PML4E EPT_PML4 = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+	if (!EPT_PML4) {
 		ExFreePoolWithTag(EPTPointer, POOLTAG);
 		return NULL;
 	}
-	RtlZeroMemory(EPT\_PML4, PAGE\_SIZE);
+	RtlZeroMemory(EPT_PML4, PAGE_SIZE);
+```
 
 And another empty page for PDPT.
 
+```
 //	Allocate EPT Page-Directory-Pointer-Table
-	PEPT\_PDPTE EPT\_PDPT = ExAllocatePoolWithTag(NonPagedPool, PAGE\_SIZE, POOLTAG);
-	if (!EPT\_PDPT) {
-		ExFreePoolWithTag(EPT\_PML4, POOLTAG);
+	PEPT_PDPTE EPT_PDPT = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+	if (!EPT_PDPT) {
+		ExFreePoolWithTag(EPT_PML4, POOLTAG);
 		ExFreePoolWithTag(EPTPointer, POOLTAG);
 		return NULL;
 	}
-	RtlZeroMemory(EPT\_PDPT, PAGE\_SIZE);
+	RtlZeroMemory(EPT_PDPT, PAGE_SIZE);
+```
 
 Of course its true about Page Directory Table.
 
+```
 	//	Allocate EPT Page-Directory
-	PEPT\_PDE EPT\_PD = ExAllocatePoolWithTag(NonPagedPool, PAGE\_SIZE, POOLTAG);
+	PEPT_PDE EPT_PD = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
-	if (!EPT\_PD) {
-		ExFreePoolWithTag(EPT\_PDPT, POOLTAG);
-		ExFreePoolWithTag(EPT\_PML4, POOLTAG);
+	if (!EPT_PD) {
+		ExFreePoolWithTag(EPT_PDPT, POOLTAG);
+		ExFreePoolWithTag(EPT_PML4, POOLTAG);
 		ExFreePoolWithTag(EPTPointer, POOLTAG);
 		return NULL;
 	}
-	RtlZeroMemory(EPT\_PD, PAGE\_SIZE);
+	RtlZeroMemory(EPT_PD, PAGE_SIZE);
+```
 
 The last table is a blank page for EPT Page Table.
 
+```
 	//	Allocate EPT Page-Table
-	PEPT\_PTE EPT\_PT = ExAllocatePoolWithTag(NonPagedPool, PAGE\_SIZE, POOLTAG);
+	PEPT_PTE EPT_PT = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
-	if (!EPT\_PT) {
-		ExFreePoolWithTag(EPT\_PD, POOLTAG);
-		ExFreePoolWithTag(EPT\_PDPT, POOLTAG);
-		ExFreePoolWithTag(EPT\_PML4, POOLTAG);
+	if (!EPT_PT) {
+		ExFreePoolWithTag(EPT_PD, POOLTAG);
+		ExFreePoolWithTag(EPT_PDPT, POOLTAG);
+		ExFreePoolWithTag(EPT_PML4, POOLTAG);
 		ExFreePoolWithTag(EPTPointer, POOLTAG);
 		return NULL;
 	}
-	RtlZeroMemory(EPT\_PT, PAGE\_SIZE);
+	RtlZeroMemory(EPT_PT, PAGE_SIZE);
+```
 
 Now that we have all of our pages available, let's allocate two page (2\*4096) continuously because we need one of the pages for our RIP to start and one page for our Stack (RSP). After that, we need two EPT Page Table Entries (PTEs) with permission to **execute**, **read**, **write**. The physical address should be divided by 4096 (PAGE\_SIZE) because if we dived a hex number by 4096 (0x1000) 12 digits from the right (which are zeros) will disappear and these 12 digits are for choosing between 4096 bytes.
 
@@ -361,91 +383,103 @@ The actual need is two page but we need to build page tables inside our guest so
 
 I'll explain about intercepting pages from EPT, later in these series.
 
+```
 	// Setup PT by allocating two pages Continuously
 	// We allocate two pages because we need 1 page for our RIP to start and 1 page for RSP 1 + 1 and other paages for paging
 
 	const int PagesToAllocate = 10;
-	UINT64 Guest\_Memory = ExAllocatePoolWithTag(NonPagedPool, PagesToAllocate \* PAGE\_SIZE, POOLTAG);
-	RtlZeroMemory(Guest\_Memory, PagesToAllocate \* PAGE\_SIZE);
+	UINT64 Guest_Memory = ExAllocatePoolWithTag(NonPagedPool, PagesToAllocate * PAGE_SIZE, POOLTAG);
+	RtlZeroMemory(Guest_Memory, PagesToAllocate * PAGE_SIZE);
 
-	for (size\_t i = 0; i < PagesToAllocate; i++)
+	for (size_t i = 0; i < PagesToAllocate; i++)
 	{
-		EPT\_PT\[i\].Fields.AccessedFlag = 0;
-		EPT\_PT\[i\].Fields.DirtyFlag = 0;
-		EPT\_PT\[i\].Fields.EPTMemoryType = 6;
-		EPT\_PT\[i\].Fields.Execute = 1;
-		EPT\_PT\[i\].Fields.ExecuteForUserMode = 0;
-		EPT\_PT\[i\].Fields.IgnorePAT = 0;
-		EPT\_PT\[i\].Fields.PhysicalAddress = (VirtualAddress\_to\_PhysicalAddress( Guest\_Memory + ( i \* PAGE\_SIZE ))/ PAGE\_SIZE );
-		EPT\_PT\[i\].Fields.Read = 1;
-		EPT\_PT\[i\].Fields.SuppressVE = 0;
-		EPT\_PT\[i\].Fields.Write = 1;
+		EPT_PT[i].Fields.AccessedFlag = 0;
+		EPT_PT[i].Fields.DirtyFlag = 0;
+		EPT_PT[i].Fields.EPTMemoryType = 6;
+		EPT_PT[i].Fields.Execute = 1;
+		EPT_PT[i].Fields.ExecuteForUserMode = 0;
+		EPT_PT[i].Fields.IgnorePAT = 0;
+		EPT_PT[i].Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress( Guest_Memory + ( i * PAGE_SIZE ))/ PAGE_SIZE );
+		EPT_PT[i].Fields.Read = 1;
+		EPT_PT[i].Fields.SuppressVE = 0;
+		EPT_PT[i].Fields.Write = 1;
 
 	}
+```
 
 Note: **EPTMemoryType** can be either 0 (for uncached memory) or 6 (write-back) memory and as we want our memory to be cacheable so put 6 on it.
 
 The next table is PDE. PDE should point to PTE base address so we just put the address of the first entry from the EPT PTE as the physical address for Page Directory Entry.
 
+```
 // Setting up PDE
-	EPT\_PD->Fields.Accessed = 0;
-	EPT\_PD->Fields.Execute = 1;
-	EPT\_PD->Fields.ExecuteForUserMode = 0;
-	EPT\_PD->Fields.Ignored1 = 0;
-	EPT\_PD->Fields.Ignored2 = 0;
-	EPT\_PD->Fields.Ignored3 = 0;
-	EPT\_PD->Fields.PhysicalAddress = (VirtualAddress\_to\_PhysicalAddress(EPT\_PT) / PAGE\_SIZE);
-	EPT\_PD->Fields.Read = 1;
-	EPT\_PD->Fields.Reserved1 = 0;
-	EPT\_PD->Fields.Reserved2 = 0;
-	EPT\_PD->Fields.Write = 1;
+	EPT_PD->Fields.Accessed = 0;
+	EPT_PD->Fields.Execute = 1;
+	EPT_PD->Fields.ExecuteForUserMode = 0;
+	EPT_PD->Fields.Ignored1 = 0;
+	EPT_PD->Fields.Ignored2 = 0;
+	EPT_PD->Fields.Ignored3 = 0;
+	EPT_PD->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PT) / PAGE_SIZE);
+	EPT_PD->Fields.Read = 1;
+	EPT_PD->Fields.Reserved1 = 0;
+	EPT_PD->Fields.Reserved2 = 0;
+	EPT_PD->Fields.Write = 1;
+```
 
 Next step is mapping PDPT. PDPT Entry should point to the first entry of Page-Directory.
 
+```
 	// Setting up PDPTE
-	EPT\_PDPT->Fields.Accessed = 0;
-	EPT\_PDPT->Fields.Execute = 1;
-	EPT\_PDPT->Fields.ExecuteForUserMode = 0;
-	EPT\_PDPT->Fields.Ignored1 = 0;
-	EPT\_PDPT->Fields.Ignored2 = 0;
-	EPT\_PDPT->Fields.Ignored3 = 0;
-	EPT\_PDPT->Fields.PhysicalAddress = (VirtualAddress\_to\_PhysicalAddress(EPT\_PD) / PAGE\_SIZE);
-	EPT\_PDPT->Fields.Read = 1;
-	EPT\_PDPT->Fields.Reserved1 = 0;
-	EPT\_PDPT->Fields.Reserved2 = 0;
-	EPT\_PDPT->Fields.Write = 1;
+	EPT_PDPT->Fields.Accessed = 0;
+	EPT_PDPT->Fields.Execute = 1;
+	EPT_PDPT->Fields.ExecuteForUserMode = 0;
+	EPT_PDPT->Fields.Ignored1 = 0;
+	EPT_PDPT->Fields.Ignored2 = 0;
+	EPT_PDPT->Fields.Ignored3 = 0;
+	EPT_PDPT->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PD) / PAGE_SIZE);
+	EPT_PDPT->Fields.Read = 1;
+	EPT_PDPT->Fields.Reserved1 = 0;
+	EPT_PDPT->Fields.Reserved2 = 0;
+	EPT_PDPT->Fields.Write = 1;
+```
 
 The last step is configuring PML4E which points to the first entry of the PTPT.
 
+```
 	// Setting up PML4E
-	EPT\_PML4->Fields.Accessed = 0;
-	EPT\_PML4->Fields.Execute = 1;
-	EPT\_PML4->Fields.ExecuteForUserMode = 0;
-	EPT\_PML4->Fields.Ignored1 = 0;
-	EPT\_PML4->Fields.Ignored2 = 0;
-	EPT\_PML4->Fields.Ignored3 = 0;
-	EPT\_PML4->Fields.PhysicalAddress = (VirtualAddress\_to\_PhysicalAddress(EPT\_PDPT) / PAGE\_SIZE);
-	EPT\_PML4->Fields.Read = 1;
-	EPT\_PML4->Fields.Reserved1 = 0;
-	EPT\_PML4->Fields.Reserved2 = 0;
-	EPT\_PML4->Fields.Write = 1;
+	EPT_PML4->Fields.Accessed = 0;
+	EPT_PML4->Fields.Execute = 1;
+	EPT_PML4->Fields.ExecuteForUserMode = 0;
+	EPT_PML4->Fields.Ignored1 = 0;
+	EPT_PML4->Fields.Ignored2 = 0;
+	EPT_PML4->Fields.Ignored3 = 0;
+	EPT_PML4->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PDPT) / PAGE_SIZE);
+	EPT_PML4->Fields.Read = 1;
+	EPT_PML4->Fields.Reserved1 = 0;
+	EPT_PML4->Fields.Reserved2 = 0;
+	EPT_PML4->Fields.Write = 1;
+```
 
 We've almost done! Just set up the EPTP for our VMCS by putting 0x6 as the memory type (which is write-back) and we walk 4 times so the page walk length is 4-1=3 and PML4 address is the physical address of the first entry in the PML4 table.
 
 I'll explain about DirtyAndAcessEnabled field later in this topic.
 
+```
 	// Setting up EPTP
 	EPTPointer->Fields.DirtyAndAceessEnabled = 1;
 	EPTPointer->Fields.MemoryType = 6; // 6 = Write-back (WB)
 	EPTPointer->Fields.PageWalkLength = 3;  // 4 (tables walked) - 1 = 3 
-	EPTPointer->Fields.PML4Address = (VirtualAddress\_to\_PhysicalAddress(EPT\_PML4) / PAGE\_SIZE);
+	EPTPointer->Fields.PML4Address = (VirtualAddress_to_PhysicalAddress(EPT_PML4) / PAGE_SIZE);
 	EPTPointer->Fields.Reserved1 = 0;
 	EPTPointer->Fields.Reserved2 = 0;
+```
 
 and the last step.
 
+```
 	DbgPrint("\[\*\] Extended Page Table Pointer allocated at %llx",EPTPointer);
 	return EPTPointer;
+```
 
 All the above page tables should be aligned to 4KByte boundaries but as long as we allocate >= PAGE\_SIZE (One PFN record) so it's automatically 4kb-aligned.
 

@@ -66,7 +66,9 @@ If you have a problem with configuring MSRs, you have to open your Windbg in Loc
 
 For instance, we need to get MSR (0x481) then execute the following command in Windbg.
 
+```
 rdmsr 0x481
+```
 
 The above command's result is illustrated below.
 
@@ -74,6 +76,7 @@ The above command's result is illustrated below.
 
 The following MSRs representing my own system's MSRs for VMX.
 
+```
 lkd> rdmsr 0x481
 msr\[481\] = 0000007f\`00000016
 lkd> rdmsr 0x482
@@ -96,6 +99,7 @@ lkd> rdmsr 0x488
 msr\[488\] = 00000000\`00002000
 lkd> rdmsr 0x489
 msr\[489\] = 00000000\`003767ff
+```
 
 # **Future Works**
 

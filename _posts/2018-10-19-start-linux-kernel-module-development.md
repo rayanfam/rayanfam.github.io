@@ -42,7 +42,9 @@ Just follow his guide on GitHub. What lies here is only some glitches I ran into
 
 - _Clone the whole repository. You are better off this way._
 
+```
 git clone --recurse-submodules -j16 "https://github.com/cirosantilli/linux-kernel-module-cheat"
+```
 
 - _Pay attention to dependencies. strangely the configure script does not check for all of them. pay attention to error messages if you encounter any and find the appropriate package to install for your distro. (most likely you will need development version of the package too)_
 
@@ -52,12 +54,15 @@ _If you are using the buildroot mentioned then there is no need for this step. T
 
 Install dependencies for compiling kernel module (if you are on Ubuntu run this):
 
+```
 apt-get install build-essential linux-headers-$(uname -r)
+```
 
 ## Your first module
 
 Create a directory and  put this piece of code into a file (like ko\_example.c):
 
+```
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -78,6 +83,7 @@ static void \_\_exit mylkm\_exit(void) {
 
 module\_init(mylkm\_init);
 module\_exit(mylkm\_exit);
+```
 
 - The **includes** at the top are pretty obvious. they are required for linux kernel programming and provide us with all the functions we are using here.
 - The next block is module specs. self explanatory...
@@ -91,6 +97,7 @@ That is enough code for now, however we need a **Makefile** to compile the kerne
 
 Save this in a file name **Makefile** in the same directory as the source code:
 
+```
 obj-m += lkm\_example.o
 
 all:
@@ -98,20 +105,27 @@ all:
 
 clean:
  make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+```
 
 Now run **make** and it should build successfully. To load it run (as root):
 
+```
 insmod ko\_example.ko
+```
 
 If everything is okay, you can see "Hello World" in dmesg buffer:
 
+```
 dmesg
+```
 
 The module should now be visible on **lsmod** output.
 
 On unloading of the kernel module, printk is called again:
 
+```
 rmmod ko\_example.ko
+```
 
 * * *
 

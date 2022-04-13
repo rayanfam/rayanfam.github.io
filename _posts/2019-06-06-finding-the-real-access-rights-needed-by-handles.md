@@ -45,6 +45,7 @@ Each type of securable object defines its own set of specific access rights and 
 
 Here is the list of some objects in Windows (From Windows Internals) that have security descriptor and of course ACCESS\_MASK.
 
+```
 1.       Files, directories and volumes (NTFS file system)
 2.       Devices
 3.       Mailslots
@@ -63,6 +64,7 @@ Here is the list of some objects in Windows (From Windows Internals) that have s
 16.      Desktops
 17.      Network shares
 18.      Services
+```
 
 The structure of ACCESS\_MASK is like this :
 
@@ -89,6 +91,7 @@ The most interesting part for me was where [James Forshaw](https://twitter.com/t
 
 > What's going on? Basically, the documentation is wrong, you don't need QueryInformation to open the process token only QueryLimitedInformation. You can disassemble NtOpenProcessTokenEx in the kernel if you don't believe me:
 
+```
 NTSTATUS NtOpenProcessTokenEx(HANDLE ProcessHandle, 
                               ACCESS\_MASK DesiredAccess, 
                               DWORD HandleAttributes, 
@@ -102,6 +105,7 @@ NTSTATUS NtOpenProcessTokenEx(HANDLE ProcessHandle, 
                         NULL);
   ...
 }
+```
 
 > Going back to Vista it's always been the case that only QueryLimitedInformation was needed, contrary to the documentation. 
 
@@ -163,6 +167,7 @@ As you can see the above function doesn't seems to valuable in our case from the
 
 The following code is the IDA Python script for finding XREFs of our target function then find the second argument from the decompiled source:
 
+```
 from idautils import \*
 from idaapi import \*
 from idc import \*
@@ -211,6 +216,7 @@ for ref in CodeRefsTo(ea, 1):
                 multilinestring = item.strip()
                 
     print "-------------------------------------------------"
+```
 
 ## **Results**
 

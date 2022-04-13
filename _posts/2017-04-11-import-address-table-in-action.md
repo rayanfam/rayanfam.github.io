@@ -32,7 +32,9 @@ All normal (Not packed) application make this table at first so in the future ca
 
 For example, I see this kind of calling a lot in ollydbg :
 
+```
 Call jmp&.Kernel32.ExitProcessA
+```
 
 Which points to IAT version of ExitProcessA in Kernel32.dll image.
 

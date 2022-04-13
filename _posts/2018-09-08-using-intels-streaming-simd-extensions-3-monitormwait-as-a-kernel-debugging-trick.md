@@ -27,9 +27,13 @@ If the preceding MONITOR instruction did not successfully arm an address range o
 
 The opcode and the instructions are shown below :
 
+```
 0:  0f 01 c9                mwait
+```
 
+```
 0:  0f 01 c8                monitor
+```
 
 ## **Check Availability**
 
@@ -51,33 +55,34 @@ As you can see in the following code, we don't need MWAIT to wake by system inte
 
 MWAIT/MONITOR in Linux Kernel Module (AT&T Syntax):
 
-int init\_module(void)
+```
+int init_module(void)
 {
 long unsigned int address = 0xffffffff12345678; 
 
-\_\_asm\_\_ volatile(
+__asm__ volatile(
 
-"push %%rax\\n\\t"
-"push %%rcx\\n\\t"
-"push %%rdx\\n\\t"
+"push %%rax\n\t"
+"push %%rcx\n\t"
+"push %%rdx\n\t"
 
-"xor %%rax,%%rax\\n\\t"
-"xor %%rcx,%%rax\\n\\t"
-"xor %%rdx,%%rax\\n\\t"
+"xor %%rax,%%rax\n\t"
+"xor %%rcx,%%rax\n\t"
+"xor %%rdx,%%rax\n\t"
 
-"movq %0,%%rax\\n\\t"
-"MONITOR\\n\\t"
+"movq %0,%%rax\n\t"
+"MONITOR\n\t"
 
-"xor %%rax,%%rax\\n\\t"
-"xor %%rcx,%%rax\\n\\t"
+"xor %%rax,%%rax\n\t"
+"xor %%rcx,%%rax\n\t"
 
-"inc %%rax\\n\\t"
+"inc %%rax\n\t"
 
-"MWAIT\\n\\t"
+"MWAIT\n\t"
 
-"pop %%rdx\\n\\t"
-"pop %%rcx\\n\\t"
-"pop %%rax\\n\\t"
+"pop %%rdx\n\t"
+"pop %%rcx\n\t"
+"pop %%rax\n\t"
 
 :: "g" (address));
 
@@ -85,6 +90,7 @@ printk("The requested location has been accessed !");
 
 return 0;
 }
+```
 
 The address to monitor is stored in "address" and in our example it is **0xffffffff12345678**.
 

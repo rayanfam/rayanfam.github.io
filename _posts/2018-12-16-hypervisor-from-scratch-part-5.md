@@ -82,51 +82,57 @@ VMPTRST stores the current-VMCS pointer into a specified memory address. The ope
 
 The following function is the implementation of VMPTRST:
 
+```
 UINT64 VMPTRST()
 {
-    PHYSICAL\_ADDRESS vmcspa;
+    PHYSICAL_ADDRESS vmcspa;
     vmcspa.QuadPart = 0;
-    \_\_vmx\_vmptrst((unsigned \_\_int64 \*)&vmcspa);
+    __vmx_vmptrst((unsigned __int64 *)&vmcspa);
 
-    DbgPrint("\[\*\] VMPTRST %llx\\n", vmcspa);
+    DbgPrint("[*] VMPTRST %llx\n", vmcspa);
 
     return 0;
 }
+```
 
 # **VMCLEAR**
 
 This instruction applies to the VMCS which VMCS region resides at the physical address contained in the instruction operand. The instruction ensures that VMCS data for that VMCS (some of these data may be currently maintained on the processor) are copied to the VMCS region in memory. It also initializes some parts of the VMCS region (for example, it sets the launch state of that VMCS to clear).
 
-BOOLEAN Clear\_VMCS\_State(IN PVirtualMachineState vmState) {
+```
+BOOLEAN Clear_VMCS_State(IN PVirtualMachineState vmState) {
 
     // Clear the state of the VMCS to inactive
-    int status = \_\_vmx\_vmclear(&vmState->VMCS\_REGION);
+    int status = __vmx_vmclear(&vmState->VMCS_REGION);
 
-    DbgPrint("\[\*\] VMCS VMCLAEAR Status is : %d\\n", status);
+    DbgPrint("[*] VMCS VMCLAEAR Status is : %d\n", status);
     if (status)
     {
         // Otherwise terminate the VMX
-        DbgPrint("\[\*\] VMCS failed to clear with status %d\\n", status);
-        \_\_vmx\_off();
+        DbgPrint("[*] VMCS failed to clear with status %d\n", status);
+        __vmx_off();
         return FALSE;
     }
     return TRUE;
 }
+```
 
 # **VMPTRLD**
 
 It marks the current-VMCS pointer valid and loads it with the physical address in the instruction operand. The instruction fails if its operand is not properly aligned, sets unsupported physical-address bits, or is equal to the VMXON pointer. In addition, the instruction fails if the 32 bits in memory referenced by the operand do not match the VMCS revision identifier supported by this processor.
 
-BOOLEAN Load\_VMCS(IN PVirtualMachineState vmState) {
+```
+BOOLEAN Load_VMCS(IN PVirtualMachineState vmState) {
 
-    int status = \_\_vmx\_vmptrld(&vmState->VMCS\_REGION);
+    int status = __vmx_vmptrld(&vmState->VMCS_REGION);
     if (status)
     {
-        DbgPrint("\[\*\] VMCS failed with status %d\\n", status);
+        DbgPrint("[*] VMCS failed with status %d\n", status);
         return FALSE;
     }
     return TRUE;
 }
+```
 
 In order to implement VMRESUME you need to know about some VMCS fields so the implementation of VMRESUME is after we implement VMLAUNCH. (Later in this topic)
 
@@ -134,15 +140,17 @@ In order to implement VMRESUME you need to know about some VMCS fields so the im
 
 As I told you in earlier parts, we need a structure to save the state of our virtual machine in each core separately. The following structure is used in the newest version of our hypervisor, each field will be described in the rest of this topic.
 
-typedef struct \_VirtualMachineState
+```
+typedef struct _VirtualMachineState
 {
-    UINT64 VMXON\_REGION;                    // VMXON region
-    UINT64 VMCS\_REGION;                     // VMCS region
+    UINT64 VMXON_REGION;                    // VMXON region
+    UINT64 VMCS_REGION;                     // VMCS region
     UINT64 EPTP;                            // Extended-Page-Table Pointer
-    UINT64 VMM\_Stack;                       // Stack for VMM in VM-Exit State
+    UINT64 VMM_Stack;                       // Stack for VMM in VM-Exit State
     UINT64 MSRBitMap;                       // MSRBitMap Virtual Address
     UINT64 MSRBitMapPhysical;               // MSRBitMap Physical Address
-} VirtualMachineState, \*PVirtualMachineState;
+} VirtualMachineState, *PVirtualMachineState;
+```
 
 Note that its not the final **\_VirtualMachineState** structure and we'll enhance it in future parts.
 
@@ -152,9 +160,11 @@ In this part, we're just trying to test our hypervisor in our driver, in the fut
 
 Below all the preparation from [Part 2](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/), we add the following lines to use our [Part 4](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/) (EPT) structures :
 
+```
 		// Initiating EPTP and VMX
-		PEPTP EPTP = Initialize\_EPTP();
-		Initiate\_VMX();
+		PEPTP EPTP = Initialize_EPTP();
+		Initiate_VMX();
+```
 
 I added an export to a global variable called "VirtualGuestMemoryAddress" that holds the address of where our guest code starts.
 
@@ -162,7 +172,9 @@ Now let's fill our allocated pages with **\\xf4** which stands for **HLT** instr
 
 Let's create a function which is responsible for running our virtual machine on a specific core.
 
+```
 void LaunchVM(int ProcessorID , PEPTP EPTP);
+```
 
 I set the ProcessorID to 0, so we're in the 0th logical processor.
 
@@ -170,13 +182,15 @@ Keep in mind that every logical core has its own VMCS and if you want your guest
 
 Now we should set the affinity to the specific logical processor using Windows **KeSetSystemAffinityThread** function and make sure to choose the specific core's **vmState** as each core has its own separate VMXON and VMCS region.
 
+```
     KAFFINITY kAffinityMask;
         kAffinityMask = ipow(2, ProcessorID);
         KeSetSystemAffinityThread(kAffinityMask);
 
-        DbgPrint("\[\*\]\\t\\tCurrent thread is executing in %d th logical processor.\\n", ProcessorID);
+        DbgPrint("[*]\t\tCurrent thread is executing in %d th logical processor.\n", ProcessorID);
 
-        PAGED\_CODE();
+        PAGED_CODE();
+```
 
 Now, we should allocate a specific stack so that every time a VM-Exit occurs then we can save the registers and calling other Host functions.
 
@@ -184,16 +198,18 @@ I prefer to allocate a separate location for stack instead of using current RSP 
 
 The following lines are for allocating and zeroing the stack of our VM-Exit handler.
 
+```
  	// Allocate stack for the VM Exit Handler.
-	UINT64 VMM\_STACK\_VA = ExAllocatePoolWithTag(NonPagedPool, VMM\_STACK\_SIZE, POOLTAG);
-	vmState\[ProcessorID\].VMM\_Stack = VMM\_STACK\_VA;
+	UINT64 VMM_STACK_VA = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+	vmState[ProcessorID].VMM_Stack = VMM_STACK_VA;
 
-	if (vmState\[ProcessorID\].VMM\_Stack == NULL)
+	if (vmState[ProcessorID].VMM_Stack == NULL)
 	{
-		DbgPrint("\[\*\] Error in allocating VMM Stack.\\n");
+		DbgPrint("[*] Error in allocating VMM Stack.\n");
 		return;
 	}
-	RtlZeroMemory(vmState\[ProcessorID\].VMM\_Stack, VMM\_STACK\_SIZE);
+	RtlZeroMemory(vmState[ProcessorID].VMM_Stack, VMM_STACK_SIZE);
+```
 
 Same as above, allocating a page for MSR Bitmap and adding it to **vmState**, I'll describe about them later in this topic.
 
@@ -231,7 +247,6 @@ The **Clear\_VMCS\_State** and **Load\_VMCS** are described above :
 Now it's time to setup VMCS, A detailed explanation of VMCS setup is available later in this topic.
 
 ```
-
 	DbgPrint("[*] Setting up VMCS.\n");
 	Setup_VMCS(&vmState[ProcessorID], EPTP);
 ```
@@ -239,7 +254,6 @@ Now it's time to setup VMCS, A detailed explanation of VMCS setup is available l
 The last step is to execute the VMLAUNCH but we shouldn't forget about saving the current state of the stack (RSP & RBP) because during the execution of Guest code and after returning from VM-Exit, we have to know the current state and return from it. It's because if you leave the driver with wrong RSP & RBP then you definitely see a BSOD.
 
 ```
-
 	Save_VMXOFF_State();
 ```
 
@@ -337,27 +351,29 @@ In order to control our guest features, we have to set some fields in our VMCS. 
 
 We define the above table like this:
 
-#define CPU\_BASED\_VIRTUAL\_INTR\_PENDING        0x00000004
-#define CPU\_BASED\_USE\_TSC\_OFFSETING           0x00000008
-#define CPU\_BASED\_HLT\_EXITING                 0x00000080
-#define CPU\_BASED\_INVLPG\_EXITING              0x00000200
-#define CPU\_BASED\_MWAIT\_EXITING               0x00000400
-#define CPU\_BASED\_RDPMC\_EXITING               0x00000800
-#define CPU\_BASED\_RDTSC\_EXITING               0x00001000
-#define CPU\_BASED\_CR3\_LOAD\_EXITING            0x00008000
-#define CPU\_BASED\_CR3\_STORE\_EXITING           0x00010000
-#define CPU\_BASED\_CR8\_LOAD\_EXITING            0x00080000
-#define CPU\_BASED\_CR8\_STORE\_EXITING           0x00100000
-#define CPU\_BASED\_TPR\_SHADOW                  0x00200000
-#define CPU\_BASED\_VIRTUAL\_NMI\_PENDING         0x00400000
-#define CPU\_BASED\_MOV\_DR\_EXITING              0x00800000
-#define CPU\_BASED\_UNCOND\_IO\_EXITING           0x01000000
-#define CPU\_BASED\_ACTIVATE\_IO\_BITMAP          0x02000000
-#define CPU\_BASED\_MONITOR\_TRAP\_FLAG           0x08000000
-#define CPU\_BASED\_ACTIVATE\_MSR\_BITMAP         0x10000000
-#define CPU\_BASED\_MONITOR\_EXITING             0x20000000
-#define CPU\_BASED\_PAUSE\_EXITING               0x40000000
-#define CPU\_BASED\_ACTIVATE\_SECONDARY\_CONTROLS 0x80000000
+```
+#define CPU_BASED_VIRTUAL_INTR_PENDING        0x00000004
+#define CPU_BASED_USE_TSC_OFFSETING           0x00000008
+#define CPU_BASED_HLT_EXITING                 0x00000080
+#define CPU_BASED_INVLPG_EXITING              0x00000200
+#define CPU_BASED_MWAIT_EXITING               0x00000400
+#define CPU_BASED_RDPMC_EXITING               0x00000800
+#define CPU_BASED_RDTSC_EXITING               0x00001000
+#define CPU_BASED_CR3_LOAD_EXITING            0x00008000
+#define CPU_BASED_CR3_STORE_EXITING           0x00010000
+#define CPU_BASED_CR8_LOAD_EXITING            0x00080000
+#define CPU_BASED_CR8_STORE_EXITING           0x00100000
+#define CPU_BASED_TPR_SHADOW                  0x00200000
+#define CPU_BASED_VIRTUAL_NMI_PENDING         0x00400000
+#define CPU_BASED_MOV_DR_EXITING              0x00800000
+#define CPU_BASED_UNCOND_IO_EXITING           0x01000000
+#define CPU_BASED_ACTIVATE_IO_BITMAP          0x02000000
+#define CPU_BASED_MONITOR_TRAP_FLAG           0x08000000
+#define CPU_BASED_ACTIVATE_MSR_BITMAP         0x10000000
+#define CPU_BASED_MONITOR_EXITING             0x20000000
+#define CPU_BASED_PAUSE_EXITING               0x40000000
+#define CPU_BASED_ACTIVATE_SECONDARY_CONTROLS 0x80000000
+```
 
 In the earlier versions of VMX, there is nothing like Secondary Processor-Based VM-Execution Controls. Now if you want to use the secondary table you have to set the 31st bit of the first table otherwise it's like the secondary table field with zeros.
 
@@ -365,11 +381,13 @@ In the earlier versions of VMX, there is nothing like Secondary Processor-Based 
 
 The definition of the above table is this (we ignore some bits, you can define them if you want to use them in your hypervisor):
 
-#define CPU\_BASED\_CTL2\_ENABLE\_EPT            0x2
-#define CPU\_BASED\_CTL2\_RDTSCP                0x8
-#define CPU\_BASED\_CTL2\_ENABLE\_VPID            0x20
-#define CPU\_BASED\_CTL2\_UNRESTRICTED\_GUEST    0x80
-#define CPU\_BASED\_CTL2\_ENABLE\_VMFUNC        0x2000
+```
+#define CPU_BASED_CTL2_ENABLE_EPT            0x2
+#define CPU_BASED_CTL2_RDTSCP                0x8
+#define CPU_BASED_CTL2_ENABLE_VPID            0x20
+#define CPU_BASED_CTL2_UNRESTRICTED_GUEST    0x80
+#define CPU_BASED_CTL2_ENABLE_VMFUNC        0x2000
+```
 
 # **VM-entry Control Bits**
 
@@ -377,11 +395,13 @@ The VM-entry controls constitute a 32-bit vector that governs the basic operatio
 
 ![VM-Entry-Controls](../../assets/images/vm-entry-controls-fields.png)
 
+```
 // VM-entry Control Bits 
-#define VM\_ENTRY\_IA32E\_MODE             0x00000200
-#define VM\_ENTRY\_SMM                    0x00000400
-#define VM\_ENTRY\_DEACT\_DUAL\_MONITOR     0x00000800
-#define VM\_ENTRY\_LOAD\_GUEST\_PAT         0x00004000
+#define VM_ENTRY_IA32E_MODE             0x00000200
+#define VM_ENTRY_SMM                    0x00000400
+#define VM_ENTRY_DEACT_DUAL_MONITOR     0x00000800
+#define VM_ENTRY_LOAD_GUEST_PAT         0x00004000
+```
 
 # **VM-exit Control Bits**
 
@@ -389,11 +409,14 @@ The VM-exit controls constitute a 32-bit vector that governs the basic operation
 
 ![VM-Exit-Controls](../../assets/images/vm-exit-controls-fields.png)
 
+```
 // VM-exit Control Bits 
-#define VM\_EXIT\_IA32E\_MODE              0x00000200
-#define VM\_EXIT\_ACK\_INTR\_ON\_EXIT        0x00008000
-#define VM\_EXIT\_SAVE\_GUEST\_PAT          0x00040000
-#define VM\_EXIT\_LOAD\_HOST\_PAT           0x00080000
+#define VM_EXIT_IA32E_MODE              0x00000200
+#define VM_EXIT_ACK_INTR_ON_EXIT        0x00008000
+#define VM_EXIT_SAVE_GUEST_PAT          0x00040000
+#define VM_EXIT_LOAD_HOST_PAT           0x00080000
+```
+
 
 # **PIN-Based Execution Control**
 
@@ -434,106 +457,132 @@ These functions describe how all of these data can be gathered.
 
 GDT Base :
 
-Get\_GDT\_Base PROC
-    LOCAL   gdtr\[10\]:BYTE
+```
+Get_GDT_Base PROC
+    LOCAL   gdtr[10]:BYTE
     sgdt    gdtr
-    mov     rax, QWORD PTR gdtr\[2\]
+    mov     rax, QWORD PTR gdtr[2]
     ret
-Get\_GDT\_Base ENDP
+Get_GDT_Base ENDP
+```
 
 CS segment register:
 
+```
 GetCs PROC
     mov     rax, cs
     ret
 GetCs ENDP
+```
 
 DS segment register:
 
+```
 GetDs PROC
     mov     rax, ds
     ret
 GetDs ENDP
+```
 
 ES segment register:
 
+```
 GetEs PROC
     mov     rax, es
     ret
 GetEs ENDP
+```
 
 SS segment register:
 
+```
 GetSs PROC
     mov     rax, ss
     ret
 GetSs ENDP
+```
 
 FS segment register:
 
+```
 GetFs PROC
     mov     rax, fs
     ret
 GetFs ENDP
+```
 
 GS segment register:
 
+```
 GetGs PROC
     mov     rax, gs
     ret
 GetGs ENDP
+```
 
 LDT:
 
+```
 GetLdtr PROC
     sldt    rax
     ret
 GetLdtr ENDP
+```
 
 TR (task register):
 
+```
 GetTr PROC
     str rax
     ret
 GetTr ENDP
+```
 
 Interrupt Descriptor Table:
 
-Get\_IDT\_Base PROC
-    LOCAL   idtr\[10\]:BYTE
+```
+Get_IDT_Base PROC
+    LOCAL   idtr[10]:BYTE
 
     sidt    idtr
-    mov     rax, QWORD PTR idtr\[2\]
+    mov     rax, QWORD PTR idtr[2]
     ret
-Get\_IDT\_Base ENDP
+Get_IDT_Base ENDP
+```
 
 GDT Limit:
 
-Get\_GDT\_Limit PROC
-    LOCAL   gdtr\[10\]:BYTE
+```
+Get_GDT_Limit PROC
+    LOCAL   gdtr[10]:BYTE
 
     sgdt    gdtr
-    mov     ax, WORD PTR gdtr\[0\]
+    mov     ax, WORD PTR gdtr[0]
     ret
-Get\_GDT\_Limit ENDP
+Get_GDT_Limit ENDP
+```
 
 IDT Limit:
 
-Get\_IDT\_Limit PROC
-    LOCAL   idtr\[10\]:BYTE
+```
+Get_IDT_Limit PROC
+    LOCAL   idtr[10]:BYTE
 
     sidt    idtr
-    mov     ax, WORD PTR idtr\[0\]
+    mov     ax, WORD PTR idtr[0]
     ret
-Get\_IDT\_Limit ENDP
+Get_IDT_Limit ENDP
+```
 
 RFLAGS:
 
-Get\_RFLAGS PROC
+```
+Get_RFLAGS PROC
     pushfq
     pop     rax
     ret
-Get\_RFLAGS ENDP
+Get_RFLAGS ENDP
+```
 
 # **Setting up VMCS**
 
@@ -940,9 +989,6 @@ The next important part is to set the RIP and RSP of the guest when a VMLAUNCH e
 	// left here just for test
 	__vmx_vmwrite(0, (ULONG64)VirtualGuestMemoryAddress);     //setup guest sp
 	__vmx_vmwrite(GUEST_RIP, (ULONG64)VirtualGuestMemoryAddress);     //setup guest ip
-
-
-
 	__vmx_vmwrite(HOST_RSP, ((ULONG64)vmState->VMM_Stack + VMM_STACK_SIZE - 1));
 	__vmx_vmwrite(HOST_RIP, (ULONG64)VMExitHandler);
 ```
@@ -987,66 +1033,68 @@ Further description available [here](https://rayanfam.com/topics/vmcsauditor-a-b
 
 When our guest software exits and give the handle back to the host, its VM-exit reasons can be defined in the following definitions.
 
-#define EXIT\_REASON\_EXCEPTION\_NMI       0
-#define EXIT\_REASON\_EXTERNAL\_INTERRUPT  1
-#define EXIT\_REASON\_TRIPLE\_FAULT        2
-#define EXIT\_REASON\_INIT                3
-#define EXIT\_REASON\_SIPI                4
-#define EXIT\_REASON\_IO\_SMI              5
-#define EXIT\_REASON\_OTHER\_SMI           6
-#define EXIT\_REASON\_PENDING\_VIRT\_INTR   7
-#define EXIT\_REASON\_PENDING\_VIRT\_NMI    8
-#define EXIT\_REASON\_TASK\_SWITCH         9
-#define EXIT\_REASON\_CPUID               10
-#define EXIT\_REASON\_GETSEC              11
-#define EXIT\_REASON\_HLT                 12
-#define EXIT\_REASON\_INVD                13
-#define EXIT\_REASON\_INVLPG              14
-#define EXIT\_REASON\_RDPMC               15
-#define EXIT\_REASON\_RDTSC               16
-#define EXIT\_REASON\_RSM                 17
-#define EXIT\_REASON\_VMCALL              18
-#define EXIT\_REASON\_VMCLEAR             19
-#define EXIT\_REASON\_VMLAUNCH            20
-#define EXIT\_REASON\_VMPTRLD             21
-#define EXIT\_REASON\_VMPTRST             22
-#define EXIT\_REASON\_VMREAD              23
-#define EXIT\_REASON\_VMRESUME            24
-#define EXIT\_REASON\_VMWRITE             25
-#define EXIT\_REASON\_VMXOFF              26
-#define EXIT\_REASON\_VMXON               27
-#define EXIT\_REASON\_CR\_ACCESS           28
-#define EXIT\_REASON\_DR\_ACCESS           29
-#define EXIT\_REASON\_IO\_INSTRUCTION      30
-#define EXIT\_REASON\_MSR\_READ            31
-#define EXIT\_REASON\_MSR\_WRITE           32
-#define EXIT\_REASON\_INVALID\_GUEST\_STATE 33
-#define EXIT\_REASON\_MSR\_LOADING         34
-#define EXIT\_REASON\_MWAIT\_INSTRUCTION   36
-#define EXIT\_REASON\_MONITOR\_TRAP\_FLAG   37
-#define EXIT\_REASON\_MONITOR\_INSTRUCTION 39
-#define EXIT\_REASON\_PAUSE\_INSTRUCTION   40
-#define EXIT\_REASON\_MCE\_DURING\_VMENTRY  41
-#define EXIT\_REASON\_TPR\_BELOW\_THRESHOLD 43
-#define EXIT\_REASON\_APIC\_ACCESS         44
-#define EXIT\_REASON\_ACCESS\_GDTR\_OR\_IDTR 46
-#define EXIT\_REASON\_ACCESS\_LDTR\_OR\_TR   47
-#define EXIT\_REASON\_EPT\_VIOLATION       48
-#define EXIT\_REASON\_EPT\_MISCONFIG       49
-#define EXIT\_REASON\_INVEPT              50
-#define EXIT\_REASON\_RDTSCP              51
-#define EXIT\_REASON\_VMX\_PREEMPTION\_TIMER\_EXPIRED     52
-#define EXIT\_REASON\_INVVPID             53
-#define EXIT\_REASON\_WBINVD              54
-#define EXIT\_REASON\_XSETBV              55
-#define EXIT\_REASON\_APIC\_WRITE          56
-#define EXIT\_REASON\_RDRAND              57
-#define EXIT\_REASON\_INVPCID             58
-#define EXIT\_REASON\_RDSEED              61
-#define EXIT\_REASON\_PML\_FULL            62
-#define EXIT\_REASON\_XSAVES              63
-#define EXIT\_REASON\_XRSTORS             64
-#define EXIT\_REASON\_PCOMMIT             65
+```
+#define EXIT_REASON_EXCEPTION_NMI       0
+#define EXIT_REASON_EXTERNAL_INTERRUPT  1
+#define EXIT_REASON_TRIPLE_FAULT        2
+#define EXIT_REASON_INIT                3
+#define EXIT_REASON_SIPI                4
+#define EXIT_REASON_IO_SMI              5
+#define EXIT_REASON_OTHER_SMI           6
+#define EXIT_REASON_PENDING_VIRT_INTR   7
+#define EXIT_REASON_PENDING_VIRT_NMI    8
+#define EXIT_REASON_TASK_SWITCH         9
+#define EXIT_REASON_CPUID               10
+#define EXIT_REASON_GETSEC              11
+#define EXIT_REASON_HLT                 12
+#define EXIT_REASON_INVD                13
+#define EXIT_REASON_INVLPG              14
+#define EXIT_REASON_RDPMC               15
+#define EXIT_REASON_RDTSC               16
+#define EXIT_REASON_RSM                 17
+#define EXIT_REASON_VMCALL              18
+#define EXIT_REASON_VMCLEAR             19
+#define EXIT_REASON_VMLAUNCH            20
+#define EXIT_REASON_VMPTRLD             21
+#define EXIT_REASON_VMPTRST             22
+#define EXIT_REASON_VMREAD              23
+#define EXIT_REASON_VMRESUME            24
+#define EXIT_REASON_VMWRITE             25
+#define EXIT_REASON_VMXOFF              26
+#define EXIT_REASON_VMXON               27
+#define EXIT_REASON_CR_ACCESS           28
+#define EXIT_REASON_DR_ACCESS           29
+#define EXIT_REASON_IO_INSTRUCTION      30
+#define EXIT_REASON_MSR_READ            31
+#define EXIT_REASON_MSR_WRITE           32
+#define EXIT_REASON_INVALID_GUEST_STATE 33
+#define EXIT_REASON_MSR_LOADING         34
+#define EXIT_REASON_MWAIT_INSTRUCTION   36
+#define EXIT_REASON_MONITOR_TRAP_FLAG   37
+#define EXIT_REASON_MONITOR_INSTRUCTION 39
+#define EXIT_REASON_PAUSE_INSTRUCTION   40
+#define EXIT_REASON_MCE_DURING_VMENTRY  41
+#define EXIT_REASON_TPR_BELOW_THRESHOLD 43
+#define EXIT_REASON_APIC_ACCESS         44
+#define EXIT_REASON_ACCESS_GDTR_OR_IDTR 46
+#define EXIT_REASON_ACCESS_LDTR_OR_TR   47
+#define EXIT_REASON_EPT_VIOLATION       48
+#define EXIT_REASON_EPT_MISCONFIG       49
+#define EXIT_REASON_INVEPT              50
+#define EXIT_REASON_RDTSCP              51
+#define EXIT_REASON_VMX_PREEMPTION_TIMER_EXPIRED     52
+#define EXIT_REASON_INVVPID             53
+#define EXIT_REASON_WBINVD              54
+#define EXIT_REASON_XSETBV              55
+#define EXIT_REASON_APIC_WRITE          56
+#define EXIT_REASON_RDRAND              57
+#define EXIT_REASON_INVPCID             58
+#define EXIT_REASON_RDSEED              61
+#define EXIT_REASON_PML_FULL            62
+#define EXIT_REASON_XSAVES              63
+#define EXIT_REASON_XRSTORS             64
+#define EXIT_REASON_PCOMMIT             65
+```
 
 VMX Exit handler should be a pure assembly function because calling a compiled function needs some preparing and some register modification and the most important thing in VMX Handler is saving the registers state so that you can continue, other time.
 
@@ -1253,22 +1301,24 @@ So it's clear that if you executed VMLAUNCH before, then you can't use it anymor
 
 The following code is the implementation of VMRESUME.
 
-VOID VM\_Resumer(VOID)
+```
+VOID VM_Resumer(VOID)
 {
 
-	\_\_vmx\_vmresume();
+	__vmx_vmresume();
 
 	// if VMRESUME succeed will never be here !
 
 	ULONG64 ErrorCode = 0;
-	\_\_vmx\_vmread(VM\_INSTRUCTION\_ERROR, &ErrorCode);
-	\_\_vmx\_off();
-	DbgPrint("\[\*\] VMRESUME Error : 0x%llx\\n", ErrorCode);
+	__vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
+	__vmx_off();
+	DbgPrint("[*] VMRESUME Error : 0x%llx\n", ErrorCode);
 
 	// It's such a bad error because we don't where to go !
 	// prefer to break
 	DbgBreakPoint();
 }
+```
 
 # **Let's Test it !**
 

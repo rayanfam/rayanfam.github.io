@@ -39,6 +39,7 @@ _The debugger's "!pcr" command displays partial contents of the PCR._
 
 You can see all Windbg gives to you from Windows symbols :
 
+```
 lkd> dt nt!\_KPCR
 +0x000 NtTib : \_NT\_TIB
 +0x000 GdtBase : Ptr64 \_KGDTENTRY64
@@ -67,6 +68,7 @@ lkd> dt nt!\_KPCR
 +0x110 Unused3 : Ptr64 Void
 +0x118 PcrAlign1 : \[24\] Uint4B
 +0x180 Prcb : \_KPRCB
+```
 
 There are lots of great information about Idt , IRQL in the above structure so it must be an important one!
 
@@ -76,6 +78,7 @@ Mark Russinovich in Windows Internals wrote "The PCR and PRCB contain informati
 
 So all we need is seeing what we can do with such a structure. Let me show you the result of windbg symbols.
 
+```
 kd> dt nt!\_KPRCB
 +0x000 MxCsr : Uint4B
 +0x004 LegacyNumber : UChar
@@ -341,6 +344,7 @@ kd> dt nt!\_KPRCB
 +0x6980 SecureFault : \_KSECURE\_FAULT\_INFORMATION
 +0x69c0 Mailbox : Ptr64 \_REQUEST\_MAILBOX
 +0x6a00 RequestMailbox : \[1\] \_REQUEST\_MAILBOX
+```
 
 Looking at the above structure shows a lot of great information about the system processor.You can find something like Current and Next Thread \_KTHREAD, all information about CPU like type and capacity and manufacture company, DPC, Cycles, User-mode and Kernel-mode times and etc.
 
@@ -348,7 +352,9 @@ By the way, you now know that windows stores some of its internal information ab
 
 By using the following command you can get gs:\[0\] values :
 
+```
 dq gs:\[0\]
+```
 
 you can also use !pcr which gives you almost the same result :)
 
@@ -356,7 +362,9 @@ you can also use !pcr which gives you almost the same result :)
 
 So, now we have where the \_KPCR is located and now we should simply use :
 
+```
 dt <Address> nt!\_KPCR
+```
 
 And after finding the pcrb now we should use dt in order to map the result into the \_kpcrb structure.
 

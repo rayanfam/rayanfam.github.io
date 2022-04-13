@@ -67,10 +67,12 @@ Let's find the Zero Thread!
 
 We know that it comes from system process, its priority is 0, this should be enough and nothing more is needed. First try to find **System**'s nt!\_eprocess:
 
+```
 !process 0 System
-
+```
 Now we can see the **System**'s threads, the details of our target thread (zero-thread) are:
 
+```
         THREAD ffffd4056ed00040  Cid 0004.0040  Teb: 0000000000000000 Win32Thread: 0000000000000000 WAIT: (WrFreePage) KernelMode Non-Alertable
             fffff8034637f148  NotificationEvent
             fffff80346380480  NotificationEvent
@@ -94,6 +96,7 @@ Now we can see the **System**'s threads, the details of our target thread (zero-
         ffffe700\`b7c14920 fffff803\`460bba37 nt!MiZeroPageThread+0x1e7
         ffffe700\`b7c14c10 fffff803\`46173456 nt!PspSystemThreadStartup+0x47
         ffffe700\`b7c14c60 00000000\`00000000 nt!KiStartSystemThread+0x16
+```
 
 As you can see, its start address is at **nt!MiZeroPageThread** and its priority-level is 0 and if we see the call-stack then we can see nt!MiZeroPageThread was called previously.
 
@@ -109,12 +112,16 @@ As you see, \_MMPFN takes 28 bytes.
 
 PFN records are stored in the memory based on their physical address order which means you can always calculate the physical address with the help of PFN.
 
+```
 Physical Address = PFN \* page size(e.g 4096 Byte) + offset
+```
 
 The address of the PFN database is located at **nt!MmPfnDatabase**, you can use the following example to get your PFN database address in Windbg.
 
+```
 2: kd> x nt!MmPfnDatabase
 fffff800\`a2a76048 nt!MmPfnDatabase = <no type information>
+```
 
 ## !memusage
 
@@ -122,6 +129,7 @@ Another very useful command in windbg is !memusage, this command gives almost ev
 
 A brief sample of this command is shown below :
 
+```
 2: kd> !memusage
  loading PFN database
 loading (100% complete)
@@ -194,6 +202,7 @@ Summary   1147852  422260 31692 129996 204428 25156  Total
     bf5c     4      0     0     0     0     0   Page File Section
 	
 .....
+```
 
 Note that !memusage takes a long time to finish its probes.
 

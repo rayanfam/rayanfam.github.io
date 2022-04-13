@@ -30,11 +30,15 @@ First of all, a Kernel Debugger Windbg is needed in order to continue tracing in
 
 The first essential thing is we need to change the current process context (fs or gs registers) to be able to access user-mode space of the process which we need to trace its functions.
 
+```
 !process 0 0 notepad.exe
+```
 
 To get process location then :
 
+```
 .process /i AboveAddress
+```
 
 ![](../../assets/images/usermode-to-kernelmode-1.png)
 
@@ -46,13 +50,17 @@ Remember you can also view current process by simply calling !thread as shown be
 
 Next step is to let windbg continue and it will notify you whenever it reaches to the desired process, so press g.
 
+```
 g
+```
 
 It's getting a little tricky here.
 
 Remember you just loaded the symbols of Kernel-mode modules but now we need user-mode modules' symbol to find the functions.
 
+```
 .reload
+```
 
 And wait till all current modules symbol become loaded.
 
@@ -60,7 +68,9 @@ After that you can see that user-mode modules loaded successfully and you get so
 
 ![](../../assets/images/usermode-to-kernelmode-3.png)
 
+```
 lm nt
+```
 
 So far so good ;)
 

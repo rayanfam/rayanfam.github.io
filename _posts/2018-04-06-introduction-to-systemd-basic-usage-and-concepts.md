@@ -76,43 +76,49 @@ Mount units are simply used to mount a filesystem automatically (or manually).
 
 A sample service unit file (OpenSSH on debian jessie):
 
-\[Unit\]
+```
+[Unit]
 Description=OpenBSD Secure Shell server
 After=network.target auditd.service
-ConditionPathExists=!/etc/ssh/sshd\_not\_to\_be\_run
+ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
 
-\[Service\]
+[Service]
 EnvironmentFile=-/etc/default/ssh
 ExecStartPre=/usr/sbin/sshd -t
-ExecStart=/usr/sbin/sshd -D $SSHD\_OPTS
+ExecStart=/usr/sbin/sshd -D $SSHD_OPTS
 ExecReload=/usr/sbin/sshd -t
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure
 
-\[Install\]
+[Install]
 WantedBy=multi-user.target
 Alias=sshd.service
+```
 
 It is rather self-explanatory so after another example (a unit file for a docker container from [CoreOS](https://coreos.com/os/docs/latest/getting-started-with-systemd.html)):
 
-\[Unit\]
+```
+[Unit]
 Description=MyApp
 After=docker.service
 Requires=docker.service
 
-\[Service\]
+[Service]
 TimeoutStartSec=0
 ExecStartPre=-/usr/bin/docker kill busybox1
 ExecStartPre=-/usr/bin/docker rm busybox1
 ExecStartPre=/usr/bin/docker pull busybox
 ExecStart=/usr/bin/docker run --name busybox1 busybox /bin/sh -c "trap 'exit 0' INT TERM; while true; do echo Hello World; sleep 1; done"
 
-\[Install\]
+[Install]
 WantedBy=multi-user.target
+```
 
+```
 $ sudo systemctl enable /etc/systemd/system/hello.service
 $ sudo systemctl start hello.service
+```
 
  
 
@@ -124,23 +130,38 @@ $ sudo systemctl start hello.service
 
 The most import command is probably **systemctl**. It is used for starting/stopping services. Here's a good table from [HighOnCoffee](https://highon.coffee/blog/systemd-cheat-sheet/):
 
-<table style="height: 498px;width:100%"><tbody><tr style="background:#f00;color:#fff"><td>systemctl stop service-name</td><td>systemd stop running service</td></tr><tr style="background:#f00;color:#fff"><td>systemctl start service-name</td><td>systemctl start service</td></tr><tr style="background:#f00;color:#fff"><td>systemctl restart service-name</td><td>systemd restart running service</td></tr><tr style="background:#f00;color:#fff"><td>systemctl reload service-name</td><td>reloads all config files for service</td></tr><tr style="background:#f00;color:#fff"><td>systemctl status service-name</td><td>systemctl show if service is running</td></tr><tr style="background:#f00;color:#fff"><td>systemctl enable service-name</td><td>systemctl start service at boot</td></tr><tr style="background:#f00;color:#fff"><td>systemctrl disable service-name</td><td>systemctl - disable service at boot</td></tr><tr style="background:#f00;color:#fff"><td>systemctl show service-name</td><td>show systemctl service info</td></tr></tbody></table>
+
+| systemctl stop service-name     | systemd stop running service         |
+|---------------------------------|--------------------------------------|
+| systemctl start service-name    | systemctl start service              |
+| systemctl restart service-name  | systemd restart running service      |
+| systemctl reload service-name   | reloads all config files for service |
+| systemctl status service-name   | systemctl show if service is running |
+| systemctl enable service-name   | systemctl start service at boot      |
+| systemctrl disable service-name | systemctl - disable service at boot  |
+| systemctl show service-name     | show systemctl service info          |
+
 
 List service dependencies with this command:
 
-\# systemctl list-dependencies sshd.service
-
+```
+# systemctl list-dependencies sshd.service
+```
  
 
 Change ad-hoc runlevel with systemctl isolate command. Boot targets are somehow equivalent to SysV init runlevels:
 
 > - Switch to another target (in this case multi-user/runlevel 3 in old SysV):
 
+```
 systemctl isolate multi-user.target
+```
 
 > - Switch to graphical target (in this case graphical/runlevel 5 in old SysV):
 
+```
 systemctl isolate graphical.target
+```
 
 * * *
 
@@ -148,19 +169,27 @@ systemctl isolate graphical.target
 
 View all log entries starting from this boot:
 
+```
 $ journalctl -b
+```
 
 view only kernel messages from this boot:
 
+```
 $ journalctl -k -b
+```
 
 using **\-x** flag attaches some additional data to the logs, **\-n** can get an integer and show this much lines (default 10):
 
+```
 $ journalctl -xn
+```
 
 view all logs from a specific service:
 
+```
 $ journalctl -b -e -u nginx.service
+```
 
 * * *
 

@@ -51,53 +51,66 @@ First, you need to download the project source code, you can find it [here.](htt
 
 The [documentation](http://bochs.sourceforge.net/doc/docbook/user/compiling.html) uses the following syntax in order to build the Bochs on OS X machines
 
+```
 ./configure
 make
+```
 
 But it gives me the following error after running "make":
 
+```
 Sinas-MacBook-Pro:bochs-2.6.9 sina$ make
-cd iodev && \\
+cd iodev && \
 	/Library/Developer/CommandLineTools/usr/bin/make  libiodev.a
-g++ -c  -I.. -I./.. -I../instrument/stubs -I./../instrument/stubs  -fpascal-strings -fno-common -Wno-four-char-constants -Wno-unknown-pragmas -Dmacintosh -D\_FILE\_OFFSET\_BITS=64 -D\_LARGE\_FILES    devices.cc -o devices.o
+g++ -c  -I.. -I./.. -I../instrument/stubs -I./../instrument/stubs  -fpascal-strings -fno-common -Wno-four-char-constants -Wno-unknown-pragmas -Dmacintosh -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES    devices.cc -o devices.o
 
 ...
 
-cdrom\_osx.cc:194:18: error: assigning to 'char \*' from incompatible type
-      'const char \*'
+cdrom_osx.cc:194:18: error: assigning to 'char *' from incompatible type
+      'const char *'
   if ((devname = strrchr(devpath, '/')) != NULL) {
                  ^~~~~~~~~~~~~~~~~~~~~
-cdrom\_osx.cc:231:15: warning: comparison between NULL and non-pointer
-      ('io\_registry\_entry\_t' (aka 'unsigned int') and NULL) \[-Wnull-arithmetic\]
+cdrom_osx.cc:231:15: warning: comparison between NULL and non-pointer
+      ('io_registry_entry_t' (aka 'unsigned int') and NULL) [-Wnull-arithmetic]
   if (service == NULL) {
       ~~~~~~~ ^  ~~~~
-cdrom\_osx.cc:291:30: warning: implicit conversion of NULL constant to
-      'mach\_port\_t' (aka 'unsigned int') \[-Wnull-conversion\]
-    mach\_port\_t masterPort = NULL;
+cdrom_osx.cc:291:30: warning: implicit conversion of NULL constant to
+      'mach_port_t' (aka 'unsigned int') [-Wnull-conversion]
+    mach_port_t masterPort = NULL;
                 ~~~~~~~~~~   ^~~~
                              0
 4 warnings and 1 error generated.
-make\[1\]: \*\*\* \[cdrom\_osx.o\] Error 1
-make: \*\*\* \[iodev/hdimage/libhdimage.a\] Error 2
+make[1]: *** [cdrom_osx.o] Error 1
+make: *** [iodev/hdimage/libhdimage.a] Error 2
+```
 
 that's a weird error! I don't know why this happens but I simply go to "cdrom\_osx.cc" file and change the following line:
 
+```
  if ((devname = strrchr(devpath, '/')) != NULL) {
+```
 
 to:
 
-  if ((devname = (char\*)strrchr(devpath, '/')) != NULL) {
+```
+  if ((devname = (char*)strrchr(devpath, '/')) != NULL) {
+```
 
 And simply ignore this problem.
 
 Let's "make" it again.
+
+```
+Sinas-MacBook-Pro:bochs-2.6.9 sina$ 
+
+...
 
 Sinas-MacBook-Pro:bochs-2.6.9 sina$ 
 
 ...
 
 carbon.cc:155:1: error: unknown type name 'CIconHandle'
-CIconHandle     bx\_cicn\[BX\_MAX\_PIXMAPS\];
+CIconHandle     bx_cicn[BX_MAX_PIXMAPS];
 ^
 carbon.cc:269:3: error: use of undeclared identifier 'GetWindowPortBounds'
   GetWindowPortBounds(myWindow, &box);
@@ -146,32 +159,33 @@ carbon.cc:553:5: error: no matching function for call to 'NewAEEventHandlerUPP'
     ^~~~~~~~~~~~~~~~~~~~
 /System/Library/Frameworks/CoreServices.framework/Frameworks/AE.framework/Headers/AEDataModel.h:2730:65: note: 
       candidate function not viable: no known conversion from 'OSErr (const
-      AppleEvent \*, AppleEvent \*, SInt32)' (aka 'short (const AEDesc \*, AEDesc
-      \*, int)') to 'AEEventHandlerProcPtr' (aka 'short (\*)(const AEDesc \*,
-      AEDesc \*, void \*)') for 1st argument
+      AppleEvent *, AppleEvent *, SInt32)' (aka 'short (const AEDesc *, AEDesc
+      *, int)') to 'AEEventHandlerProcPtr' (aka 'short (*)(const AEDesc *,
+      AEDesc *, void *)') for 1st argument
     inline AEEventHandlerUPP                                    NewAEEve...
                                                                 ^
 carbon.cc:555:5: warning: 'ExitToShell' is deprecated: first deprecated in macOS
-      10.9 \[-Wdeprecated-declarations\]
+      10.9 [-Wdeprecated-declarations]
     ExitToShell();
     ^
 /System/Library/Frameworks/ApplicationServices.framework/Frameworks/HIServices.framework/Headers/Processes.h:725:6: note: 
       'ExitToShell' has been explicitly marked deprecated here
-void ExitToShell( void ) \_\_attribute\_\_ (( \_\_noreturn\_\_ ))   AVAILABLE\_MA...
+void ExitToShell( void ) __attribute__ (( __noreturn__ ))   AVAILABLE_MA...
      ^
 carbon.cc:575:5: error: use of undeclared identifier 'GetGWorld'
     GetGWorld(&savePort, &saveDevice);
     ^
 carbon.cc:605:56: error: use of undeclared identifier 'keepLocal'
-      &srcTileRect, disp\_bpp>8 ? NULL : gCTable, NULL, keepLocal, gMyBuf...
+      &srcTileRect, disp_bpp>8 ? NULL : gCTable, NULL, keepLocal, gMyBuf...
                                                        ^
 carbon.cc:609:5: error: use of undeclared identifier 'SetGWorld'
     SetGWorld(gOffWorld, NULL);
     ^
-fatal error: too many errors emitted, stopping now \[-ferror-limit=\]
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
 1 warning and 20 errors generated.
-make\[1\]: \*\*\* \[carbon.o\] Error 1
-make: \*\*\* \[gui/libgui.a\] Error 2
+make[1]: *** [carbon.o] Error 1
+make: *** [gui/libgui.a] Error 2
+```
 
 That's too bad! 20 errors.
 
@@ -179,12 +193,16 @@ I googled it and understand that this problem happens because the libraries that
 
 Now you need to download and install SDL.
 
+```
 brew install sdl
+```
 
 Then compile the Bochs using the following syntax.
 
+```
 ./configure --with-sdl
 make
+```
 
 Even though this problem is reported to Bochs developers but it seems none of them uses OS X, I'm sure this problem will be solved in the future versions of Bochs.
 
@@ -192,78 +210,91 @@ Finally, it compiles without error, but actually, I want to use more features of
 
 I use the following syntax to compile the Bochs:
 
+```
 ./configure --enable-cpu-level=6 --enable-x86-64 --enable-vmx=2 --enable-pci --enable-usb --enable-usb-ohci --enable-debugger --enable-disasm --with-sdl --enable-instrumentation="instrument/stubs" --enable-cdrom
 make
+```
 
 If there isn't any problem, you can now run the Bochs.
 
 This time, when I run Bochs it gives me the following error:
 
+```
 Sinas-MacBook-Pro:bochs-2.6.9 sina$ bochs 
 ========================================================================
                        Bochs x86 Emulator 2.6.9
                Built from SVN snapshot on April 9, 2017
                   Compiled on Apr 15 2018 at 14:58:06
 ========================================================================
-00000000000i\[      \] BXSHARE not set. using compile time default '/usr/local/share/bochs'
-00000000000i\[      \] reading configuration from .bochsrc
-00000000000e\[      \] .bochsrc:187: wrong value for parameter 'model'
-00000000000p\[      \] >>PANIC<< .bochsrc:187: cpu directive malformed.
-00000000000e\[SIM   \] notify called, but no bxevent\_callback function is registered
+00000000000i[      ] BXSHARE not set. using compile time default '/usr/local/share/bochs'
+00000000000i[      ] reading configuration from .bochsrc
+00000000000e[      ] .bochsrc:187: wrong value for parameter 'model'
+00000000000p[      ] >>PANIC<< .bochsrc:187: cpu directive malformed.
+00000000000e[SIM   ] notify called, but no bxevent_callback function is registered
 ========================================================================
 Bochs is exiting with the following message:
-\[      \] .bochsrc:187: cpu directive malformed.
+[      ] .bochsrc:187: cpu directive malformed.
 ========================================================================
-00000000000i\[SIM   \] quit\_sim called with exit code 1
+00000000000i[SIM   ] quit_sim called with exit code 1
+```
 
 Actually, this problem happens because the CPU architecture that selected in ".bochsrc" file is not available in the current built.
 
 You should run the following command in order to get the supported CPUs:
 
+```
 bochs --help cpu
+```
 
 Then I modified the following line:
 
-cpu: model=core2\_penryn\_t9600, count=1, ips=50000000, reset\_on\_triple\_fault=1, ignore\_bad\_msrs=1, msrs="msrs.def"
+```
+cpu: model=core2__penryn__t9600, count=1, ips=50000000, reset__on__triple__fault=1, ignore__bad__msrs=1, msrs="msrs.def"
+```
 
 change the "core2\_penryn\_t9600" to e.g "core\_duo\_t2400\_yonah".
 
 Running bochs again produces such error :
 
+```
 Sinas-MacBook-Pro:bochs-2.6.9 sina$ bochs 
 ========================================================================
                        Bochs x86 Emulator 2.6.9
                Built from SVN snapshot on April 9, 2017
                   Compiled on Apr 15 2018 at 14:58:06
 ========================================================================
-00000000000i\[      \] BXSHARE not set. using compile time default '/usr/local/share/bochs'
-00000000000i\[      \] reading configuration from .bochsrc
-00000000000e\[      \] .bochsrc:718: ataX-master/slave CHS set to 0/0/0 - autodetection enabled
-00000000000p\[      \] >>PANIC<< .bochsrc:914: Bochs is not compiled with lowlevel sound support
-00000000000e\[SIM   \] notify called, but no bxevent\_callback function is registered
+00000000000i[      ] BXSHARE not set. using compile time default '/usr/local/share/bochs'
+00000000000i[      ] reading configuration from .bochsrc
+00000000000e[      ] .bochsrc:718: ataX-master/slave CHS set to 0/0/0 - autodetection enabled
+00000000000p[      ] >>PANIC<< .bochsrc:914: Bochs is not compiled with lowlevel sound support
+00000000000e[SIM   ] notify called, but no bxevent_callback function is registered
 ========================================================================
 Bochs is exiting with the following message:
-\[      \] .bochsrc:914: Bochs is not compiled with lowlevel sound support
+[      ] .bochsrc:914: Bochs is not compiled with lowlevel sound support
 ========================================================================
-00000000000i\[SIM   \] quit\_sim called with exit code 1
+00000000000i[SIM   ] quit_sim called with exit code 1
+```
 
 It is because we didn't configure Bochs for preparing sound device and we use "sound" option in ".bochsrc", in order to build with sound support you can use one of the "--enable-sb16" or "--enable-es1370" in configuring and "make" again but I rather remove the following line from ".bochsrc" to build it again.
 
+```
 sound: driver=default, waveout=/dev/dsp. wavein=, midiout=
+```
 
 Now it runs without error.
 
+```
 Sinas-MacBook-Pro:bochs-2.6.9 sina$ bochs 
 ========================================================================
                        Bochs x86 Emulator 2.6.9
                Built from SVN snapshot on April 9, 2017
                   Compiled on Apr 15 2018 at 14:58:06
 ========================================================================
-00000000000i\[      \] BXSHARE not set. using compile time default '/usr/local/share/bochs'
-00000000000i\[      \] reading configuration from .bochsrc
-00000000000e\[      \] .bochsrc:718: ataX-master/slave CHS set to 0/0/0 - autodetection enabled
-00000000000e\[      \] .bochsrc:925: wrong value for parameter 'mode'
-00000000000e\[PCSPK \] .bochsrc:925: unknown parameter for speaker ignored.
+00000000000i[      ] BXSHARE not set. using compile time default '/usr/local/share/bochs'
+00000000000i[      ] reading configuration from .bochsrc
+00000000000e[      ] .bochsrc:718: ataX-master/slave CHS set to 0/0/0 - autodetection enabled
+00000000000e[      ] .bochsrc:925: wrong value for parameter 'mode'
+00000000000e[PCSPK ] .bochsrc:925: unknown parameter for speaker ignored.
 ------------------------------
 Bochs Configuration: Main Menu
 ------------------------------
@@ -284,7 +315,8 @@ You can also start bochs with the -q option to skip these menus.
 6. Begin simulation
 7. Quit now
 
-Please choose one: \[6\]
+Please choose one: [6]
+```
 
 ## Building Bochs on Windows
 
@@ -300,28 +332,38 @@ Go to **"config.h"** and modify it like this:
 
 In order to enable debugging make sure your config file is :
 
-#define BX\_GDBSTUB 1
-#define BX\_DEBUGGER 1
-#define BX\_DISASM 1
-#define BX\_DEBUGGER\_GUI 1
+```
+#define BX__GDBSTUB 1
+#define BX__DEBUGGER 1
+#define BX__DISASM 1
+#define BX__DEBUGGER__GUI 1
+```
 
 I also need Instrumentation so changed the following line:
 
-#define BX\_INSTRUMENTATION 1
+```
+#define BX__INSTRUMENTATION 1
+```
 
 make sure disable **BX\_SUPPORT\_HANDLERS\_CHAINING\_SPEEDUPS** because of some incompatibility issues.
 
-#define BX\_SUPPORT\_HANDLERS\_CHAINING\_SPEEDUPS 0
+```
+#define BX__SUPPORT__HANDLERS__CHAINING__SPEEDUPS 0
+```
 
 Then trying to build and this time it gives me the following error:
 
-unresolved external symbol \_\_imp\_\_WSAStartup@8 referenced in function \_main	
+```
+unresolved external symbol ____imp____WSAStartup@8 referenced in function __main	
+```
 
 And other such errors which are linking problems.
 
 I add the following line to **bxhub.cc** :
 
-#pragma comment(lib,"Ws2\_32.lib")
+```
+#pragma comment(lib,"Ws2__32.lib")
+```
 
 That line solves the linking problems. If there isn't any error then just build the solution.
 
@@ -333,7 +375,8 @@ Bochs uses an image file for the purpose of its hard disk, there is a tool calle
 
 Open **bximage.exe** :
 
-\========================================================================
+```
+========================================================================
                                 bximage
   Disk Image Creation / Conversion / Resize and Commit Tool for Bochs
          $Id: bximage.cc 13069 2017-02-12 16:51:52Z vruppert $
@@ -347,7 +390,8 @@ Open **bximage.exe** :
 
 0. Quit
 
-Please choose one \[0\]
+Please choose one [0]
+```
 
 Then choose 1 (Create new floppy or hard disk image). In the second step choose **hd** for device type, **growing** for the next question and then choose how much space you need to allocate to your emulated machine.
 
@@ -355,7 +399,8 @@ In the last step specify a name and you're good to go!
 
 A complete result of bximage is like :
 
-\========================================================================
+```
+========================================================================
                                 bximage
   Disk Image Creation / Conversion / Resize and Commit Tool for Bochs
          $Id: bximage.cc 13069 2017-02-12 16:51:52Z vruppert $
@@ -369,21 +414,21 @@ A complete result of bximage is like :
 
 0. Quit
 
-Please choose one \[0\] 1
+Please choose one [0] 1
 
 Create image
 
 Do you want to create a floppy disk image or a hard disk image?
-Please type hd or fd. \[hd\] hd
+Please type hd or fd. [hd] hd
 
 What kind of image should I create?
-Please type flat, sparse, growing, vpc or vmware4. \[flat\] growing
+Please type flat, sparse, growing, vpc or vmware4. [flat] growing
 
 Enter the hard disk size in megabytes, between 10 and 8257535
-\[10\] 10000
+[10] 10000
 
 What should be the name of the image?
-\[c.img\] c.img
+[c.img] c.img
 
 Creating hard disk image 'c.img' with CHS=20317/16/63
 redolog : creating redolog c.img
@@ -395,6 +440,7 @@ The following line should appear in your bochsrc:
 (The line is stored in your windows clipboard, use CTRL-V to paste)
 
 Press any key to continue
+```
 
 After creating the image file, now you need to configure your Bochs machine.
 

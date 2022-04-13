@@ -56,12 +56,14 @@ This is really easy. Here are the rules:
 
 #start iptables for captive portal
 
+```
 /usr/sbin/iptables -t filter -I FORWARD 1 --protocol tcp --sport 53 --jump ACCEPT
 /usr/sbin/iptables -t filter -I FORWARD 1 --protocol udp --sport 53 --jump ACCEPT
 /usr/sbin/iptables -t filter -I FORWARD 1 --protocol tcp --dport 53 --jump ACCEPT
 /usr/sbin/iptables -t filter -I FORWARD 1 --protocol udp --dport 53 --jump ACCEPT
 /usr/sbin/iptables -t filter -I FORWARD 5 -j DROP
 /usr/sbin/iptables -t nat -A prerouting\_lan\_rule --protocol tcp --dport 80 --jump DNAT --to-destination $(uci get network.lan.ipaddr):80
+```
 
 #the line above does this, but you don't need to specify the ip manually
 #/usr/sbin/iptables -t nat -A prerouting\_lan\_rule --protocol tcp --dport 80 --jump DNAT --to-destination 192.168.100.1:80
@@ -82,6 +84,7 @@ Configuring a redirect is pretty straightforward for every webserver you are usi
 
 You should change **/e_tc__/uhttpd/redir.json_** _like this:_
 
+```
 {
 	"fallback": \[
 		\[ "if", \[ "regex", "REQUEST\_URI", \[ "/\*" \] \],
@@ -89,6 +92,7 @@ You should change **/e_tc__/uhttpd/redir.json_** _like this:_
 		\]
 	\]
 }
+```
 
 It is a **fallback** redirect, so it will only kick in if the url does not exist. So it will not interfere with other things you will be doing on the webserver.
 

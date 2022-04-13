@@ -46,44 +46,56 @@ Now we should open some IDE or text Editor and start working on the backend pyth
 
 we start by importing the required modules and specifying ui file for the application to use:
 
+```
 from PyQt5 import QtCore, uic, QtWidgets
 qtCreatorFile = "btc.ui" # Enter file here.
-Ui\_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
+Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
+```
 
 You should also tell python to start a GUI application!:
 
-class MyApp(QtWidgets.QMainWindow, Ui\_MainWindow):
+```
+class MyApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
-def \_\_init\_\_(self):
-    QtWidgets.QMainWindow.\_\_init\_\_(self)
-    Ui\_MainWindow.\_\_init\_\_(self)
+def __init__(self):
+    QtWidgets.QMainWindow.__init__(self)
+    Ui_MainWindow.__init__(self)
     self.setupUi(self)
     #.... you application continues here ....
 
-if \_\_name\_\_ == "\_\_main\_\_":
+if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = MyApp()
     window.show()
-    sys.exit(app.exec\_())
+    sys.exit(app.exec_())
+```
 
 It is not important of you do not understand what these lines mean at first. Gradually you will learn everything.
 
 I recommend you open the template file and continue your work from that. It is mych easier than typing all of these or copying them from here. the next important thing is connecting the buttons on the screen to some functions in our application, or else this buttons won't do anything when pressed. so you add this line in _\_\_init\_\__ in your main qt app class:
 
+```
 self.prev\_button.clicked.connect(self.GoPrev)
+```
 
 It says that when user clicked "_prev\_button_" run the function "_GoPrev_" the same way for this:
 
+```
 self.next\_button.clicked.connect(self.GoNext)
+```
 
 then we define our click functions which should only take one argument which is _self_:
 
+```
 def GoPrev(self):
     ....
+```
 
 and do you stuff there or call other functions from there. There may also be other ways of doing this which I'm not aware of. I'm not a professional Qt developer anyway! One more thing, this is how you set the text for a label:
 
+```
 self.label.setText("This is a useless text box")
+```
 
 Now you know the basics and can google your way for interacting with more controls and using advanced functions of Qt. The python code and UI file should be together for the program to start.
 
@@ -93,7 +105,9 @@ The sample given below is an application which retrieves bitcoin price from Coin
 
 run it like this:_
 
+```
 $ python3 btc.py
+```
 
 _I hope it will be both educational and useful!
 

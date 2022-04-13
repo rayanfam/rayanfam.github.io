@@ -29,6 +29,7 @@ In later posts we will discover how to do this scenario in other platforms like 
 
 The best guide for learning how IPSec works: [http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-77.pdf](http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-77.pdf)
 
+```
 R1(config)# interface Tunnel0
 R1(config-if)# ip address 172.16.0.1 255.255.255.0
 _##better performance when packets not fragmeted##_
@@ -64,7 +65,9 @@ R1(ipsec-profile)# set transform-set TS
 R1(config)# interface Tunnel 0
 
 R1(config-if)# tunnel protection ipsec profile protect-gre
+```
 
+```
 R2(config)# interface Tunnel0
 R2(config-if)# ip address 172.16.0.2 255.255.255.0
 R2(config-if)# ip mtu 1400
@@ -101,3 +104,4 @@ R2(ipsec-profile)# set transform-set TS
 R2(config)# interface Tunnel 0
 
 R2(config-if)# tunnel protection ipsec profile protect-gre
+```

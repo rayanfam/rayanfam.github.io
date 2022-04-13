@@ -44,100 +44,108 @@ Now its responsibility of device function to check the privileges or etc.
 
 The following code creates the device :
 
-	NTSTATUS NtStatus = STATUS\_SUCCESS;
+```
+	NTSTATUS NtStatus = STATUS_SUCCESS;
 	UINT64 uiIndex = 0;
-	PDEVICE\_OBJECT pDeviceObject = NULL;
-	UNICODE\_STRING usDriverName, usDosDeviceName;
+	PDEVICE_OBJECT pDeviceObject = NULL;
+	UNICODE_STRING usDriverName, usDosDeviceName;
 
-	DbgPrint("\[\*\] DriverEntry Called.");	
+	DbgPrint("[*] DriverEntry Called.");	
 
-	RtlInitUnicodeString(&usDriverName, L"\\\\Device\\\\MyHypervisorDevice");
+	RtlInitUnicodeString(&usDriverName, L"\\Device\\MyHypervisorDevice");
 	
-	RtlInitUnicodeString(&usDosDeviceName, L"\\\\DosDevices\\\\MyHypervisorDevice");
+	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\\MyHypervisorDevice");
 
-	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE\_DEVICE\_UNKNOWN, FILE\_DEVICE\_SECURE\_OPEN, FALSE, &pDeviceObject);
+	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &pDeviceObject);
 	NTSTATUS NtStatusSymLinkResult = IoCreateSymbolicLink(&usDosDeviceName, &usDriverName);
+```
 
 Note that our device name is "**\\Device\\MyHypervisorDevice**"**.**
 
 After that, we need to introduce our Major Functions for our device.
 
-	if (NtStatus == STATUS\_SUCCESS && NtStatusSymLinkResult == STATUS\_SUCCESS)
+```
+	if (NtStatus == STATUS_SUCCESS && NtStatusSymLinkResult == STATUS_SUCCESS)
 	{
-		for (uiIndex = 0; uiIndex < IRP\_MJ\_MAXIMUM\_FUNCTION; uiIndex++)
-			pDriverObject->MajorFunction\[uiIndex\] = DrvUnsupported;
+		for (uiIndex = 0; uiIndex < IRP_MJ_MAXIMUM_FUNCTION; uiIndex++)
+			pDriverObject->MajorFunction[uiIndex] = DrvUnsupported;
 
-		DbgPrint("\[\*\] Setting Devices major functions.");
-		pDriverObject->MajorFunction\[IRP\_MJ\_CLOSE\] = DrvClose;
-		pDriverObject->MajorFunction\[IRP\_MJ\_CREATE\] = DrvCreate;
-		pDriverObject->MajorFunction\[IRP\_MJ\_DEVICE\_CONTROL\] = DrvIOCTLDispatcher;
-		pDriverObject->MajorFunction\[IRP\_MJ\_READ\] = DrvRead;
-		pDriverObject->MajorFunction\[IRP\_MJ\_WRITE\] = DrvWrite;
+		DbgPrint("[*] Setting Devices major functions.");
+		pDriverObject->MajorFunction[IRP_MJ_CLOSE] = DrvClose;
+		pDriverObject->MajorFunction[IRP_MJ_CREATE] = DrvCreate;
+		pDriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvIOCTLDispatcher;
+		pDriverObject->MajorFunction[IRP_MJ_READ] = DrvRead;
+		pDriverObject->MajorFunction[IRP_MJ_WRITE] = DrvWrite;
 
 		pDriverObject->DriverUnload = DrvUnload;
 	}
 	else {
-		DbgPrint("\[\*\] There was some errors in creating device.");
+		DbgPrint("[*] There was some errors in creating device.");
 	}
+```
 
 You can see that I put "**DrvUnsupported**" to all functions, this is a function to handle all MJ Functions and told the user that it's not supported. The main body of this function is like this:
 
-NTSTATUS DrvUnsupported(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
+```
+NTSTATUS DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("\[\*\] This function is not supported :( !");
+	DbgPrint("[*] This function is not supported :( !");
 
-	Irp->IoStatus.Status = STATUS\_SUCCESS;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO\_NO\_INCREMENT);
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS\_SUCCESS;
+	return STATUS_SUCCESS;
 }
+```
 
 We also introduce other major functions that are essential for our device, we'll complete the implementation in the future, let's just leave them alone.
 
-NTSTATUS DrvCreate(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
+```
+NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("\[\*\] Not implemented yet :( !");
+	DbgPrint("[*] Not implemented yet :( !");
 
-	Irp->IoStatus.Status = STATUS\_SUCCESS;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO\_NO\_INCREMENT);
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS\_SUCCESS;
+	return STATUS_SUCCESS;
 }
 
-NTSTATUS DrvRead(IN PDEVICE\_OBJECT DeviceObject,IN PIRP Irp)
+NTSTATUS DrvRead(IN PDEVICE_OBJECT DeviceObject,IN PIRP Irp)
 {
-	DbgPrint("\[\*\] Not implemented yet :( !");
+	DbgPrint("[*] Not implemented yet :( !");
 
-	Irp->IoStatus.Status = STATUS\_SUCCESS;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO\_NO\_INCREMENT);
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS\_SUCCESS;
+	return STATUS_SUCCESS;
 }
 
-NTSTATUS DrvWrite(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("\[\*\] Not implemented yet :( !");
+	DbgPrint("[*] Not implemented yet :( !");
 
-	Irp->IoStatus.Status = STATUS\_SUCCESS;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO\_NO\_INCREMENT);
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS\_SUCCESS;
+	return STATUS_SUCCESS;
 }
 
-NTSTATUS DrvClose(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("\[\*\] Not implemented yet :( !");
+	DbgPrint("[*] Not implemented yet :( !");
 
-	Irp->IoStatus.Status = STATUS\_SUCCESS;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO\_NO\_INCREMENT);
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS\_SUCCESS;
+	return STATUS_SUCCESS;
 }
+```
 
 Now let's see IRP MJ Functions list and other types of Windows Driver Kit handlers routine.
 
@@ -147,36 +155,38 @@ Now let's see IRP MJ Functions list and other types of Windows Driver Kit handl
 
 This is a list of IRP Major Functions which we can use in order to perform different operations.
 
-#define IRP\_MJ\_CREATE                   0x00
-#define IRP\_MJ\_CREATE\_NAMED\_PIPE        0x01
-#define IRP\_MJ\_CLOSE                    0x02
-#define IRP\_MJ\_READ                     0x03
-#define IRP\_MJ\_WRITE                    0x04
-#define IRP\_MJ\_QUERY\_INFORMATION        0x05
-#define IRP\_MJ\_SET\_INFORMATION          0x06
-#define IRP\_MJ\_QUERY\_EA                 0x07
-#define IRP\_MJ\_SET\_EA                   0x08
-#define IRP\_MJ\_FLUSH\_BUFFERS            0x09
-#define IRP\_MJ\_QUERY\_VOLUME\_INFORMATION 0x0a
-#define IRP\_MJ\_SET\_VOLUME\_INFORMATION   0x0b
-#define IRP\_MJ\_DIRECTORY\_CONTROL        0x0c
-#define IRP\_MJ\_FILE\_SYSTEM\_CONTROL      0x0d
-#define IRP\_MJ\_DEVICE\_CONTROL           0x0e
-#define IRP\_MJ\_INTERNAL\_DEVICE\_CONTROL  0x0f
-#define IRP\_MJ\_SHUTDOWN                 0x10
-#define IRP\_MJ\_LOCK\_CONTROL             0x11
-#define IRP\_MJ\_CLEANUP                  0x12
-#define IRP\_MJ\_CREATE\_MAILSLOT          0x13
-#define IRP\_MJ\_QUERY\_SECURITY           0x14
-#define IRP\_MJ\_SET\_SECURITY             0x15
-#define IRP\_MJ\_POWER                    0x16
-#define IRP\_MJ\_SYSTEM\_CONTROL           0x17
-#define IRP\_MJ\_DEVICE\_CHANGE            0x18
-#define IRP\_MJ\_QUERY\_QUOTA              0x19
-#define IRP\_MJ\_SET\_QUOTA                0x1a
-#define IRP\_MJ\_PNP                      0x1b
-#define IRP\_MJ\_PNP\_POWER                IRP\_MJ\_PNP      // Obsolete....
-#define IRP\_MJ\_MAXIMUM\_FUNCTION         0x1b
+```
+#define IRP_MJ_CREATE                   0x00
+#define IRP_MJ_CREATE_NAMED_PIPE        0x01
+#define IRP_MJ_CLOSE                    0x02
+#define IRP_MJ_READ                     0x03
+#define IRP_MJ_WRITE                    0x04
+#define IRP_MJ_QUERY_INFORMATION        0x05
+#define IRP_MJ_SET_INFORMATION          0x06
+#define IRP_MJ_QUERY_EA                 0x07
+#define IRP_MJ_SET_EA                   0x08
+#define IRP_MJ_FLUSH_BUFFERS            0x09
+#define IRP_MJ_QUERY_VOLUME_INFORMATION 0x0a
+#define IRP_MJ_SET_VOLUME_INFORMATION   0x0b
+#define IRP_MJ_DIRECTORY_CONTROL        0x0c
+#define IRP_MJ_FILE_SYSTEM_CONTROL      0x0d
+#define IRP_MJ_DEVICE_CONTROL           0x0e
+#define IRP_MJ_INTERNAL_DEVICE_CONTROL  0x0f
+#define IRP_MJ_SHUTDOWN                 0x10
+#define IRP_MJ_LOCK_CONTROL             0x11
+#define IRP_MJ_CLEANUP                  0x12
+#define IRP_MJ_CREATE_MAILSLOT          0x13
+#define IRP_MJ_QUERY_SECURITY           0x14
+#define IRP_MJ_SET_SECURITY             0x15
+#define IRP_MJ_POWER                    0x16
+#define IRP_MJ_SYSTEM_CONTROL           0x17
+#define IRP_MJ_DEVICE_CHANGE            0x18
+#define IRP_MJ_QUERY_QUOTA              0x19
+#define IRP_MJ_SET_QUOTA                0x1a
+#define IRP_MJ_PNP                      0x1b
+#define IRP_MJ_PNP_POWER                IRP_MJ_PNP      // Obsolete....
+#define IRP_MJ_MAXIMUM_FUNCTION         0x1b
+```
 
 Every major function will only trigger if we call its corresponding function from user-mode. For instance, there is a function (in user-mode) called **CreateFile** (And all its variants like **CreateFileA** and **CreateFileW** for **ASCII** and **Unicode**) so everytime we call **CreateFile** the function that registered as **IRP\_MJ\_CREATE** will be called or if we call **ReadFile** then **IRP\_MJ\_READ** and **WriteFile** then **IRP\_MJ\_WRITE ** will be called. You can see that Windows treats its devices like files and everything we need to pass from user-mode to kernel-mode is available in **PIRP Irp** as a buffer when the function is called.
 
@@ -192,29 +202,31 @@ We will need these minor functions later in these series.
 
 A list of IRP Minor Functions is available below:
 
-IRP\_MN\_START\_DEVICE
-IRP\_MN\_QUERY\_STOP\_DEVICE
-IRP\_MN\_STOP\_DEVICE
-IRP\_MN\_CANCEL\_STOP\_DEVICE
-IRP\_MN\_QUERY\_REMOVE\_DEVICE
-IRP\_MN\_REMOVE\_DEVICE
-IRP\_MN\_CANCEL\_REMOVE\_DEVICE
-IRP\_MN\_SURPRISE\_REMOVAL
-IRP\_MN\_QUERY\_CAPABILITIES	
-IRP\_MN\_QUERY\_PNP\_DEVICE\_STATE
-IRP\_MN\_FILTER\_RESOURCE\_REQUIREMENTS
-IRP\_MN\_DEVICE\_USAGE\_NOTIFICATION
-IRP\_MN\_QUERY\_DEVICE\_RELATIONS
-IRP\_MN\_QUERY\_RESOURCES
-IRP\_MN\_QUERY\_RESOURCE\_REQUIREMENTS
-IRP\_MN\_QUERY\_ID
-IRP\_MN\_QUERY\_DEVICE\_TEXT
-IRP\_MN\_QUERY\_BUS\_INFORMATION
-IRP\_MN\_QUERY\_INTERFACE
-IRP\_MN\_READ\_CONFIG
-IRP\_MN\_WRITE\_CONFIG
-IRP\_MN\_DEVICE\_ENUMERATED
-IRP\_MN\_SET\_LOCK
+```
+IRP_MN_START_DEVICE
+IRP_MN_QUERY_STOP_DEVICE
+IRP_MN_STOP_DEVICE
+IRP_MN_CANCEL_STOP_DEVICE
+IRP_MN_QUERY_REMOVE_DEVICE
+IRP_MN_REMOVE_DEVICE
+IRP_MN_CANCEL_REMOVE_DEVICE
+IRP_MN_SURPRISE_REMOVAL
+IRP_MN_QUERY_CAPABILITIES	
+IRP_MN_QUERY_PNP_DEVICE_STATE
+IRP_MN_FILTER_RESOURCE_REQUIREMENTS
+IRP_MN_DEVICE_USAGE_NOTIFICATION
+IRP_MN_QUERY_DEVICE_RELATIONS
+IRP_MN_QUERY_RESOURCES
+IRP_MN_QUERY_RESOURCE_REQUIREMENTS
+IRP_MN_QUERY_ID
+IRP_MN_QUERY_DEVICE_TEXT
+IRP_MN_QUERY_BUS_INFORMATION
+IRP_MN_QUERY_INTERFACE
+IRP_MN_READ_CONFIG
+IRP_MN_WRITE_CONFIG
+IRP_MN_DEVICE_ENUMERATED
+IRP_MN_SET_LOCK
+```
 
 ## **Fast I/O**
 
@@ -228,72 +240,76 @@ When the I/O Manager receives a request for synchronous file I/O (other than pag
 
 The definition of Fast I/O Dispatch table is:
 
-typedef struct \_FAST\_IO\_DISPATCH {
+```
+typedef struct _FAST_IO_DISPATCH {
   ULONG                                  SizeOfFastIoDispatch;
-  PFAST\_IO\_CHECK\_IF\_POSSIBLE             FastIoCheckIfPossible;
-  PFAST\_IO\_READ                          FastIoRead;
-  PFAST\_IO\_WRITE                         FastIoWrite;
-  PFAST\_IO\_QUERY\_BASIC\_INFO              FastIoQueryBasicInfo;
-  PFAST\_IO\_QUERY\_STANDARD\_INFO           FastIoQueryStandardInfo;
-  PFAST\_IO\_LOCK                          FastIoLock;
-  PFAST\_IO\_UNLOCK\_SINGLE                 FastIoUnlockSingle;
-  PFAST\_IO\_UNLOCK\_ALL                    FastIoUnlockAll;
-  PFAST\_IO\_UNLOCK\_ALL\_BY\_KEY             FastIoUnlockAllByKey;
-  PFAST\_IO\_DEVICE\_CONTROL                FastIoDeviceControl;
-  PFAST\_IO\_ACQUIRE\_FILE                  AcquireFileForNtCreateSection;
-  PFAST\_IO\_RELEASE\_FILE                  ReleaseFileForNtCreateSection;
-  PFAST\_IO\_DETACH\_DEVICE                 FastIoDetachDevice;
-  PFAST\_IO\_QUERY\_NETWORK\_OPEN\_INFO       FastIoQueryNetworkOpenInfo;
-  PFAST\_IO\_ACQUIRE\_FOR\_MOD\_WRITE         AcquireForModWrite;
-  PFAST\_IO\_MDL\_READ                      MdlRead;
-  PFAST\_IO\_MDL\_READ\_COMPLETE             MdlReadComplete;
-  PFAST\_IO\_PREPARE\_MDL\_WRITE             PrepareMdlWrite;
-  PFAST\_IO\_MDL\_WRITE\_COMPLETE            MdlWriteComplete;
-  PFAST\_IO\_READ\_COMPRESSED               FastIoReadCompressed;
-  PFAST\_IO\_WRITE\_COMPRESSED              FastIoWriteCompressed;
-  PFAST\_IO\_MDL\_READ\_COMPLETE\_COMPRESSED  MdlReadCompleteCompressed;
-  PFAST\_IO\_MDL\_WRITE\_COMPLETE\_COMPRESSED MdlWriteCompleteCompressed;
-  PFAST\_IO\_QUERY\_OPEN                    FastIoQueryOpen;
-  PFAST\_IO\_RELEASE\_FOR\_MOD\_WRITE         ReleaseForModWrite;
-  PFAST\_IO\_ACQUIRE\_FOR\_CCFLUSH           AcquireForCcFlush;
-  PFAST\_IO\_RELEASE\_FOR\_CCFLUSH           ReleaseForCcFlush;
-} FAST\_IO\_DISPATCH, \*PFAST\_IO\_DISPATCH;
+  PFAST_IO_CHECK_IF_POSSIBLE             FastIoCheckIfPossible;
+  PFAST_IO_READ                          FastIoRead;
+  PFAST_IO_WRITE                         FastIoWrite;
+  PFAST_IO_QUERY_BASIC_INFO              FastIoQueryBasicInfo;
+  PFAST_IO_QUERY_STANDARD_INFO           FastIoQueryStandardInfo;
+  PFAST_IO_LOCK                          FastIoLock;
+  PFAST_IO_UNLOCK_SINGLE                 FastIoUnlockSingle;
+  PFAST_IO_UNLOCK_ALL                    FastIoUnlockAll;
+  PFAST_IO_UNLOCK_ALL_BY_KEY             FastIoUnlockAllByKey;
+  PFAST_IO_DEVICE_CONTROL                FastIoDeviceControl;
+  PFAST_IO_ACQUIRE_FILE                  AcquireFileForNtCreateSection;
+  PFAST_IO_RELEASE_FILE                  ReleaseFileForNtCreateSection;
+  PFAST_IO_DETACH_DEVICE                 FastIoDetachDevice;
+  PFAST_IO_QUERY_NETWORK_OPEN_INFO       FastIoQueryNetworkOpenInfo;
+  PFAST_IO_ACQUIRE_FOR_MOD_WRITE         AcquireForModWrite;
+  PFAST_IO_MDL_READ                      MdlRead;
+  PFAST_IO_MDL_READ_COMPLETE             MdlReadComplete;
+  PFAST_IO_PREPARE_MDL_WRITE             PrepareMdlWrite;
+  PFAST_IO_MDL_WRITE_COMPLETE            MdlWriteComplete;
+  PFAST_IO_READ_COMPRESSED               FastIoReadCompressed;
+  PFAST_IO_WRITE_COMPRESSED              FastIoWriteCompressed;
+  PFAST_IO_MDL_READ_COMPLETE_COMPRESSED  MdlReadCompleteCompressed;
+  PFAST_IO_MDL_WRITE_COMPLETE_COMPRESSED MdlWriteCompleteCompressed;
+  PFAST_IO_QUERY_OPEN                    FastIoQueryOpen;
+  PFAST_IO_RELEASE_FOR_MOD_WRITE         ReleaseForModWrite;
+  PFAST_IO_ACQUIRE_FOR_CCFLUSH           AcquireForCcFlush;
+  PFAST_IO_RELEASE_FOR_CCFLUSH           ReleaseForCcFlush;
+} FAST_IO_DISPATCH, *PFAST_IO_DISPATCH;
+```
 
 ## **Defined Headers**
 
 I created the following headers (source.h) for my driver.
 
+```
 #pragma once
 #include <ntddk.h>
 #include <wdf.h>
 #include <wdm.h>
 
 extern void inline Breakpoint(void);
-extern void inline Enable\_VMX\_Operation(void);
+extern void inline Enable_VMX_Operation(void);
 
-NTSTATUS DriverEntry(PDRIVER\_OBJECT  pDriverObject, PUNICODE\_STRING  pRegistryPath);
-VOID DrvUnload(PDRIVER\_OBJECT  DriverObject);
-NTSTATUS DrvCreate(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvRead(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvWrite(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvClose(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvUnsupported(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvIOCTLDispatcher(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp);
+NTSTATUS DriverEntry(PDRIVER_OBJECT  pDriverObject, PUNICODE_STRING  pRegistryPath);
+VOID DrvUnload(PDRIVER_OBJECT  DriverObject);
+NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+NTSTATUS DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+NTSTATUS DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+NTSTATUS DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+NTSTATUS DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
+NTSTATUS DrvIOCTLDispatcher(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
 
-VOID PrintChars(\_In\_reads\_(CountChars) PCHAR BufferAddress, \_In\_ size\_t CountChars);
+VOID PrintChars(_In_reads_(CountChars) PCHAR BufferAddress, _In_ size_t CountChars);
 VOID PrintIrpInfo(PIRP Irp);
 
-#pragma alloc\_text(INIT, DriverEntry)
-#pragma alloc\_text(PAGE, DrvUnload)
-#pragma alloc\_text(PAGE, DrvCreate)
-#pragma alloc\_text(PAGE, DrvRead)
-#pragma alloc\_text(PAGE, DrvWrite)
-#pragma alloc\_text(PAGE, DrvClose)
-#pragma alloc\_text(PAGE, DrvUnsupported)
-#pragma alloc\_text(PAGE, DrvIOCTLDispatcher)
+#pragma alloc_text(INIT, DriverEntry)
+#pragma alloc_text(PAGE, DrvUnload)
+#pragma alloc_text(PAGE, DrvCreate)
+#pragma alloc_text(PAGE, DrvRead)
+#pragma alloc_text(PAGE, DrvWrite)
+#pragma alloc_text(PAGE, DrvClose)
+#pragma alloc_text(PAGE, DrvUnsupported)
+#pragma alloc_text(PAGE, DrvIOCTLDispatcher)
 
 // IOCTL Codes and Its meanings
-#define IOCTL\_TEST 0x1 // In case of testing 
+#define IOCTL_TEST 0x1 // In case of testing 
+```
 
 Now just compile your driver.
 
@@ -345,12 +361,16 @@ To do this, you need a Windows Local Kernel Debugging using Windbg.
 
 After that you need to open Windbg with UAC Administrator privilege, go to File > Kernel Debug > Local > press OK and in you local Windbg find the **nt!Kd\_DEFAULT\_Mask** using the following command :
 
-prlkd> x nt!kd\_Default\_Mask
-fffff801\`f5211808 nt!Kd\_DEFAULT\_Mask = <no type information>
+```
+kd> x nt!kd_Default_Mask
+fffff801`f5211808 nt!Kd_DEFAULT_Mask = <no type information>
+```
 
 Now change it value to 0xffffffff.
 
-lkd> eb fffff801\`f5211808 ff ff ff ff
+```
+kd> eb fffff801`f5211808 ff ff ff ff
+```
 
 ![kd_DEFAULT_Mask](../../assets/images/kd-DEFAULT-Mask.png)
 
@@ -370,51 +390,54 @@ First of all, we need to know if we're running on an Intel-based processor or no
 
 The following function returns the vendor string form CPUID instruction.
 
+```
 string GetCpuID()
 {
 	//Initialize used variables
-	char SysType\[13\]; //Array consisting of 13 single bytes/characters
+	char SysType[13]; //Array consisting of 13 single bytes/characters
 	string CpuID; //The string that will be used to add all the characters to
 				  //Starting coding in assembly language
-	\_asm
+	_asm
 	{
 		//Execute CPUID with EAX = 0 to get the CPU producer
 		XOR EAX, EAX
 		CPUID
 		//MOV EBX to EAX and get the characters one by one by using shift out right bitwise operation.
 		MOV EAX, EBX
-		MOV SysType\[0\], al
-		MOV SysType\[1\], ah
+		MOV SysType[0], al
+		MOV SysType[1], ah
 		SHR EAX, 16
-		MOV SysType\[2\], al
-		MOV SysType\[3\], ah
+		MOV SysType[2], al
+		MOV SysType[3], ah
 		//Get the second part the same way but these values are stored in EDX
 		MOV EAX, EDX
-		MOV SysType\[4\], al
-		MOV SysType\[5\], ah
+		MOV SysType[4], al
+		MOV SysType[5], ah
 		SHR EAX, 16
-		MOV SysType\[6\], al
-		MOV SysType\[7\], ah
+		MOV SysType[6], al
+		MOV SysType[7], ah
 		//Get the third part
 		MOV EAX, ECX
-		MOV SysType\[8\], al
-		MOV SysType\[9\], ah
+		MOV SysType[8], al
+		MOV SysType[9], ah
 		SHR EAX, 16
-		MOV SysType\[10\], al
-		MOV SysType\[11\], ah
-		MOV SysType\[12\], 00
+		MOV SysType[10], al
+		MOV SysType[11], ah
+		MOV SysType[12], 00
 	}
 	CpuID.assign(SysType, 12);
 	return CpuID;
 }
+```
 
 The last step is checking for the presence of VMX, you can check it using the following code :
 
-bool VMX\_Support\_Detection()
+```
+bool VMX_Support_Detection()
 {
 
 	bool VMX = false;
-	\_\_asm {
+	__asm {
 		xor    eax, eax
 		inc    eax
 		cpuid
@@ -430,38 +453,41 @@ bool VMX\_Support\_Detection()
 
 	return VMX;
 }
+```
 
 As you can see it checks CPUID with EAX=1 and if the 5th (6th) bit is 1 then the VMX Operation is supported. We can also perform the same thing in Kernel Driver.
 
 All in all, our main code should be something like this:
 
+```
 int main()
 {
 	string CpuID;
 	CpuID = GetCpuID();
-	cout << "\[\*\] The CPU Vendor is : " << CpuID << endl;
+	cout << "[*] The CPU Vendor is : " << CpuID << endl;
 	if (CpuID == "GenuineIntel")
 	{
-		cout << "\[\*\] The Processor virtualization technology is VT-x. \\n";
+		cout << "[*] The Processor virtualization technology is VT-x. \n";
 	}
 	else
 	{
-		cout << "\[\*\] This program is not designed to run in a non-VT-x environemnt !\\n";
+		cout << "[*] This program is not designed to run in a non-VT-x environemnt !\n";
 		return 1;
 	}
 	
-	if (VMX\_Support\_Detection())
+	if (VMX_Support_Detection())
 	{
-		cout << "\[\*\] VMX Operation is supported by your processor .\\n";
+		cout << "[*] VMX Operation is supported by your processor .\n";
 	}
 	else
 	{
-		cout << "\[\*\] VMX Operation is not supported by your processor .\\n";
+		cout << "[*] VMX Operation is not supported by your processor .\n";
 		return 1;
 	}
-	\_getch();
+	_getch();
     return 0;
 }
+```
 
 The final result:
 
@@ -488,11 +514,14 @@ Now you should create some function to perform this operation in assembly.
 
 Just in Header File (in my case **S****ource.h**) declare your function:
 
-extern void inline Enable\_VMX\_Operation(void);
+```
+extern void inline Enable_VMX_Operation(void);
+```
 
 Then in assembly file (in my case SourceAsm.asm) add this function (Which set the 13th (14th) bit of Cr4).
 
-Enable\_VMX\_Operation PROC PUBLIC
+```
+Enable_VMX_Operation PROC PUBLIC
 push rax			; Save the state
 
 xor rax,rax			; Clear the RAX
@@ -502,32 +531,39 @@ mov cr4,rax
 
 pop rax				; Restore the state
 ret
-Enable\_VMX\_Operation ENDP
+Enable_VMX_Operation ENDP
+```
 
 Also, declare your function in the above of SourceAsm.asm.
 
-PUBLIC Enable\_VMX\_Operation
+```
+PUBLIC Enable_VMX_Operation
+```
 
 The above function should be called in **DrvCreate**:
 
-NTSTATUS DrvCreate(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
+```
+NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	Enable\_VMX\_Operation();	// Enabling VMX Operation
-	DbgPrint("\[\*\] VMX Operation Enabled Successfully !");
-	return STATUS\_SUCCESS;
+	Enable_VMX_Operation();	// Enabling VMX Operation
+	DbgPrint("[*] VMX Operation Enabled Successfully !");
+	return STATUS_SUCCESS;
 }
+```
 
 At last, you should call the following function from the user-mode:
 
-	HANDLE hWnd = CreateFile(L"\\\\\\\\.\\\\MyHypervisorDevice",
-		GENERIC\_READ | GENERIC\_WRITE,
-		FILE\_SHARE\_READ |
-		FILE\_SHARE\_WRITE,
+```
+	HANDLE hWnd = CreateFile(L"\\\\.\\MyHypervisorDevice",
+		GENERIC_READ | GENERIC_WRITE,
+		FILE_SHARE_READ |
+		FILE_SHARE_WRITE,
 		NULL, /// lpSecurityAttirbutes
-		OPEN\_EXISTING,
-		FILE\_ATTRIBUTE\_NORMAL |
-		FILE\_FLAG\_OVERLAPPED,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL |
+		FILE_FLAG_OVERLAPPED,
 		NULL); /// lpTemplateFile 
+```
 
 If you see the following result, then you completed the second part successfully.
 

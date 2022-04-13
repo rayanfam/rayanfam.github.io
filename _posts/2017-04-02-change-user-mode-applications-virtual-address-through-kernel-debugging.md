@@ -32,21 +32,28 @@ First run myfile.exe in guest machine and attach to it from guest machine by oll
 
 So I use the following command to get all the processes to see where you can find myfile.exe :
 
+```
 kd> !process 0 0
+```
 
 And it gives you a long list of processes where you can finally find myfile.exe.
 
+```
 PROCESS ffffe001f9652080
 SessionId: 1 Cid: 0da4 Peb: 7ffdf000 ParentCid: 0588
 DirBase: 11d6d000 ObjectTable: ffffc0013e905680 HandleCount: <Data Not Accessible>
 Image: myfile.exe
+```
 
 So for more details about this process you can run :
 
+```
 kd> !process ffffe001f9652080 7
+```
 
 It should give you something like :
 
+```
 1: kd> !process ffffe001f9652080 7
 PROCESS ffffe001f9652080
 SessionId: 1 Cid: 0da4 Peb: 7ffdf000 ParentCid: 0588
@@ -59,20 +66,25 @@ ElapsedTime 00:08:14.197
 UserTime 00:00:00.046
 KernelTime 00:00:00.125
 ...
+```
 
 then for switch to myfile.exe you should run :
 
+```
 kd> .process /p /r ffffe001f9652080
 Implicit process is now ffffe001f9652080
 .cache forcedecodeuser done
 Loading User Symbols
 .....................
+```
 
 Now you're almost done ! you are in a 32 bit enviroment for myfile.exe which you can run all Windbg commands like what you run in Virtual Address (Instead of physical address.)
 
 For a sample run :
 
+```
 kd> dc 400000
+```
 
 It gives you all the memory in myfile.exe's base address (0x400000) which you can edit memory by something like ea command in windbg and see what's going on after pressing g and then go to Guest Machine where you can find myfile.exe's base address from ollydbg and see how it changed form kernel debugger.
 

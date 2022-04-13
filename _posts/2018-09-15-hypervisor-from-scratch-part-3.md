@@ -48,6 +48,7 @@ As long as I know, there are several methods by which you can dispatch IOCTL e.g
 
 Imagine we have the following IOCTL codes:
 
+```
 //
 // Device type           -- in the "User Defined" range."
 //
@@ -67,6 +68,7 @@ Imagine we have the following IOCTL codes:
 
 #define IOCTL\_SIOCTL\_METHOD\_NEITHER \\
     CTL\_CODE( SIOCTL\_TYPE, 0x903, METHOD\_NEITHER , FILE\_ANY\_ACCESS  )
+```	
 
 There is a convention for defining IOCTLs as it mentioned [here](https://www.codeproject.com/Articles/9575/Driver-Development-Part-2-Introduction-to-Implemen),
 
@@ -90,6 +92,7 @@ First, we declare all our needed variable.
 
 Note that the **PAGED\_CODE** macro ensures that the calling thread is running at an IRQL that is low enough to permit paging.
 
+```
 NTSTATUS DrvIOCTLDispatcher( PDEVICE\_OBJECT DeviceObject, PIRP Irp)
 {
 	PIO\_STACK\_LOCATION  irpSp;// Pointer to current stack location
@@ -117,9 +120,11 @@ NTSTATUS DrvIOCTLDispatcher( PDEVICE\_OBJECT DeviceObject, PIRP Irp)
 	}
 
 ...
+```
 
 Then we have to use switch-case through the IOCTLs (Just copy buffers and show it from **DbgPrint()**).
 
+```
 	switch (irpSp->Parameters.DeviceIoControl.IoControlCode)
 	{
 	case IOCTL\_SIOCTL\_METHOD\_BUFFERED:
@@ -138,9 +143,11 @@ Then we have to use switch-case through the IOCTLs (Just copy buffers and show i
 		break;
 
 ...
+```
 
 The **PrintIrpInfo** is like this :
 
+```
 VOID PrintIrpInfo(PIRP Irp)
 {
 	PIO\_STACK\_LOCATION  irpSp;
@@ -159,11 +166,13 @@ VOID PrintIrpInfo(PIRP Irp)
 		irpSp->Parameters.DeviceIoControl.OutputBufferLength);
 	return;
 }
+```
 
 Even though you can see all the implementations in my GitHub but that's enough, in the rest of the post we only use the **IOCTL\_SIOCTL\_METHOD\_BUFFERED** method.
 
 Now from user-mode and if you remember from the [previous part](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/) where we create a handle (HANDLE) using **CreateFile**, now we can use the **DeviceIoControl** to call **DrvIOCTLDispatcher** (**IRP\_MJ\_DEVICE\_CONTROL**) along with our parameters from user-mode.
 
+```
 	char OutputBuffer\[1000\];
 	char InputBuffer\[1000\];
 	ULONG bytesReturned;
@@ -193,6 +202,7 @@ Now from user-mode and if you remember from the [previous part](https://rayanfam
 
 	}
 	printf("    OutBuffer (%d): %s\\n", bytesReturned, OutputBuffer);
+```
 
 There is an old, yet great topic [here](https://www.codeproject.com/Articles/9575/Driver-Development-Part-2-Introduction-to-Implemen) which describes the different types of IOCT dispatching.
 
@@ -212,6 +222,7 @@ To get the count of logical processors you can use **KeQueryActiveProcessorCount
 
 **KAFFINITY** mask can be configured using a simple power function :
 
+```
 int ipow(int base, int exp) {
 	int result = 1;
 	for (;;)
@@ -229,9 +240,11 @@ int ipow(int base, int exp) {
 	}
 	return result;
 }
+```
 
 then we should use the following code in order to change the affinity of the processor and run our code in all the logical cores separately:
 
+```
 	KAFFINITY kAffinityMask;
 	for (size\_t i = 0; i < KeQueryActiveProcessorCount(0); i++)
 	{
@@ -242,18 +255,22 @@ then we should use the following code in order to change the affinity of the pro
 		// Put you function here !
 
 	}
+```
 
 ## **Conversion between the physical and virtual addresses**
 
 VMXON Regions and VMCS Regions (see below) use physical address as the operand to VMXON and VMPTRLD instruction so we should create functions to convert Virtual Address to Physical address:
 
+```
 UINT64 VirtualAddress\_to\_PhysicallAddress(void\* va)
 {
 	return MmGetPhysicalAddress(va).QuadPart;
 }
+```
 
 And as long as we can't directly use physical addresses for our modifications in protected-mode then we have to convert physical address to virtual address.
 
+```
 UINT64 PhysicalAddress\_to\_VirtualAddress(UINT64 pa)
 {
 	PHYSICAL\_ADDRESS PhysicalAddr;
@@ -261,11 +278,13 @@ UINT64 PhysicalAddress\_to\_VirtualAddress(UINT64 pa)
 
 	return MmGetVirtualForPhysical(PhysicalAddr);
 }
+```
 
 ## **Query about Hypervisor from the kernel**
 
 In the previous part, we query about the presence of hypervisor from user-mode, but we should consider checking about hypervisor from kernel-mode too. This reduces the possibility of getting kernel errors in the future or there might be something that disables the hypervisor using the **lock bit**, by the way, the following code checks **IA32\_FEATURE\_CONTROL** MSR (MSR address 3AH) to see if the **lock bit** is set or not.
 
+```
 BOOLEAN Is\_VMX\_Supported()
 {
 	CPUID data = { 0 };
@@ -293,9 +312,11 @@ BOOLEAN Is\_VMX\_Supported()
 
 	return TRUE;
 }
+```
 
 The structures used in the above function declared like this:
 
+```
 typedef union \_IA32\_FEATURE\_CONTROL\_MSR
 {
 	ULONG64 All;
@@ -319,6 +340,7 @@ typedef struct \_CPUID
 	int ecx;
 	int edx;
 } CPUID, \*PCPUID;
+```
 
 ## **VMXON Region**
 
@@ -330,18 +352,23 @@ Note: The first processors to support VMX operation require that the following b
 
 Now that we are configuring the hypervisor, we should have a global variable that describes the state of our virtual machine, I create the following structure for this purpose, currently, we just have two fields (**VMXON\_REGION** and **VMCS\_REGION**) but we will add new fields in this structure in the future parts.
 
+```
 typedef struct \_VirtualMachineState
 {
 	UINT64 VMXON\_REGION;                        // VMXON region
 	UINT64 VMCS\_REGION;                         // VMCS region
 } VirtualMachineState, \*PVirtualMachineState;
+```
 
 And of course a global variable:
 
+```
 extern PVirtualMachineState vmState;
+```
 
 I create the following function (in memory.c) to allocate VMXON Region and execute VMXON instruction using the allocated region's pointer.
 
+```
 BOOLEAN Allocate\_VMXON\_Region(IN PVirtualMachineState vmState)
 {
 	// at IRQL > DISPATCH\_LEVEL memory allocation routines don't work
@@ -399,12 +426,15 @@ BOOLEAN Allocate\_VMXON\_Region(IN PVirtualMachineState vmState)
 
 	return TRUE;
 }
+```
 
 Let's explain the  above function,
 
+```
 	// at IRQL > DISPATCH\_LEVEL memory allocation routines don't work
 	if (KeGetCurrentIrql() > DISPATCH\_LEVEL)
 		KeRaiseIrqlToDpcLevel();
+```
 
 This code is for changing current **IRQL Level** to **DISPATCH\_LEVEL** but we can ignore this code as long as we use:
 
@@ -430,6 +460,7 @@ In my experience, the **MmAllocateContiguousMemory** allocation is always align
 
 If you are interested in Page Frame Number (PFN) then you can read [Inside Windows Page Frame Number (PFN) – Part 1](https://rayanfam.com/topics/inside-windows-page-frame-number-part1/) and [Inside Windows Page Frame Number (PFN) – Part 2](https://rayanfam.com/topics/inside-windows-page-frame-number-part2/).
 
+```
 	PHYSICAL\_ADDRESS PhysicalMax = { 0 };
 	PhysicalMax.QuadPart = MAXULONG64;
 
@@ -439,11 +470,13 @@ If you are interested in Page Frame Number (PFN) then you can read [Inside Wind
 		DbgPrint("\[\*\] Error : Couldn't Allocate Buffer for VMXON Region.");
 		return FALSE;// ntStatus = STATUS\_INSUFFICIENT\_RESOURCES;
 	}
+```
 
 Now we should convert the address of the allocated memory to its physical address and make sure it's aligned.
 
 Memory that **MmAllocateContiguousMemory** allocates is uninitialized. A kernel-mode driver must first set this memory to zero. Now we should use **RtlSecureZeroMemory** for this case.
 
+```
 	UINT64 PhysicalBuffer = VirtualAddress\_to\_PhysicallAddress(Buffer);
 
 	// zero-out memory 
@@ -454,6 +487,7 @@ Memory that **MmAllocateContiguousMemory** allocates is uninitialized. A kerne
 	DbgPrint("\[\*\] Virtual allocated buffer for VMXON at %llx", Buffer);
 	DbgPrint("\[\*\] Virtual aligned allocated buffer for VMXON at %llx", alignedVirtualBuffer);
 	DbgPrint("\[\*\] Aligned physical buffer allocated for VMXON at %llx", alignedPhysicalBuffer);
+```
 
 From Intel's manual (24.11.5 VMXON Region ):
 
@@ -463,6 +497,7 @@ From Intel's manual (24.11.5 VMXON Region ):
 
 So let's get the Revision Identifier from **IA32\_VMX\_BASIC\_MSR**  and write it to our VMXON Region.
 
+```
 	// get IA32\_VMX\_BASIC\_MSR RevisionId
 
 	IA32\_VMX\_BASIC\_MSR basic = { 0 };
@@ -473,9 +508,11 @@ So let's get the Revision Identifier from **IA32\_VMX\_BASIC\_MSR**  and write
 
 	//Changing Revision Identifier
 	\*(UINT64 \*)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
+```
 
 The last part is used for executing VMXON instruction.
 
+```
 	int status = \_\_vmx\_on(&alignedPhysicalBuffer);
 	if (status)
 	{
@@ -486,6 +523,7 @@ The last part is used for executing VMXON instruction.
 	vmState->VMXON\_REGION = alignedPhysicalBuffer;
 
 	return TRUE;
+```
 
 **\_\_vmx\_on** is the intrinsic function for executing VMXON. The status code shows diffrenet meanings.
 
@@ -544,6 +582,7 @@ The following picture illustrates the contents of a VMCS Region.
 
 The following code is responsible for allocating VMCS Region :
 
+```
 BOOLEAN Allocate\_VMCS\_Region(IN PVirtualMachineState vmState)
 {
 	// at IRQL > DISPATCH\_LEVEL memory allocation routines don't work
@@ -598,6 +637,7 @@ BOOLEAN Allocate\_VMCS\_Region(IN PVirtualMachineState vmState)
 
 	return TRUE;
 }
+```
 
 The above code is exactly the same as VMXON Region except for **\_\_vmx\_vmptrld** instead of **\_\_vmx\_on**, **\_\_vmx\_vmptrld**  is the intrinsic function for VMPTRLD instruction.
 
@@ -605,6 +645,7 @@ In VMCS also we should find the **Revision Identifier** from **MSR\_IA32\_VMX\_
 
 The MSR\_IA32\_VMX\_BASIC  is defined as below.
 
+```
 typedef union \_IA32\_VMX\_BASIC\_MSR
 {
 	ULONG64 All;
@@ -623,6 +664,7 @@ typedef union \_IA32\_VMX\_BASIC\_MSR
 		ULONG32 Reserved3 : 8;             // \[56-63\]
 	} Fields;
 } IA32\_VMX\_BASIC\_MSR, \*PIA32\_VMX\_BASIC\_MSR;
+```
 
 ## **VMXOFF**
 
@@ -630,6 +672,7 @@ After configuring the above regions, now its time to think about **DrvClose** wh
 
 The following function is responsible for executing VMXOFF then calling to **MmFreeContiguousMemory** in order to free the allocated memory :
 
+```
 void Terminate\_VMX(void) {
 
 	DbgPrint("\\n\[\*\] Terminating VMX...\\n");
@@ -650,6 +693,7 @@ void Terminate\_VMX(void) {
 	DbgPrint("\[\*\] VMX Operation turned off successfully. \\n");
 
 }
+```
 
 Keep in mind to convert VMXON and VMCS Regions to virtual address because **MmFreeContiguousMemory** accepts VA, otherwise, it leads to a BSOD.
 
@@ -661,6 +705,7 @@ Ok, It's almost done!
 
 Let's create a test case for our code, first a function for Initiating VMXON and VMCS Regions through all logical processor.
 
+```
 PVirtualMachineState vmState;
 int ProcessorCounts;
 
@@ -697,9 +742,11 @@ PVirtualMachineState Initiate\_VMX(void) {
 		DbgPrint("\\n=====================================================\\n");
 	}
 }
+```
 
 The above function should be called from IRP MJ CREATE so let's modify our **DrvCreate** to :
 
+```
 NTSTATUS DrvCreate(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
 {
 
@@ -715,9 +762,11 @@ NTSTATUS DrvCreate(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
 
 	return STATUS\_SUCCESS;
 }
+```
 
 And modify DrvClose to :
 
+```
 NTSTATUS DrvClose(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
 {
 	DbgPrint("\[\*\] DrvClose Called !");
@@ -731,6 +780,7 @@ NTSTATUS DrvClose(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
 
 	return STATUS\_SUCCESS;
 }
+```
 
 Now, run the code, In the case of creating the handle (You can see that our regions allocated successfully).
 

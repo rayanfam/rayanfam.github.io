@@ -34,6 +34,7 @@ _Reading official Cisco CCNP books is super recommended!_
 
 ### Port Security
 
+```
 int INTERFACE
 	switchport mode access
 	switchport access vlan 123 
@@ -45,14 +46,18 @@ int INTERFACE
 	switchport port-security violation restrict 
 	switchport port-security mac-address MAC 
 	switchport port-security mac-address sticky
+```
 
 These two commands show you port-security stats and make troubleshooting easier:
 
+```
 show port-sec address
 show port-sec interface INTERFACE
+```
 
 ### DHCP Snooping
 
+```
 #(conf)
 	ip dhcp snooping
 	ip dhcp snooping vlan #
@@ -62,13 +67,17 @@ interface INTERFACE
 
 int USER-INTERFACE 
 	ip dhcp snooping limit rate #(pps)
+```
 
 Related show command:
 
+```
 show ip dhcp snooping
+```
 
 ### Dynamic ARP Inspection
 
+```
 ip arp inspection 
 ip arp inspection vlan 123
 
@@ -77,10 +86,13 @@ interface INTERFACE
 	
 interface USER-INTERFACE 
 	ip arp inspection limit rate #(pps)
+```
 
 Related show command:
 
+```
 show ip arp inspection vlan 123
+```
 
 ### IP Source Guard
 
@@ -88,16 +100,21 @@ show ip arp inspection vlan 123
 
 _Port based:_
 
+```
 interface INTERFACE
 ip verify source(ip) port-security(mac)
-
+```
 _Creating manual entries:_
 
+```
 ip source binding MAC vlan # IP\_ADDRESS interface INTERFACE
+```
 
 Related show command:
 
+```
 show ip source binding
+```
 
 ### Protected ports
 
@@ -105,29 +122,35 @@ _Ports that cannot communicate with each other directly._
 
 ##private vlan edge aka protected ports : no direct traffic between those ports##
 
+```
 interface INTERFACE
 switchport protected
+```
 
 ### Spanning Tress root guard
 
+```
 int INTERFACE
 	spanning-tree guard root   superior bpdu
+```
 
 ### STP BPDU Guard:
 
 - _**with Spanning tree port-fast**_
 
+```
 spanning-tree bpduguard enable
+```
 
 ### Storm Control
 
+```
 interface INTERFACE
 	#(do not clip anymore – all specified traffic is dropped until end of duration \[1s\])
 	storm-conftrol broadcast level (bbp | pps | %) # #
 	show storm-control b|m|u
 	storm-control action ACTION
-
-* * *
+```
 
 I hope you like this post.
 

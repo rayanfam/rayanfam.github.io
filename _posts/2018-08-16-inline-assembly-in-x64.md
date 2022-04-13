@@ -38,6 +38,7 @@ and the other file is **source.asm**.
 
 I made a simple assembly function (Masm) along with a simple driver entry function, you can add these files to your project. For example the following lines for **source.asm**.
 
+```
 PUBLIC MainAsm
 .code \_text
 
@@ -50,13 +51,12 @@ pop rax
 ret
 MainAsm ENDP
 
-                 
 MainAsm2 PROC PUBLIC
 int 3
 ret
 MainAsm2 ENDP 
 
-END                                                                                                                                                                                                                      
+END                                                                                                                                                   ```                                                                   
 
 There are some important notes here, 
 
@@ -66,6 +66,7 @@ There are some important notes here, 
 
 The other file is driver entry (**Source.cpp**), you can use something like :
 
+```
 #include <ntddk.h>
 #include <wdf.h>
 
@@ -95,6 +96,7 @@ NTSTATUS MyDriverEntry(\_In\_ PDRIVER\_OBJECT     DriverObject,
 
 	return status;
 }
+```
 
 Please note that I defined **MainAsm** and **MainAsm2** from the previous assembly file as function name so that I can use it directly in my **DriverEntry** or etc.
 

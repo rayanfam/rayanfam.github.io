@@ -73,7 +73,12 @@ _This method was used to migrate a Windows server 2003 AD CS installation to Wi
     
      
 2. Export the following registry key: ****HKLM\\System\\CurrentControlSet\\Services\\CertSvc\\Configuration****
-3. you can use this command : _reg export “HKLM\\System\\CurrentControlSet\\Services\\CertSvc\\Configuration” c:\\cabackupregistry.reg /y_
+3. you can use this command : 
+
+```
+reg export “HKLM\\System\\CurrentControlSet\\Services\\CertSvc\\Configuration” c:\\cabackupregistry.reg /y
+```
+
 4. Remove AD CS Role from the original server (Windows Server 2003 here)
 5. Install AD CS Role on the destination server (Windows Server 2012 R2 here)
     - _note that it should have already be joined to the domain._

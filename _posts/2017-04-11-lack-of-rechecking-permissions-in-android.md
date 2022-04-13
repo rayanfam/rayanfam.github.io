@@ -20,11 +20,15 @@ Yesterday me and one of my friends were working on an Android Penetration testin
 
 So we just think how we could do something to violate privacy of this Android device then as we know previously, Android devices has some kinds of files that save applications signatures and package names and permissions and this file is placed in :
 
+```
 /data/system/packages.xml
+```
 
 Another juicy file which holds what kinds of groups has access to what kinds of devices is also available in :
 
+```
 /etc/permissions/platform.xml
+```
 
 Then we start to edit the first file to see if it is possible to change the permissions of an special package or not, so we do like this :
 

@@ -29,12 +29,14 @@ They're really important table in OSes for example SSDT is something like IAT (I
 
 You can imagine how an attacker can just change or hook them and start and filter your arguments every time you go through this functions. then I found something like :
 
+```
 lkd> u dwo(nt!KiServiceTable)+nt!KiServiceTable L1
 nt!NtMapUserPhysicalPagesScatter:
 fffff800‘013728b0 488bc4 mov rax,rsp
 lkd> u dwo(nt!KiServiceTable+4)+nt!KiServiceTable L1
 nt!NtWaitForSingleObject:
 fffff800‘012b83a0 4c89442418 mov \[rsp+0x18\],r8
+```
 
 Which wasn't what I really wants to, but can somehow help cause as I read in one of the articles about Patchguard bypassing,
 
@@ -48,7 +50,9 @@ available at : [https://github.com/comaeio/SwishDbgExt](https://github.com/coma
 
 it helps me a lot ! After compiling it from source you need to load dll like :
 
+```
 !load C:\\users\\sina\\desktop\\SwishDbgExt.dll
+```
 
 and then just use !ms\_ssdt , and !ms\_gdt and !ms\_idt in Windbg to get a complete list of information about following tables.
 

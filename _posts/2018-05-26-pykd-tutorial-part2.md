@@ -27,6 +27,7 @@ The content of this post is the second part of PyKD Tutorials, so make sure to r
 
 Breakpoints are such useful things and can give you the power of analyzing programs in a better and easier way by using PyKD. In the API Reference they introduce **setBp** function in the following way :
 
+```
 setBp( (long)offset \[, (object)callback\]) -> breakpoint :
     Set software breakpoint on executiont
 
@@ -38,6 +39,7 @@ setBp( (long)offset, (long)size, (int)accsessType \[, (object)callback\]) -> bre
 
     C++ signature :
         class pykd::Breakpoint \* \_\_ptr64 setBp(unsigned \_\_int64,unsigned \_\_int64,unsigned long \[,class boost::python::api::object {lvalue}\])
+```
 
 As you can see, **setBp** can give a pointer as its first argument and a python function as the second argument. Every time the pointer executes, your python function will be invoked. The second usage of **setBp** is for setting hardware breakpoints. Removing the all the breakpoints using **pykd.removeAllBp()**. Remove a breakpoint by its index **removeBp(int)**.
 
@@ -45,14 +47,17 @@ As you can see, **setBp** can give a pointer as its first argument and a python 
 
 Even though searching for a string or a special byte is really straight in Windbg but you can also use PyKD in order to search through the memory.
 
+```
 import pykd
 
 result = pykd.searchMemory(0x0,0x7fffffff,"A")
 
 print(hex(result))
+```
 
 And the result is :
 
+```
 0:010> !py c:\\users\\Sina\\desktop\\pykd-script.py
 0x5d6700ba
 0:010> db 0x5d6700ba
@@ -64,18 +69,23 @@ And the result is :
 00000000\`5d67010a  63 68 d6 aa 8f e4 00 00-00 00 00 00 00 00 00 00  ch..............
 00000000\`5d67011a  00 00 00 00 00 00 00 00-00 00 00 00 00 00 50 45  ..............PE
 00000000\`5d67012a  00 00 64 86 06 00 01 76-e7 57 00 00 00 00 00 00  ..d....v.W......
+```
 
 ### Edit a Byte
 
 The equivalent of **eb** is setByte as follows:
 
+```
 import pykd
 
 pykd.setByte(0x7fffd3d5d965,0x41)
+```
 
 The above script is like :
 
+```
 eb 0x7fffd3d5d965 0x41
+```
 
 Other variants are setDWord,setDouble,setFloat.
 
@@ -83,21 +93,27 @@ Other variants are setDWord,setDouble,setFloat.
 
 You can use setIP in order to change the current RIP or EIP which is very useful in defeating with packers and protectors.
 
+```
 import pykd
 
 pykd.setIP(0x7fffd3d5d94f)
+```
 
 ### Set Symbol Path
 
 For debugging purpose you can also set symbol path like this:
 
+```
 pykd.setSymbolPath("srv\*c:\\symbols\*https://msdl.microsoft.com/download/symbols")
+```
 
+```
 0:003> !py c:\\users\\Sina\\desktop\\pykd-script.py
 
 \*\*\*\*\*\*\*\*\*\*\*\*\* Symbol Path validation summary \*\*\*\*\*\*\*\*\*\*\*\*\*\*
 Response                         Time (ms)     Location
 Deferred                                       srv\*c:\\symbols\*https://msdl.microsoft.com/download/symbols
+```
 
 ### Step and Step-out and Trace
 
@@ -107,16 +123,20 @@ Instead of using **p** and **t** you can use its equivalent **pykd.step()** and 
 
 The following example describes how to disassemble the memory at a specific address.
 
+```
 import pykd
 
 result = pykd.disasm(0x7fffd3d5d956)
 
 print(result)
+```
 
 The result depends on the location. e.g :
 
+```
 0:003> !py c:\\users\\Sina\\desktop\\pykd-script.py
 00007fff\`d3d5d956 66660f1f840000000000 nop word ptr \[rax+rax\]
+```
 
 ## Further Reading
 
