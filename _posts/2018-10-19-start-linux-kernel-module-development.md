@@ -149,9 +149,8 @@ It is very important to know that LKM developement is different from userland ap
 
 I think that would suffice for the first try! Further topics could be actually doing some practical tasks for a kernel module; like showing some data to userland or providing some device for other programs to use.
 
-* * *
 
-References:
+## References
 
 - [https://blog.sourcerer.io/writing-a-simple-linux-kernel-module-d9dc3762c234](https://blog.sourcerer.io/writing-a-simple-linux-kernel-module-d9dc3762c234)
 - [https://github.com/cirosantilli/linux-kernel-module-cheat](https://github.com/cirosantilli/linux-kernel-module-cheat)

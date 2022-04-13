@@ -532,7 +532,7 @@ Have a good time!
 
 ![Animeeeeeeee](../../assets/images/anime-girl-playing.jpg)
 
-# References
+## References
 
 \[1\] Vol 3C - 28.2 THE EXTENDED PAGE TABLE MECHANISM (EPT) ([https://software.intel.com/en-us/articles/intel-sdm](https://software.intel.com/en-us/articles/intel-sdm))
 

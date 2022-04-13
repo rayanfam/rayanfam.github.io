@@ -56,7 +56,8 @@ int 3
 ret
 MainAsm2 ENDP 
 
-END                                                                                                                                                   ```                                                                   
+END
+```
 
 There are some important notes here, 
 
@@ -97,6 +98,7 @@ NTSTATUS MyDriverEntry(_In_ PDRIVER_OBJECT     DriverObject,
 	return status;
 }
 ```
+
 
 Please note that I defined **MainAsm** and **MainAsm2** from the previous assembly file as function name so that I can use it directly in my **DriverEntry** or etc.
 

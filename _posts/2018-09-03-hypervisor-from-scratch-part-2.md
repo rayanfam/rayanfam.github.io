@@ -60,7 +60,7 @@ The following code creates the device :
 	NTSTATUS NtStatusSymLinkResult = IoCreateSymbolicLink(&usDosDeviceName, &usDriverName);
 ```
 
-Note that our device name is "**\\Device\\MyHypervisorDevice**"**.**
+Note that our device name is **\\Device\\MyHypervisorDevice**.
 
 After that, we need to introduce our Major Functions for our device.
 
