@@ -69,7 +69,7 @@ _This method was used to migrate a Windows server 2003 AD CS installation to Wi
 
 1. Open AD CS management panel (Certificate Authority) and **Backup CA** by right-clicking the main entry on the tree-view.
     
-    \[caption id="attachment\_837" align="alignnone" width="567"\]![Backup CA on ADCS](../../assets/images/backup-ca-01.jpg) courtesy of mpgnotes.wordpress.com\[/caption\]
+![Backup CA on ADCS](../../assets/images/backup-ca-01.jpg)
     
      
 2. Export the following registry key: ****HKLM\\System\\CurrentControlSet\\Services\\CertSvc\\Configuration****

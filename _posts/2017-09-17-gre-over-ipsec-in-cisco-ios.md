@@ -21,7 +21,7 @@ author:
 
 # **Cisco GRE over IPSEC**
 
-\[caption id="" align="alignnone" width="626"\]![gre-ipsec-diagram](../../assets/images/gre-over-ipsec.jpg) **gre/ipsec diagram**\[/caption\]
+![gre-ipsec-diagram](../../assets/images/gre-over-ipsec.jpg)
 
 In the following is a sample configuration for GRE/IPSEC in Cisco IOS devices. you can tailor this to your needs (changing encryption algorithms, IP addresses etc), just remember to make sure they are the same on both sides (except for IP of course).
 

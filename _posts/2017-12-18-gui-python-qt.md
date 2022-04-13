@@ -30,11 +30,11 @@ First we start "Qt Designer" which helps us create a GUI for our application. Th
 
 We drag and drop two buttons and a text label into our main window. We will also give them meaningful names: "prev\_button" and "next\_button". "TextLabel" name seems fine for now.
 
-\[caption id="attachment\_358" align="alignnone" width="4536"\]![Qt Designer screenshot](../../assets/images/Qt-designer-start.png) Qt Designer\[/caption\]
+![Qt Designer screenshot](../../assets/images/Qt-designer-start.png) 
 
 We can change item properties using the "property editor" on the right:
 
-\[caption id="attachment\_359" align="alignnone" width="1241"\]![Qt Designer Property Editor screenshot](../../assets/images/Qt-property-editor.png) Qt Designer Property Editor\[/caption\]
+![Qt Designer Property Editor screenshot](../../assets/images/Qt-property-editor.png)
 
 In the panel under "Property Editor" you can also see the name "_Signal/Slot Editor_" which is an important functionality in Qt. but for now we won't cover this and only stick to the very basics.
 

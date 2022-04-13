@@ -26,7 +26,9 @@ Installing OpenLDAP and exploring it with phpLDAPadmin helps you learn LDAP stru
 
 These steps are run in a fresh debian wheezy (7) installation:
 
-\[asciinema video=97546\]
+\[click on it\]
+
+[![](../../assets/images/asciinema-bind9.png)](https://asciinema.org/a/97546)
 
 LDAP authentication can be used with a lot of services like Apache web authentication, FreeRADIUS, Cisco network devices, etc. which we will go over one by one in future posts.
 
