@@ -8,6 +8,7 @@ tags:
   - "far-conditional-jump"
   - "jump-without-register"
 coverImage: "../../assets/images/assembly-jmp.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

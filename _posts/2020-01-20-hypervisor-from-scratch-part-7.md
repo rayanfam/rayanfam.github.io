@@ -26,6 +26,7 @@ tags:
   - "slat"
   - "vmcall"
 coverImage: "../../assets/images/hypervisor-from-scratch-7-cover.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

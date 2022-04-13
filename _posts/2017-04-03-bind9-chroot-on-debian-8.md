@@ -10,6 +10,7 @@ tags:
   - "bind9-config"
   - "bind9-on-debian"
 coverImage: "../../assets/images/debian-logo.jpg"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

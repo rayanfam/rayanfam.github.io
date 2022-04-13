@@ -16,6 +16,7 @@ tags:
   - "windows-internals-tutorial"
   - "windows-objects"
 coverImage: "../../assets/images/reversing-windows-internals-cover.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

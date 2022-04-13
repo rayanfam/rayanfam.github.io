@@ -10,6 +10,7 @@ tags:
   - "hook-for-ransomware"
   - "ransomware"
 coverImage: "../../assets/images/anti-ransomware-3.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

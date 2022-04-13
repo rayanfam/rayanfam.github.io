@@ -11,6 +11,7 @@ tags:
   - "kernel-mode-to-user-mode"
   - "ring0-to-ring3"
 coverImage: "../../assets/images/kernelmode-usermode.jpg"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

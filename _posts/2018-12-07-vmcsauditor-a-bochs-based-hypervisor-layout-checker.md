@@ -15,6 +15,7 @@ tags:
   - "vmresume-error"
   - "vmx-error-checking"
 coverImage: "../../assets/images/VMCS-auditor-cover-2.jpg"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

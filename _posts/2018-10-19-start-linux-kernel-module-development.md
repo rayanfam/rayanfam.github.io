@@ -17,6 +17,7 @@ tags:
   - "modprobe"
   - "module"
 coverImage: "../../assets/images/linux-kernel-module-for-nlkb.jpg"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

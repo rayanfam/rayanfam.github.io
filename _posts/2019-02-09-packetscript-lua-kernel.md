@@ -16,6 +16,7 @@ tags:
   - "xtables"
   - "xtables-addons"
 coverImage: "../../assets/images/linux-tux-large.jpg"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

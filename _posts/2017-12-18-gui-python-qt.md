@@ -17,6 +17,7 @@ tags:
   - "python3"
   - "qt"
 coverImage: "../../assets/images/Qt-logostrap-CMYK.png"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

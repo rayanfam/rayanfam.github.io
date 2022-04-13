@@ -9,6 +9,7 @@ tags:
   - "change-adndroid-permission"
   - "packages-xml"
 coverImage: "../../assets/images/android-package-1.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

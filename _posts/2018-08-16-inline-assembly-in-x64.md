@@ -11,6 +11,7 @@ tags:
   - "x64-assembly-in-driver"
   - "x64-inline-assembly"
 coverImage: "../../assets/images/assembly-table.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

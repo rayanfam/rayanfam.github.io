@@ -10,6 +10,7 @@ tags:
   - "change-kernel"
   - "edit-windows-internals"
 coverImage: "../../assets/images/kids-watching-laptop.jpg"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

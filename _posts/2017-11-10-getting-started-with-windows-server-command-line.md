@@ -16,6 +16,7 @@ tags:
   - "windows-server-2012-r2"
   - "windows-server-core"
 coverImage: "../../assets/images/cmd-cover.jpg"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

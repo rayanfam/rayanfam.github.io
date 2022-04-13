@@ -14,6 +14,7 @@ tags:
   - "pykd-tutorial"
   - "run-pykd-command"
 coverImage: "../../assets/images/pykd-cover-2.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

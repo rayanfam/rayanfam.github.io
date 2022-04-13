@@ -10,6 +10,7 @@ tags:
   - "changing-to-ring-1-or-2"
   - "ring-transitioning"
 coverImage: "../../assets/images/ring-transitions-cover.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

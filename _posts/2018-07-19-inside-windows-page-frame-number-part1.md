@@ -20,6 +20,7 @@ tags:
   - "windows-paging"
   - "zero-thread"
 coverImage: "../../assets/images/pfn-1-cover.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

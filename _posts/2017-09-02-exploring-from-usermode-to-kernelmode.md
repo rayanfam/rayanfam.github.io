@@ -11,6 +11,7 @@ tags:
   - "kernelmode-to-usermode"
   - "trace-functions-to-kernel"
 coverImage: "../../assets/images/usermode-to-kernelmode-1.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

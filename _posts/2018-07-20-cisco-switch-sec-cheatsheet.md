@@ -15,6 +15,7 @@ tags:
   - "switch"
   - "switchport"
 coverImage: "../../assets/images/cisco-sf100.jpg"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

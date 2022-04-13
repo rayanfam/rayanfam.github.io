@@ -18,6 +18,7 @@ tags:
   - "pfn"
   - "pfn-database"
 coverImage: "../../assets/images/chameleon-2.jpeg"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

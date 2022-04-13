@@ -18,6 +18,7 @@ tags:
   - "vmlaunch-0x8"
   - "vmlaunch-error"
 coverImage: "../../assets/images/hypervisor-from-scratch-part-5-cover.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

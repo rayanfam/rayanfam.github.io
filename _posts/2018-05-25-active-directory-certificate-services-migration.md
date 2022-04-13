@@ -19,6 +19,7 @@ tags:
   - "pki"
   - "windows-server"
 coverImage: "../../assets/images/microsoft-active-directory.png"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

@@ -19,6 +19,7 @@ tags:
   - "uhttpd"
   - "wifidog"
 coverImage: "../../assets/images/openwrt-logo.png"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

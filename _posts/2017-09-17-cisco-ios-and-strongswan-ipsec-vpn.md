@@ -13,10 +13,11 @@ tags:
   - "linux"
   - "opensource"
   - "openswan"
-  - "strongswan"
+  - "strongswan
   - "tunnel"
   - "vpn"
 coverImage: "../../assets/images/strongswan-vpn.png"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

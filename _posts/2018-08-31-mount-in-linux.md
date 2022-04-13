@@ -18,6 +18,7 @@ tags:
   - "udev"
   - "vfs"
 coverImage: "../../assets/images/filesystem-diagram.png"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

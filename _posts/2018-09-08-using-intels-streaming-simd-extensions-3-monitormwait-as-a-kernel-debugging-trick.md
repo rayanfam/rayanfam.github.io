@@ -11,6 +11,10 @@ tags:
   - "intel-synchronization-agent"
   - "monitor-mwait-instructions"
 coverImage: "../../assets/images/intel-inside-cover.jpg"
+comments: true
+author:
+  name: Mohammad Sina Karvandi
+  link: https://twitter.com/Intel80x86
 ---
 
 ![](../../assets/images/intel-inside-cover.jpg)

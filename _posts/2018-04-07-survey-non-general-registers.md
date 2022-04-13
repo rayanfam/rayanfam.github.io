@@ -15,6 +15,7 @@ tags:
   - "xmm-register"
   - "ymm-registers"
 coverImage: "../../assets/images/intel-x86-64-registers.jpg"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

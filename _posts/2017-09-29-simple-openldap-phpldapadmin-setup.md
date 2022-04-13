@@ -11,6 +11,7 @@ tags:
   - "openldap"
   - "phpldapadmin"
 coverImage: "../../assets/images/php-ldap-admin.png"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

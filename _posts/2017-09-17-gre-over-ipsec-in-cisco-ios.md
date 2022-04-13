@@ -12,6 +12,7 @@ tags:
   - "network"
   - "tunnel"
 coverImage: "../../assets/images/gre-ipsec-tunnel-transport.gif"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

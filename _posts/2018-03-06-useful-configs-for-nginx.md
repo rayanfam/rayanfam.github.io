@@ -17,6 +17,7 @@ tags:
   - "proxy"
   - "webserver"
 coverImage: "../../assets/images/NGINX-logo.png"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess

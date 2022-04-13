@@ -15,6 +15,7 @@ tags:
   - "instrument-os-x"
   - "instrument-windows"
 coverImage: "Boch-Debugger-GUI.png"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

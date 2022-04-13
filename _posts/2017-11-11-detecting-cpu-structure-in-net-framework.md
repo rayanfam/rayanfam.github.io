@@ -9,6 +9,7 @@ tags:
   - "get-environment-os"
   - "x86-and-x64-c"
 coverImage: "../../assets/images/32-64bit.jpg"
+comments: true
 author:
   name: Mohammad Sina Karvandi
   link: https://twitter.com/Intel80x86

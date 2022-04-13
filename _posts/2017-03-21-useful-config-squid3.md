@@ -14,6 +14,7 @@ tags:
   - "squid"
   - "squid3"
 coverImage: "../../assets/images/squid-proxy-logo.png"
+comments: true
 author:
   name: Shahriar
   link: https://github.com/Xcess
