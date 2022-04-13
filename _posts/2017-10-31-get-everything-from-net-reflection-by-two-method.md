@@ -30,7 +30,8 @@ I create two methods to cover all the possibilities in which a target function c
 
 It implemented as below :
 
-        static object InvokeAssemblyWithoutArgumant(string Path, string MethodName, object\[\] ArgumantsToContructor = null)
+```
+        static object InvokeAssemblyWithoutArgumant(string Path, string MethodName, object[] ArgumantsToContructor = null)
         {
             object ret = null;
             System.Reflection.Assembly myDllAssembly =
@@ -51,10 +52,12 @@ It implemented as below :
             }
             return ret;
         }
+```
 
 and the second one :
 
-       static object InvokeAssemblyWithArgumant(string Path, string MethodName, object\[\] argumantToMethod, object\[\] ArgumantsToContructor = null)
+```
+       static object InvokeAssemblyWithArgumant(string Path, string MethodName, object[] argumantToMethod, object[] ArgumantsToContructor = null)
         {
             object ret = null;
             System.Reflection.Assembly myDllAssembly =
@@ -75,6 +78,7 @@ and the second one :
             }
             return ret;
         }
+```
 
 The second one is used for situations where you wanna pass the parameter(s) to the function.
 
@@ -82,6 +86,7 @@ For instance ...
 
 Consider you built a class library (.dll plugin) from the Visual Studio with the following syntax :
 
+```
     public class Class1
     {
         public Class1(string Arg1)
@@ -104,20 +109,25 @@ Consider you built a class library (.dll plugin) from the Visual Studio with the
             return "Successful";
         }
     }
+```
 
 If you want to call **MyPluginFunction1** then you should use the second method which gives an array of object to pass to the method.
 
+```
             //dll path (Plugin Path)
-            string PathToPlugin = Environment.CurrentDirectory + "\\\\Plugin.dll"; // it's extension can be anything !
+            string PathToPlugin = Environment.CurrentDirectory + "\\Plugin.dll"; // it's extension can be anything !
             // you can also load assembly from a base64 string.
-            InvokeAssemblyWithArgumant(PathToPlugin, "MyPluginFunction1", new object\[\] { 1, 2 }, new object\[\] { "Sample Arg to constructor" });
+            InvokeAssemblyWithArgumant(PathToPlugin, "MyPluginFunction1", new object[] { 1, 2 }, new object[] { "Sample Arg to constructor" });
+```
 
 If you want to call **MyPluginFunction2** then you should use the first method which invokes the method directly without any arguments.
 
+```
             //dll path (Plugin Path)
-            string PathToPlugin = Environment.CurrentDirectory + "\\\\Plugin.dll"; // it's extension can be anything !
+            string PathToPlugin = Environment.CurrentDirectory + "\\Plugin.dll"; // it's extension can be anything !
             // you can also load assembly from a base64 string.
-            InvokeAssemblyWithoutArgumant(PathToPlugin, "MyPluginFunction2", new object\[\] { "Sample Arg to constructor" });
+            InvokeAssemblyWithoutArgumant(PathToPlugin, "MyPluginFunction2", new object[] { "Sample Arg to constructor" });
+```
 
 **Important Note**: If you have an exception like, **object reference not set to an instance** it is because the method name is incorrect or you invoke a **non-static** function within a **static** function or invoke a **static** function within a **non-static** function so please keep in mind the invoker function and target function should have the same state.
 

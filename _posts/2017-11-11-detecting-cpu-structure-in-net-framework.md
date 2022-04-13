@@ -24,14 +24,15 @@ By the way I search a lot across the Internet for getting the answer but almost 
 
 The following code gives you the desired result :
 
+```
     static bool is64BitProcess = (IntPtr.Size == 8);
     static bool is64BitOperatingSystem = is64BitProcess || InternalCheckIsWow64();
 
-    \[DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)\]
-    \[return: MarshalAs(UnmanagedType.Bool)\]
+    [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
+    [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool IsWow64Process(
-        \[In\] IntPtr hProcess,
-        \[Out\] out bool wow64Process
+        [In] IntPtr hProcess,
+        [Out] out bool wow64Process
     );
 
     public static bool InternalCheckIsWow64()
@@ -60,11 +61,12 @@ The following code gives you the desired result :
             return "x64";
         return "x86";
     }
-    static void Main(string\[\] args)
+    static void Main(string[] args)
     {
         Console.WriteLine(GetOSStructure());
         Console.ReadKey();
     }
+```
 
 Remember if you build your application just for x64 machines then your CPU is always x64.
 

@@ -75,13 +75,13 @@ It is not important of you do not understand what these lines mean at first. Gra
 I recommend you open the template file and continue your work from that. It is mych easier than typing all of these or copying them from here. the next important thing is connecting the buttons on the screen to some functions in our application, or else this buttons won't do anything when pressed. so you add this line in _\_\_init\_\__ in your main qt app class:
 
 ```
-self.prev\_button.clicked.connect(self.GoPrev)
+self.prev_button.clicked.connect(self.GoPrev)
 ```
 
 It says that when user clicked "_prev\_button_" run the function "_GoPrev_" the same way for this:
 
 ```
-self.next\_button.clicked.connect(self.GoNext)
+self.next_button.clicked.connect(self.GoNext)
 ```
 
 then we define our click functions which should only take one argument which is _self_:

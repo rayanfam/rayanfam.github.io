@@ -66,13 +66,13 @@ Then in User Variables for Sina (Sina is my account name.) click on **path** to 
 In my visual studio, the path is as follows but it might be different in your case.
 
 ```
-C:\\Program Files(x86)\\Microsoft VisualStudio 14.0\\vc\\bin
+C:\Program Files(x86)\Microsoft VisualStudio 14.0\vc\bin
 ```
 
 and in the case when you wanna compile a 64bit pin tool then you should change this variable to :
 
 ```
-C:\\Program Files(x86)\\Microsoft VisualStudio 14.0\\vc\\bin\\Amd64
+C:\Program Files(x86)\Microsoft VisualStudio 14.0\vc\bin\Amd64
 ```
 
 Important Note: Keep in mind to restart your computer after adding a new variable or modifying one.
@@ -92,13 +92,13 @@ In my case it needs kernek32.lib.
 I found kernel32.lib from the following path (And you know it might be different in your case.)
 
 ```
-C:\\Program Files(x86)\\Windows Kits\\10\\lib\\10.0.15063.0\\um\\x86\\kernel32.lib
+C:\Program Files(x86)\Windows Kits\10\lib\10.0.15063.0\um\x86\kernel32.lib
 ```
 
 Or in the case of 64-bit pin tool :
 
 ```
-C:\\Program Files(x86)\\Windows Kits\\10\\lib\\10.0.15063.0\\um\\x64\\kernel32.lib
+C:\Program Files(x86)\Windows Kits\10\lib\10.0.15063.0\um\x64\kernel32.lib
 ```
 
 I copied this file to the make.exe path but you can also export this path to **path** in environment variables as I described previously.
@@ -138,7 +138,7 @@ Please note as I mentioned above you should change Environment Variable in the c
 To run your pin tool you should run the following command.
 
 ```
-Pin –t \\source\\tools\\ManualExamples\\inscount0.dll – cmd.exe /c dir
+Pin –t \source\tools\ManualExamples\inscount0.dll – cmd.exe /c dir
 ```
 
 ![](../../assets/images/build-pin-tool-2.png)
@@ -150,17 +150,17 @@ I just instrument cmd.exe using pin by inscount0.dll tool. I also pass the dir a
 As I tested, pin tool has a problem with passing x64 tools to the x64 version of the pin so please don’t use the following path for running x64 tools :
 
 ```
-C:\\Users\\Sina\\Desktop\\pin.exe
+C:\Users\Sina\Desktop\pin.exe
 ```
 
 Instead, you should just use the following path (For x64 tools) :
 
 ```
-C:\\Users\\Sina\\Desktop\\pin\\intel64\\bin\\pin.exe
+C:\Users\Sina\Desktop\pin\intel64\bin\pin.exe
 ```
 
 That’s it, guys,
 
 I should also give my special thanks to Sobhan Sekhavatian one of my best friends for helping me to write this post.
 
-I hope by now you built your first pin tool  ;)
+I hope by now you built your first pin tool ;)

@@ -40,34 +40,34 @@ _The debugger's "!pcr" command displays partial contents of the PCR._
 You can see all Windbg gives to you from Windows symbols :
 
 ```
-lkd> dt nt!\_KPCR
-+0x000 NtTib : \_NT\_TIB
-+0x000 GdtBase : Ptr64 \_KGDTENTRY64
-+0x008 TssBase : Ptr64 \_KTSS64
+lkd> dt nt!_KPCR
++0x000 NtTib : _NT_TIB
++0x000 GdtBase : Ptr64 _KGDTENTRY64
++0x008 TssBase : Ptr64 _KTSS64
 +0x010 UserRsp : Uint8B
-+0x018 Self : Ptr64 \_KPCR
-+0x020 CurrentPrcb : Ptr64 \_KPRCB
-+0x028 LockArray : Ptr64 \_KSPIN\_LOCK\_QUEUE
-+0x030 Used\_Self : Ptr64 Void
-+0x038 IdtBase : Ptr64 \_KIDTENTRY64
-+0x040 Unused : \[2\] Uint8B
++0x018 Self : Ptr64 _KPCR
++0x020 CurrentPrcb : Ptr64 _KPRCB
++0x028 LockArray : Ptr64 _KSPIN_LOCK_QUEUE
++0x030 Used_Self : Ptr64 Void
++0x038 IdtBase : Ptr64 _KIDTENTRY64
++0x040 Unused : [2] Uint8B
 +0x050 Irql : UChar
 +0x051 SecondLevelCacheAssociativity : UChar
 +0x052 ObsoleteNumber : UChar
 +0x053 Fill0 : UChar
-+0x054 Unused0 : \[3\] Uint4B
++0x054 Unused0 : [3] Uint4B
 +0x060 MajorVersion : Uint2B
 +0x062 MinorVersion : Uint2B
 +0x064 StallScaleFactor : Uint4B
-+0x068 Unused1 : \[3\] Ptr64 Void
-+0x080 KernelReserved : \[15\] Uint4B
++0x068 Unused1 : [3] Ptr64 Void
++0x080 KernelReserved : [15] Uint4B
 +0x0bc SecondLevelCacheSize : Uint4B
-+0x0c0 HalReserved : \[16\] Uint4B
++0x0c0 HalReserved : [16] Uint4B
 +0x100 Unused2 : Uint4B
 +0x108 KdVersionBlock : Ptr64 Void
 +0x110 Unused3 : Ptr64 Void
-+0x118 PcrAlign1 : \[24\] Uint4B
-+0x180 Prcb : \_KPRCB
++0x118 PcrAlign1 : [24] Uint4B
++0x180 Prcb : _KPRCB
 ```
 
 There are lots of great information about Idt , IRQL in the above structure so it must be an important one!
@@ -79,15 +79,15 @@ Mark Russinovich in Windows Internals wrote "The PCR and PRCB contain informati
 So all we need is seeing what we can do with such a structure. Let me show you the result of windbg symbols.
 
 ```
-kd> dt nt!\_KPRCB
+kd> dt nt!_KPRCB
 +0x000 MxCsr : Uint4B
 +0x004 LegacyNumber : UChar
 +0x005 ReservedMustBeZero : UChar
 +0x006 InterruptRequest : UChar
 +0x007 IdleHalt : UChar
-+0x008 CurrentThread : Ptr64 \_KTHREAD
-+0x010 NextThread : Ptr64 \_KTHREAD
-+0x018 IdleThread : Ptr64 \_KTHREAD
++0x008 CurrentThread : Ptr64 _KTHREAD
++0x010 NextThread : Ptr64 _KTHREAD
++0x018 IdleThread : Ptr64 _KTHREAD
 +0x020 NestingLevel : UChar
 +0x021 ClockOwner : UChar
 +0x022 PendingTickFlags : UChar
@@ -104,35 +104,35 @@ kd> dt nt!\_KPRCB
 +0x042 CpuStepping : UChar
 +0x043 CpuModel : UChar
 +0x044 MHz : Uint4B
-+0x048 HalReserved : \[8\] Uint8B
++0x048 HalReserved : [8] Uint8B
 +0x088 MinorVersion : Uint2B
 +0x08a MajorVersion : Uint2B
 +0x08c BuildType : UChar
 +0x08d CpuVendor : UChar
 +0x08e CoresPerPhysicalProcessor : UChar
 +0x08f LogicalProcessorsPerCore : UChar
-+0x090 PrcbPad04 : \[6\] Uint8B
-+0x0c0 ParentNode : Ptr64 \_KNODE
++0x090 PrcbPad04 : [6] Uint8B
++0x0c0 ParentNode : Ptr64 _KNODE
 +0x0c8 GroupSetMember : Uint8B
 +0x0d0 Group : UChar
 +0x0d1 GroupIndex : UChar
-+0x0d2 PrcbPad05 : \[2\] UChar
++0x0d2 PrcbPad05 : [2] UChar
 +0x0d4 InitialApicId : Uint4B
 +0x0d8 ScbOffset : Uint4B
 +0x0dc ApicMask : Uint4B
 +0x0e0 AcpiReserved : Ptr64 Void
 +0x0e8 CFlushSize : Uint4B
 +0x0ec PrcbPad10 : Uint4B
-+0x0f0 PrcbPad11 : \[2\] Uint8B
-+0x100 ProcessorState : \_KPROCESSOR\_STATE
-+0x6c0 PrcbPad12 : \[6\] Uint8B
-+0x6f0 LockQueue : \[17\] \_KSPIN\_LOCK\_QUEUE
-+0x800 PPLookasideList : \[16\] \_PP\_LOOKASIDE\_LIST
-+0x900 PPNxPagedLookasideList : \[32\] \_GENERAL\_LOOKASIDE\_POOL
-+0x1500 PPNPagedLookasideList : \[32\] \_GENERAL\_LOOKASIDE\_POOL
-+0x2100 PPPagedLookasideList : \[32\] \_GENERAL\_LOOKASIDE\_POOL
++0x0f0 PrcbPad11 : [2] Uint8B
++0x100 ProcessorState : _KPROCESSOR_STATE
++0x6c0 PrcbPad12 : [6] Uint8B
++0x6f0 LockQueue : [17] _KSPIN_LOCK_QUEUE
++0x800 PPLookasideList : [16] _PP_LOOKASIDE_LIST
++0x900 PPNxPagedLookasideList : [32] _GENERAL_LOOKASIDE_POOL
++0x1500 PPNPagedLookasideList : [32] _GENERAL_LOOKASIDE_POOL
++0x2100 PPPagedLookasideList : [32] _GENERAL_LOOKASIDE_POOL
 +0x2d00 PrcbPad20 : Uint8B
-+0x2d08 DeferredReadyListHead : \_SINGLE\_LIST\_ENTRY
++0x2d08 DeferredReadyListHead : _SINGLE_LIST_ENTRY
 +0x2d10 MmPageFaultCount : Int4B
 +0x2d14 MmCopyOnWriteCount : Int4B
 +0x2d18 MmTransitionCount : Int4B
@@ -155,9 +155,9 @@ kd> dt nt!\_KPRCB
 +0x2d5c IoReadOperationCount : Int4B
 +0x2d60 IoWriteOperationCount : Int4B
 +0x2d64 IoOtherOperationCount : Int4B
-+0x2d68 IoReadTransferCount : \_LARGE\_INTEGER
-+0x2d70 IoWriteTransferCount : \_LARGE\_INTEGER
-+0x2d78 IoOtherTransferCount : \_LARGE\_INTEGER
++0x2d68 IoReadTransferCount : _LARGE_INTEGER
++0x2d70 IoWriteTransferCount : _LARGE_INTEGER
++0x2d78 IoOtherTransferCount : _LARGE_INTEGER
 +0x2d80 PacketBarrier : Int4B
 +0x2d84 TargetCount : Int4B
 +0x2d88 IpiFrozen : Uint4B
@@ -167,8 +167,8 @@ kd> dt nt!\_KPRCB
 +0x2da0 InterruptLastCount : Uint4B
 +0x2da4 InterruptRate : Uint4B
 +0x2da8 LastNonHrTimerExpiration : Uint8B
-+0x2db0 PrcbPad41 : \[20\] Uint4B
-+0x2e00 DpcData : \[2\] \_KDPC\_DATA
++0x2db0 PrcbPad41 : [20] Uint4B
++0x2e00 DpcData : [2] _KDPC_DATA
 +0x2e50 DpcStack : Ptr64 Void
 +0x2e58 MaximumDpcQueueDepth : Int4B
 +0x2e5c DpcRequestRate : Uint4B
@@ -179,7 +179,7 @@ kd> dt nt!\_KPRCB
 +0x2e6a DpcRoutineActive : UChar
 +0x2e6b IdleSchedule : UChar
 +0x2e6c DpcRequestSummary : Int4B
-+0x2e6c DpcRequestSlot : \[2\] Int2B
++0x2e6c DpcRequestSlot : [2] Int2B
 +0x2e6c NormalDpcState : Int2B
 +0x2e6e ThreadDpcState : Int2B
 +0x2e6c DpcNormalProcessingActive : Pos 0, 1 Bit
@@ -196,28 +196,28 @@ kd> dt nt!\_KPRCB
 +0x2e74 LastTick : Uint4B
 +0x2e78 ClockInterrupts : Uint4B
 +0x2e7c ReadyScanTick : Uint4B
-+0x2e80 InterruptObject : \[256\] Ptr64 Void
-+0x3680 TimerTable : \_KTIMER\_TABLE
-+0x5880 DpcGate : \_KGATE
++0x2e80 InterruptObject : [256] Ptr64 Void
++0x3680 TimerTable : _KTIMER_TABLE
++0x5880 DpcGate : _KGATE
 +0x5898 PrcbPad52 : Ptr64 Void
-+0x58a0 CallDpc : \_KDPC
++0x58a0 CallDpc : _KDPC
 +0x58e0 ClockKeepAlive : Int4B
-+0x58e4 PrcbPad60 : \[2\] UChar
++0x58e4 PrcbPad60 : [2] UChar
 +0x58e6 NmiActive : Uint2B
 +0x58e8 DpcWatchdogPeriod : Int4B
 +0x58ec DpcWatchdogCount : Int4B
 +0x58f0 KeSpinLockOrdering : Int4B
 +0x58f4 DpcWatchdogProfileCumulativeDpcThreshold : Uint4B
 +0x58f8 CachedPtes : Ptr64 Void
-+0x5900 WaitListHead : \_LIST\_ENTRY
++0x5900 WaitListHead : _LIST_ENTRY
 +0x5910 WaitLock : Uint8B
 +0x5918 ReadySummary : Uint4B
 +0x591c AffinitizedSelectionMask : Int4B
 +0x5920 QueueIndex : Uint4B
-+0x5924 PrcbPad75 : \[3\] Uint4B
-+0x5930 TimerExpirationDpc : \_KDPC
-+0x5970 ScbQueue : \_RTL\_RB\_TREE
-+0x5980 DispatcherReadyListHead : \[32\] \_LIST\_ENTRY
++0x5924 PrcbPad75 : [3] Uint4B
++0x5930 TimerExpirationDpc : _KDPC
++0x5970 ScbQueue : _RTL_RB_TREE
++0x5980 DispatcherReadyListHead : [32] _LIST_ENTRY
 +0x5b80 InterruptCount : Uint4B
 +0x5b84 KernelTime : Uint4B
 +0x5b88 UserTime : Uint4B
@@ -227,7 +227,7 @@ kd> dt nt!\_KPRCB
 +0x5b98 DebuggerSavedIRQL : UChar
 +0x5b99 GroupSchedulingOverQuota : UChar
 +0x5b9a DeepSleep : UChar
-+0x5b9b PrcbPad80 : \[5\] UChar
++0x5b9b PrcbPad80 : [5] UChar
 +0x5ba0 DpcTimeCount : Uint4B
 +0x5ba4 DpcTimeLimit : Uint4B
 +0x5ba8 PeriodicCount : Uint4B
@@ -237,13 +237,13 @@ kd> dt nt!\_KPRCB
 +0x5bb8 ReadyThreadCount : Uint4B
 +0x5bc0 StartCycles : Uint8B
 +0x5bc8 TaggedCyclesStart : Uint8B
-+0x5bd0 TaggedCycles : \[2\] Uint8B
++0x5bd0 TaggedCycles : [2] Uint8B
 +0x5be0 GenerationTarget : Uint8B
 +0x5be8 AffinitizedCycles : Uint8B
 +0x5bf0 ImportantCycles : Uint8B
 +0x5bf8 UnimportantCycles : Uint8B
 +0x5c00 ReadyQueueExpectedRunTime : Uint8B
-+0x5c08 PrcbPad81 : \[21\] Uint4B
++0x5c08 PrcbPad81 : [21] Uint4B
 +0x5c5c DpcWatchdogProfileSingleDpcThreshold : Uint4B
 +0x5c60 MmSpinLockOrdering : Int4B
 +0x5c64 PageColor : Uint4B
@@ -252,8 +252,8 @@ kd> dt nt!\_KPRCB
 +0x5c70 SecondaryColorMask : Uint4B
 +0x5c74 PrcbPad83 : Uint4B
 +0x5c78 CycleTime : Uint8B
-+0x5c80 Cycles : \[4\] \[2\] Uint8B
-+0x5cc0 PrcbPad84 : \[16\] Uint4B
++0x5c80 Cycles : [4] [2] Uint8B
++0x5cc0 PrcbPad84 : [16] Uint4B
 +0x5d00 CcFastMdlReadNoWait : Uint4B
 +0x5d04 CcFastMdlReadWait : Uint4B
 +0x5d08 CcFastMdlReadNotPossible : Uint4B
@@ -283,67 +283,67 @@ kd> dt nt!\_KPRCB
 +0x5d68 MmCacheTransitionCount : Int4B
 +0x5d6c MmCacheReadCount : Int4B
 +0x5d70 MmCacheIoCount : Int4B
-+0x5d74 PrcbPad91 : \[3\] Uint4B
-+0x5d80 PowerState : \_PROCESSOR\_POWER\_STATE
-+0x5f58 ScbList : \_LIST\_ENTRY
-+0x5f68 ForceIdleDpc : \_KDPC
-+0x5fa8 PrcbPad92 : \[18\] Uint4B
++0x5d74 PrcbPad91 : [3] Uint4B
++0x5d80 PowerState : _PROCESSOR_POWER_STATE
++0x5f58 ScbList : _LIST_ENTRY
++0x5f68 ForceIdleDpc : _KDPC
++0x5fa8 PrcbPad92 : [18] Uint4B
 +0x5ff0 KeAlignmentFixupCount : Uint4B
-+0x5ff8 DpcWatchdogDpc : \_KDPC
-+0x6038 DpcWatchdogTimer : \_KTIMER
-+0x6078 Cache : \[5\] \_CACHE\_DESCRIPTOR
++0x5ff8 DpcWatchdogDpc : _KDPC
++0x6038 DpcWatchdogTimer : _KTIMER
++0x6078 Cache : [5] _CACHE_DESCRIPTOR
 +0x60b4 CacheCount : Uint4B
 +0x60b8 CachedCommit : Uint4B
 +0x60bc CachedResidentAvailable : Uint4B
 +0x60c0 HyperPte : Ptr64 Void
 +0x60c8 WheaInfo : Ptr64 Void
 +0x60d0 EtwSupport : Ptr64 Void
-+0x60e0 InterruptObjectPool : \_SLIST\_HEADER
-+0x60f0 HypercallPageList : \_SLIST\_HEADER
++0x60e0 InterruptObjectPool : _SLIST_HEADER
++0x60f0 HypercallPageList : _SLIST_HEADER
 +0x6100 HypercallCachedPages : Ptr64 Void
 +0x6108 VirtualApicAssist : Ptr64 Void
 +0x6110 StatisticsPage : Ptr64 Uint8B
-+0x6118 PackageProcessorSet : \_KAFFINITY\_EX
++0x6118 PackageProcessorSet : _KAFFINITY_EX
 +0x61c0 SharedReadyQueueMask : Uint8B
-+0x61c8 SharedReadyQueue : Ptr64 \_KSHARED\_READY\_QUEUE
++0x61c8 SharedReadyQueue : Ptr64 _KSHARED_READY_QUEUE
 +0x61d0 SharedQueueScanOwner : Uint4B
 +0x61d4 ScanSiblingIndex : Uint4B
 +0x61d8 CoreProcessorSet : Uint8B
 +0x61e0 ScanSiblingMask : Uint8B
 +0x61e8 LLCMask : Uint8B
-+0x61f0 CacheProcessorMask : \[5\] Uint8B
-+0x6218 ProcessorProfileControlArea : Ptr64 \_PROCESSOR\_PROFILE\_CONTROL\_AREA
++0x61f0 CacheProcessorMask : [5] Uint8B
++0x6218 ProcessorProfileControlArea : Ptr64 _PROCESSOR_PROFILE_CONTROL_AREA
 +0x6220 ProfileEventIndexAddress : Ptr64 Void
 +0x6228 DpcWatchdogProfile : Ptr64 Ptr64 Void
 +0x6230 DpcWatchdogProfileCurrentEmptyCapture : Ptr64 Ptr64 Void
-+0x6238 PrcbPad94 : \[9\] Uint8B
-+0x6280 SynchCounters : \_SYNCH\_COUNTERS
++0x6238 PrcbPad94 : [9] Uint8B
++0x6280 SynchCounters : _SYNCH_COUNTERS
 +0x6338 PteBitCache : Uint8B
 +0x6340 PteBitOffset : Uint4B
-+0x6348 FsCounters : \_FILESYSTEM\_DISK\_COUNTERS
-+0x6358 VendorString : \[13\] UChar
-+0x6365 PrcbPad100 : \[2\] UChar
++0x6348 FsCounters : _FILESYSTEM_DISK_COUNTERS
++0x6358 VendorString : [13] UChar
++0x6365 PrcbPad100 : [2] UChar
 +0x6367 PendingVirtualLittle : UChar
 +0x6368 FeatureBits : Uint8B
 +0x6370 PrcbPad110 : Uint4B
-+0x6378 UpdateSignature : \_LARGE\_INTEGER
-+0x6380 Context : Ptr64 \_CONTEXT
++0x6378 UpdateSignature : _LARGE_INTEGER
++0x6380 Context : Ptr64 _CONTEXT
 +0x6388 ContextFlagsInit : Uint4B
-+0x6390 ExtendedState : Ptr64 \_XSAVE\_AREA
++0x6390 ExtendedState : Ptr64 _XSAVE_AREA
 +0x6398 IsrStack : Ptr64 Void
-+0x63a0 EntropyTimingState : \_KENTROPY\_TIMING\_STATE
-+0x64f0 AbSelfIoBoostsList : \_SINGLE\_LIST\_ENTRY
-+0x64f8 AbPropagateBoostsList : \_SINGLE\_LIST\_ENTRY
-+0x6500 AbDpc : \_KDPC
-+0x6540 IoIrpStackProfilerCurrent : \_IOP\_IRP\_STACK\_PROFILER
-+0x6594 IoIrpStackProfilerPrevious : \_IOP\_IRP\_STACK\_PROFILER
-+0x6600 LocalSharedReadyQueue : \_KSHARED\_READY\_QUEUE
-+0x6870 TimerExpirationTrace : \[16\] \_KTIMER\_EXPIRATION\_TRACE
++0x63a0 EntropyTimingState : _KENTROPY_TIMING_STATE
++0x64f0 AbSelfIoBoostsList : _SINGLE_LIST_ENTRY
++0x64f8 AbPropagateBoostsList : _SINGLE_LIST_ENTRY
++0x6500 AbDpc : _KDPC
++0x6540 IoIrpStackProfilerCurrent : _IOP_IRP_STACK_PROFILER
++0x6594 IoIrpStackProfilerPrevious : _IOP_IRP_STACK_PROFILER
++0x6600 LocalSharedReadyQueue : _KSHARED_READY_QUEUE
++0x6870 TimerExpirationTrace : [16] _KTIMER_EXPIRATION_TRACE
 +0x6970 TimerExpirationTraceCount : Uint4B
 +0x6978 ExSaPageArray : Ptr64 Void
-+0x6980 SecureFault : \_KSECURE\_FAULT\_INFORMATION
-+0x69c0 Mailbox : Ptr64 \_REQUEST\_MAILBOX
-+0x6a00 RequestMailbox : \[1\] \_REQUEST\_MAILBOX
++0x6980 SecureFault : _KSECURE_FAULT_INFORMATION
++0x69c0 Mailbox : Ptr64 _REQUEST_MAILBOX
++0x6a00 RequestMailbox : [1] _REQUEST_MAILBOX
 ```
 
 Looking at the above structure shows a lot of great information about the system processor.You can find something like Current and Next Thread \_KTHREAD, all information about CPU like type and capacity and manufacture company, DPC, Cycles, User-mode and Kernel-mode times and etc.
@@ -353,7 +353,7 @@ By the way, you now know that windows stores some of its internal information ab
 By using the following command you can get gs:\[0\] values :
 
 ```
-dq gs:\[0\]
+dq gs:[0]
 ```
 
 you can also use !pcr which gives you almost the same result :)
@@ -363,7 +363,7 @@ you can also use !pcr which gives you almost the same result :)
 So, now we have where the \_KPCR is located and now we should simply use :
 
 ```
-dt <Address> nt!\_KPCR
+dt <Address> nt!_KPCR
 ```
 
 And after finding the pcrb now we should use dt in order to map the result into the \_kpcrb structure.

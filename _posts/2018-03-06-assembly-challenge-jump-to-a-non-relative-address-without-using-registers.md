@@ -44,7 +44,7 @@ Itâ€™s clear that it causes nasty problems because the rest of program flow donâ
 I solved the above problem by using the following code, in at&t syntax (in x86):
 
 ```
-jmp \*0f(%eip)
+jmp *0f(%eip)
 0: .int 0x12345678
 ```
 
@@ -61,17 +61,17 @@ Sinas-MBP:Desktop sina$ objdump -d aa.o
 
 aa.o: file format Mach-O 32-bit i386
 
-Disassembly of section \_\_TEXT,\_\_text:
-\_\_text:
-0: ff 25 00 00 00 00 jmpl \*0
-6: 78 56 js 86 <\_\_text+0x5E>
+Disassembly of section __TEXT,__text:
+__text:
+0: ff 25 00 00 00 00 jmpl *0
+6: 78 56 js 86 <__text+0x5E>
 8: 34 12 xorb $18, %al
 ```
 
 In the case of x64 version of above code you can use the rip instead of eip and change the int to quad because you need more space for x64 addressing.
 
 ```
-jmp \*0f(%rip)
+jmp *0f(%rip)
 0: .quad 0x1234567890
 ```
 
@@ -86,11 +86,11 @@ Sinas-MBP:Desktop sina$ objdump -d aa.o
 
 aa.o: file format Mach-O 64-bit x86-64
 
-Disassembly of section \_\_TEXT,\_\_text:
-\_\_text:
-0: ff 25 00 00 00 00 jmpq \*(%rip)
+Disassembly of section __TEXT,__text:
+__text:
+0: ff 25 00 00 00 00 jmpq *(%rip)
 6: 90 nop
-7: 78 56 js 86 <\_\_text+0x5F>
+7: 78 56 js 86 <__text+0x5F>
 9: 34 12 xorb $18, %al
 b: 00 00 addb %al, (%rax)
 d: 00 
