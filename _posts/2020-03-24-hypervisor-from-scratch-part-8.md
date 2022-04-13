@@ -492,7 +492,7 @@ But wait! Have you notice that exception bitmap are just a 32-bit field in VMCS 
 
 If you're curious about this question you can read its answer in **Discussion** section.
 
-## **Monitor Trap Flag (MTF)**
+# **Monitor Trap Flag (MTF)**
 
 Monitor Trap Flag or MTF is a feature that works exactly like **Trap Flag** in **r/eflags** except it's invisible to the guest.
 
@@ -2725,7 +2725,7 @@ VOID LogUnInitialize()
 
 ![Aniiiimmmmeee :)](../../assets/images/anime-hvfs-part-8-1.jpg)
 
-## **WPP Tracing**
+# **WPP Tracing**
 
 WPP Tracing is another mechanism provided by Windows, which can be used to trace messages from both vmx non-root and vmx root-mode and in any IRQL. It is primarily intended for debugging code during development, and it's capable of publishing events that can be consumed by applications in structured ETW events.
 
@@ -2817,7 +2817,7 @@ Personally, I prefer to use my custom message tracing as WPP Tracing needs to so
 
 You can see the results of WPP Tracing later in **Let's Test it!** section.
 
-## **Supporting to Hyper-V**
+# **Supporting to Hyper-V**
 
 As I told you in the previous parts, testing and building hypervisor for Hyper-V needs extra consideration and adding a few more lines of code to support Hyper-V nested virtualization.
 
@@ -3041,7 +3041,7 @@ One other thing that I noticed during the development on Hyper-V was the fact th
 
 Finished! From now you can test your hypervisor on Hyper-V too : )
 
-## **Fixing Previous Design Issues**
+# **Fixing Previous Design Issues**
 
 In this part, we want to improve our hypervisor and fix some issues from the previous parts regarding problems and misunderstandings.
 
@@ -3238,7 +3238,7 @@ Also, it's better to unset vmx-enable bit of cr4 after executing vmxoff on each 
 	__writecr4(__readcr4() & (~X86_CR4_VMXE));
 ```
 
-## **Let’s Test it!**
+# **Let’s Test it!**
 
 The code for our hypervisor is tested on bare-metal (physical machine), VMware's nested virtualization and Hyper-V's nested virtualization.
 
@@ -3355,7 +3355,7 @@ Note that you can simultaneously use Hidden Hooks for Read/Write, Execute or sys
 	////////////////////////////// 
 ```
 
-### **Read/Write Hooks or Hardware Debug Registers Simulation**
+## **Read/Write Hooks or Hardware Debug Registers Simulation**
 
 For testing read and write, uncomment the first line, now you'll be notified in the case of any Read/Write from any locations to the current thread's \_ETHREAD structure (**KeGetCurrentThread()**).
 
@@ -3384,7 +3384,7 @@ Also, you can see the results in Windbg !
 
 ![Hidden Hooks (Read/Write)](../../assets/images/hidden-hook-example-read-write-2.png)
 
-### **Hidden Execution Hook**
+## **Hidden Execution Hook**
 
 The second scenario for hidden hooks is to inline hook the **ExAllocatePoolWithTag** function.
 
@@ -3534,7 +3534,7 @@ Also, you can see the results in Windbg !
 
 ![Syscall Hook](../../assets/images/syscall-hook-example-3.png)
 
-## **Discussion**
+# **Discussion**
 
 It's time to see the questions and discussions about this part, the discussion is usually about questions and experience about developing hypervisors. Thanks to [Petr](https://twitter.com/PetrBenes) for making this part ready.
 
@@ -3641,7 +3641,7 @@ There are only 32 exceptions in x86 architecture. The rest are external-interrup
 
 \- Another reason is APCs are undocumented kernel object while DPCs are documented so that's the reason why programmers prefer to use DPCs.
 
-## **Conclusion**
+# **Conclusion**
 
 We come to the end of this part, in this part we saw some important things that can be implemented with virtualizing an already running system like hidden hooks, syscall hook, event injection, exception bitmap, and our custom VMX Root compatible message tracing, by now you should be able to use your hypervisor driver in many kinds of researches and solve your reverse-engineering problems.
 

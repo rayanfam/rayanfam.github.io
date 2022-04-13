@@ -2063,7 +2063,7 @@ For fixing this issue, we add the following code to **HvHandleControlRegisterAcc
 
 Previously, this was mentioned by [Alex](https://twitter.com/aionescu/status/1148309739136311296), for more information, you can read [this](https://msrc-blog.microsoft.com/2018/03/23/kva-shadow-mitigating-meltdown-on-windows/) article.
 
-## **Some tips for debugging hypervisors**
+# **Some tips for debugging hypervisors**
 
 Always try to test your hypervisor in a uni-core system. If it works then, you can check it on a multi-core, so when something doesn't work on multi-core and works on uni-core, then know that it's a synchronization problem.
 
@@ -2071,7 +2071,7 @@ Don't try to call Nt functions in Vmx root mode. Most of NT functions are not su
 
 For more information, I really recommend reading Hyperplatform's User Document ([4.4. Coding Tips](https://tandasat.github.io/HyperPlatform/userdocument/)).
 
-## **Let’s Test it!**
+# **Let’s Test it!**
 
 Let's see how we can test our hypervisor,
 
@@ -2174,7 +2174,7 @@ When you have multiple EPTs for each CPU, you don't have to do IPIs, each core m
 
 Now they won't be 100% synced all the time, but if the EPT handler logic is the same for each core and doesn't change over time, it doesn't matter.
 
-## **Conclusion**
+# **Conclusion**
 
 We come to the end of this part. I believe EPT is the most important feature that can be used by researchers, security programs and game hackers as it gives a unique ability to monitor the operating system and user-mode applications. In the next part, we'll be using EPT and implement hidden hook mechanisms, which commonly used among hypervisors. Also, we'll improve our hypervisor by using WPP Tracing instead of using DbgPrint, event injection, and a mechanism to talk from Vmx root-mode to Vmx non-root mode and finally we'll see how to use Virtual Processor Identifier (VPID). Feel free to use the comments below to ask questions or ask for clarification.
 

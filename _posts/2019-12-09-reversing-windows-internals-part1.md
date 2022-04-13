@@ -1536,7 +1536,7 @@ Finally, the results are:
 
 ![TypeInfoCallbacksHooker Driver](../../assets/images/type-info-callbacks-hooks.png)
 
-## **Conclusion**
+# **Conclusion**
 
 In this post, we saw some important parts of Windows about **handles**, **callbacks, object types** and lots of other cool examples about how to use them.
 

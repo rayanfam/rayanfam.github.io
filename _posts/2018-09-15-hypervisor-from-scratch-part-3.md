@@ -52,22 +52,22 @@ Imagine we have the following IOCTL codes:
 //
 // Device type           -- in the "User Defined" range."
 //
-#define SIOCTL\_TYPE 40000
+#define SIOCTL_TYPE 40000
 
 //
 // The IOCTL function codes from 0x800 to 0xFFF are for customer use.
 //
-#define IOCTL\_SIOCTL\_METHOD\_IN\_DIRECT \\
-    CTL\_CODE( SIOCTL\_TYPE, 0x900, METHOD\_IN\_DIRECT, FILE\_ANY\_ACCESS  )
+#define IOCTL_SIOCTL_METHOD_IN_DIRECT \
+    CTL_CODE( SIOCTL_TYPE, 0x900, METHOD_IN_DIRECT, FILE_ANY_ACCESS  )
 
-#define IOCTL\_SIOCTL\_METHOD\_OUT\_DIRECT \\
-    CTL\_CODE( SIOCTL\_TYPE, 0x901, METHOD\_OUT\_DIRECT , FILE\_ANY\_ACCESS  )
+#define IOCTL_SIOCTL_METHOD_OUT_DIRECT \
+    CTL_CODE( SIOCTL_TYPE, 0x901, METHOD_OUT_DIRECT , FILE_ANY_ACCESS  )
 
-#define IOCTL\_SIOCTL\_METHOD\_BUFFERED \\
-    CTL\_CODE( SIOCTL\_TYPE, 0x902, METHOD\_BUFFERED, FILE\_ANY\_ACCESS  )
+#define IOCTL_SIOCTL_METHOD_BUFFERED \
+    CTL_CODE( SIOCTL_TYPE, 0x902, METHOD_BUFFERED, FILE_ANY_ACCESS  )
 
-#define IOCTL\_SIOCTL\_METHOD\_NEITHER \\
-    CTL\_CODE( SIOCTL\_TYPE, 0x903, METHOD\_NEITHER , FILE\_ANY\_ACCESS  )
+#define IOCTL_SIOCTL_METHOD_NEITHER \
+    CTL_CODE( SIOCTL_TYPE, 0x903, METHOD_NEITHER , FILE_ANY_ACCESS  )
 ```	
 
 There is a convention for defining IOCTLs as it mentioned [here](https://www.codeproject.com/Articles/9575/Driver-Development-Part-2-Introduction-to-Implemen),
@@ -93,21 +93,21 @@ First, we declare all our needed variable.
 Note that the **PAGED\_CODE** macro ensures that the calling thread is running at an IRQL that is low enough to permit paging.
 
 ```
-NTSTATUS DrvIOCTLDispatcher( PDEVICE\_OBJECT DeviceObject, PIRP Irp)
+NTSTATUS DrvIOCTLDispatcher( PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
-	PIO\_STACK\_LOCATION  irpSp;// Pointer to current stack location
-	NTSTATUS            ntStatus = STATUS\_SUCCESS;// Assume success
+	PIO_STACK_LOCATION  irpSp;// Pointer to current stack location
+	NTSTATUS            ntStatus = STATUS_SUCCESS;// Assume success
 	ULONG               inBufLength; // Input buffer length
 	ULONG               outBufLength; // Output buffer length
 	PCHAR               inBuf, outBuf; // pointer to Input and output buffer
 	PCHAR               data = "This String is from Device Driver !!!";
-	size\_t              datalen = strlen(data) + 1;//Length of data including null
+	size_t              datalen = strlen(data) + 1;//Length of data including null
 	PMDL                mdl = NULL;
 	PCHAR               buffer = NULL;
 
-	UNREFERENCED\_PARAMETER(DeviceObject);
+	UNREFERENCED_PARAMETER(DeviceObject);
 
-	PAGED\_CODE();
+	PAGED_CODE();
 
 	irpSp = IoGetCurrentIrpStackLocation(Irp);
 	inBufLength = irpSp->Parameters.DeviceIoControl.InputBufferLength;
@@ -115,7 +115,7 @@ NTSTATUS DrvIOCTLDispatcher( PDEVICE\_OBJECT DeviceObject, PIRP Irp)
 
 	if (!inBufLength || !outBufLength)
 	{
-		ntStatus = STATUS\_INVALID\_PARAMETER;
+		ntStatus = STATUS_INVALID_PARAMETER;
 		goto End;
 	}
 
@@ -127,17 +127,17 @@ Then we have to use switch-case through the IOCTLs (Just copy buffers and show i
 ```
 	switch (irpSp->Parameters.DeviceIoControl.IoControlCode)
 	{
-	case IOCTL\_SIOCTL\_METHOD\_BUFFERED:
+	case IOCTL_SIOCTL_METHOD_BUFFERED:
 
-		DbgPrint("Called IOCTL\_SIOCTL\_METHOD\_BUFFERED\\n");
+		DbgPrint("Called IOCTL_SIOCTL_METHOD_BUFFERED\n");
 		PrintIrpInfo(Irp);
 		inBuf = Irp->AssociatedIrp.SystemBuffer;
 		outBuf = Irp->AssociatedIrp.SystemBuffer;
-		DbgPrint("\\tData from User :");
+		DbgPrint("\tData from User :");
 		DbgPrint(inBuf);
 		PrintChars(inBuf, inBufLength);
 		RtlCopyBytes(outBuf, data, outBufLength);
-		DbgPrint(("\\tData to User : "));
+		DbgPrint(("\tData to User : "));
 		PrintChars(outBuf, datalen);
 		Irp->IoStatus.Information = (outBufLength < datalen ? outBufLength : datalen);
 		break;
@@ -150,19 +150,19 @@ The **PrintIrpInfo** is like this :
 ```
 VOID PrintIrpInfo(PIRP Irp)
 {
-	PIO\_STACK\_LOCATION  irpSp;
+	PIO_STACK_LOCATION  irpSp;
 	irpSp = IoGetCurrentIrpStackLocation(Irp);
 
-	PAGED\_CODE();
+	PAGED_CODE();
 
-	DbgPrint("\\tIrp->AssociatedIrp.SystemBuffer = 0x%p\\n",
+	DbgPrint("\tIrp->AssociatedIrp.SystemBuffer = 0x%p\n",
 		Irp->AssociatedIrp.SystemBuffer);
-	DbgPrint("\\tIrp->UserBuffer = 0x%p\\n", Irp->UserBuffer);
-	DbgPrint("\\tirpSp->Parameters.DeviceIoControl.Type3InputBuffer = 0x%p\\n",
+	DbgPrint("\tIrp->UserBuffer = 0x%p\n", Irp->UserBuffer);
+	DbgPrint("\tirpSp->Parameters.DeviceIoControl.Type3InputBuffer = 0x%p\n",
 		irpSp->Parameters.DeviceIoControl.Type3InputBuffer);
-	DbgPrint("\\tirpSp->Parameters.DeviceIoControl.InputBufferLength = %d\\n",
+	DbgPrint("\tirpSp->Parameters.DeviceIoControl.InputBufferLength = %d\n",
 		irpSp->Parameters.DeviceIoControl.InputBufferLength);
-	DbgPrint("\\tirpSp->Parameters.DeviceIoControl.OutputBufferLength = %d\\n",
+	DbgPrint("\tirpSp->Parameters.DeviceIoControl.OutputBufferLength = %d\n",
 		irpSp->Parameters.DeviceIoControl.OutputBufferLength);
 	return;
 }
@@ -173,20 +173,20 @@ Even though you can see all the implementations in my GitHub but that's enough, 
 Now from user-mode and if you remember from the [previous part](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/) where we create a handle (HANDLE) using **CreateFile**, now we can use the **DeviceIoControl** to call **DrvIOCTLDispatcher** (**IRP\_MJ\_DEVICE\_CONTROL**) along with our parameters from user-mode.
 
 ```
-	char OutputBuffer\[1000\];
-	char InputBuffer\[1000\];
+	char OutputBuffer[1000];
+	char InputBuffer[1000];
 	ULONG bytesReturned;
 	BOOL Result;
 
 	StringCbCopy(InputBuffer, sizeof(InputBuffer),
-		"This String is from User Application; using METHOD\_BUFFERED");
+		"This String is from User Application; using METHOD_BUFFERED");
 
-	printf("\\nCalling DeviceIoControl METHOD\_BUFFERED:\\n");
+	printf("\nCalling DeviceIoControl METHOD_BUFFERED:\n");
 
 	memset(OutputBuffer, 0, sizeof(OutputBuffer));
 
 	Result = DeviceIoControl(handle,
-		(DWORD)IOCTL\_SIOCTL\_METHOD\_BUFFERED,
+		(DWORD)IOCTL_SIOCTL_METHOD_BUFFERED,
 		&InputBuffer,
 		(DWORD)strlen(InputBuffer) + 1,
 		&OutputBuffer,
@@ -201,7 +201,7 @@ Now from user-mode and if you remember from the [previous part](https://rayanfam
 		return 1;
 
 	}
-	printf("    OutBuffer (%d): %s\\n", bytesReturned, OutputBuffer);
+	printf("    OutBuffer (%d): %s\n", bytesReturned, OutputBuffer);
 ```
 
 There is an old, yet great topic [here](https://www.codeproject.com/Articles/9575/Driver-Development-Part-2-Introduction-to-Implemen) which describes the different types of IOCT dispatching.
@@ -229,14 +229,14 @@ int ipow(int base, int exp) {
 	{
 		if ( exp & 1)
 		{
-			result \*= base;
+			result *= base;
 		}
 		exp >>= 1;
 		if (!exp)
 		{
 			break;
 		}
-		base \*= base;
+		base *= base;
 	}
 	return result;
 }
@@ -246,7 +246,7 @@ then we should use the following code in order to change the affinity of the pro
 
 ```
 	KAFFINITY kAffinityMask;
-	for (size\_t i = 0; i < KeQueryActiveProcessorCount(0); i++)
+	for (size_t i = 0; i < KeQueryActiveProcessorCount(0); i++)
 	{
 		kAffinityMask = ipow(2, i);
 		KeSetSystemAffinityThread(kAffinityMask);
@@ -262,7 +262,7 @@ then we should use the following code in order to change the affinity of the pro
 VMXON Regions and VMCS Regions (see below) use physical address as the operand to VMXON and VMPTRLD instruction so we should create functions to convert Virtual Address to Physical address:
 
 ```
-UINT64 VirtualAddress\_to\_PhysicallAddress(void\* va)
+UINT64 VirtualAddress_to_PhysicallAddress(void* va)
 {
 	return MmGetPhysicalAddress(va).QuadPart;
 }
@@ -271,9 +271,9 @@ UINT64 VirtualAddress\_to\_PhysicallAddress(void\* va)
 And as long as we can't directly use physical addresses for our modifications in protected-mode then we have to convert physical address to virtual address.
 
 ```
-UINT64 PhysicalAddress\_to\_VirtualAddress(UINT64 pa)
+UINT64 PhysicalAddress_to_VirtualAddress(UINT64 pa)
 {
-	PHYSICAL\_ADDRESS PhysicalAddr;
+	PHYSICAL_ADDRESS PhysicalAddr;
 	PhysicalAddr.QuadPart = pa;
 
 	return MmGetVirtualForPhysical(PhysicalAddr);
@@ -285,28 +285,28 @@ UINT64 PhysicalAddress\_to\_VirtualAddress(UINT64 pa)
 In the previous part, we query about the presence of hypervisor from user-mode, but we should consider checking about hypervisor from kernel-mode too. This reduces the possibility of getting kernel errors in the future or there might be something that disables the hypervisor using the **lock bit**, by the way, the following code checks **IA32\_FEATURE\_CONTROL** MSR (MSR address 3AH) to see if the **lock bit** is set or not.
 
 ```
-BOOLEAN Is\_VMX\_Supported()
+BOOLEAN Is_VMX_Supported()
 {
 	CPUID data = { 0 };
 
 	// VMX bit
-	\_\_cpuid((int\*)&data, 1);
+	__cpuid((int*)&data, 1);
 	if ((data.ecx & (1 << 5)) == 0)
 		return FALSE;
 
-	IA32\_FEATURE\_CONTROL\_MSR Control = { 0 };
-	Control.All = \_\_readmsr(MSR\_IA32\_FEATURE\_CONTROL);
+	IA32_FEATURE_CONTROL_MSR Control = { 0 };
+	Control.All = __readmsr(MSR_IA32_FEATURE_CONTROL);
 
 	// BIOS lock check
 	if (Control.Fields.Lock == 0)
 	{
 		Control.Fields.Lock = TRUE;
 		Control.Fields.EnableVmxon = TRUE;
-		\_\_writemsr(MSR\_IA32\_FEATURE\_CONTROL, Control.All);
+		__writemsr(MSR_IA32_FEATURE_CONTROL, Control.All);
 	}
 	else if (Control.Fields.EnableVmxon == FALSE)
 	{
-		DbgPrint("\[\*\] VMX locked off in BIOS");
+		DbgPrint("[*] VMX locked off in BIOS");
 		return FALSE;
 	}
 
@@ -317,29 +317,29 @@ BOOLEAN Is\_VMX\_Supported()
 The structures used in the above function declared like this:
 
 ```
-typedef union \_IA32\_FEATURE\_CONTROL\_MSR
+typedef union _IA32_FEATURE_CONTROL_MSR
 {
 	ULONG64 All;
 	struct
 	{
-		ULONG64 Lock : 1;                // \[0\]
-		ULONG64 EnableSMX : 1;           // \[1\]
-		ULONG64 EnableVmxon : 1;         // \[2\]
-		ULONG64 Reserved2 : 5;           // \[3-7\]
-		ULONG64 EnableLocalSENTER : 7;   // \[8-14\]
-		ULONG64 EnableGlobalSENTER : 1;  // \[15\]
+		ULONG64 Lock : 1;                // [0]
+		ULONG64 EnableSMX : 1;           // [1]
+		ULONG64 EnableVmxon : 1;         // [2]
+		ULONG64 Reserved2 : 5;           // [3-7]
+		ULONG64 EnableLocalSENTER : 7;   // [8-14]
+		ULONG64 EnableGlobalSENTER : 1;  // [15]
 		ULONG64 Reserved3a : 16;         //
-		ULONG64 Reserved3b : 32;         // \[16-63\]
+		ULONG64 Reserved3b : 32;         // [16-63]
 	} Fields;
-} IA32\_FEATURE\_CONTROL\_MSR, \*PIA32\_FEATURE\_CONTROL\_MSR;
+} IA32_FEATURE_CONTROL_MSR, *PIA32_FEATURE_CONTROL_MSR;
 
-typedef struct \_CPUID
+typedef struct _CPUID
 {
 	int eax;
 	int ebx;
 	int ecx;
 	int edx;
-} CPUID, \*PCPUID;
+} CPUID, *PCPUID;
 ```
 
 ## **VMXON Region**
@@ -353,11 +353,11 @@ Note: The first processors to support VMX operation require that the following b
 Now that we are configuring the hypervisor, we should have a global variable that describes the state of our virtual machine, I create the following structure for this purpose, currently, we just have two fields (**VMXON\_REGION** and **VMCS\_REGION**) but we will add new fields in this structure in the future parts.
 
 ```
-typedef struct \_VirtualMachineState
+typedef struct _VirtualMachineState
 {
-	UINT64 VMXON\_REGION;                        // VMXON region
-	UINT64 VMCS\_REGION;                         // VMCS region
-} VirtualMachineState, \*PVirtualMachineState;
+	UINT64 VMXON_REGION;                        // VMXON region
+	UINT64 VMCS_REGION;                         // VMCS region
+} VirtualMachineState, *PVirtualMachineState;
 ```
 
 And of course a global variable:
@@ -369,60 +369,60 @@ extern PVirtualMachineState vmState;
 I create the following function (in memory.c) to allocate VMXON Region and execute VMXON instruction using the allocated region's pointer.
 
 ```
-BOOLEAN Allocate\_VMXON\_Region(IN PVirtualMachineState vmState)
+BOOLEAN Allocate_VMXON_Region(IN PVirtualMachineState vmState)
 {
-	// at IRQL > DISPATCH\_LEVEL memory allocation routines don't work
-	if (KeGetCurrentIrql() > DISPATCH\_LEVEL)
+	// at IRQL > DISPATCH_LEVEL memory allocation routines don't work
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL)
 		KeRaiseIrqlToDpcLevel();
 
-	PHYSICAL\_ADDRESS PhysicalMax = { 0 };
+	PHYSICAL_ADDRESS PhysicalMax = { 0 };
 	PhysicalMax.QuadPart = MAXULONG64;
 
-	int VMXONSize = 2 \* VMXON\_SIZE;
-	BYTE\* Buffer = MmAllocateContiguousMemory(VMXONSize + ALIGNMENT\_PAGE\_SIZE, PhysicalMax);  // Allocating a 4-KByte Contigous Memory region
+	int VMXONSize = 2 * VMXON_SIZE;
+	BYTE* Buffer = MmAllocateContiguousMemory(VMXONSize + ALIGNMENT_PAGE_SIZE, PhysicalMax);  // Allocating a 4-KByte Contigous Memory region
 
-	PHYSICAL\_ADDRESS Highest = { 0 }, Lowest = { 0 };
+	PHYSICAL_ADDRESS Highest = { 0 }, Lowest = { 0 };
 	Highest.QuadPart = ~0;
 
-	//BYTE\* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT\_PAGE\_SIZE, Lowest, Highest, Lowest, MmNonCached);
+	//BYTE* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT_PAGE_SIZE, Lowest, Highest, Lowest, MmNonCached);
 	
 	if (Buffer == NULL) {
-		DbgPrint("\[\*\] Error : Couldn't Allocate Buffer for VMXON Region.");
-		return FALSE;// ntStatus = STATUS\_INSUFFICIENT\_RESOURCES;
+		DbgPrint("[*] Error : Couldn't Allocate Buffer for VMXON Region.");
+		return FALSE;// ntStatus = STATUS_INSUFFICIENT_RESOURCES;
 	}
-	UINT64 PhysicalBuffer = VirtualAddress\_to\_PhysicallAddress(Buffer);
+	UINT64 PhysicalBuffer = VirtualAddress_to_PhysicallAddress(Buffer);
 
 	// zero-out memory 
-	RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT\_PAGE\_SIZE);
-	UINT64 alignedPhysicalBuffer = (BYTE\*)((ULONG\_PTR)(PhysicalBuffer + ALIGNMENT\_PAGE\_SIZE - 1) &~(ALIGNMENT\_PAGE\_SIZE - 1));
+	RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT_PAGE_SIZE);
+	UINT64 alignedPhysicalBuffer = (BYTE*)((ULONG_PTR)(PhysicalBuffer + ALIGNMENT_PAGE_SIZE - 1) &~(ALIGNMENT_PAGE_SIZE - 1));
 
-	UINT64 alignedVirtualBuffer = (BYTE\*)((ULONG\_PTR)(Buffer + ALIGNMENT\_PAGE\_SIZE - 1) &~(ALIGNMENT\_PAGE\_SIZE - 1));
+	UINT64 alignedVirtualBuffer = (BYTE*)((ULONG_PTR)(Buffer + ALIGNMENT_PAGE_SIZE - 1) &~(ALIGNMENT_PAGE_SIZE - 1));
 
-	DbgPrint("\[\*\] Virtual allocated buffer for VMXON at %llx", Buffer);
-	DbgPrint("\[\*\] Virtual aligned allocated buffer for VMXON at %llx", alignedVirtualBuffer);
-	DbgPrint("\[\*\] Aligned physical buffer allocated for VMXON at %llx", alignedPhysicalBuffer);
+	DbgPrint("[*] Virtual allocated buffer for VMXON at %llx", Buffer);
+	DbgPrint("[*] Virtual aligned allocated buffer for VMXON at %llx", alignedVirtualBuffer);
+	DbgPrint("[*] Aligned physical buffer allocated for VMXON at %llx", alignedPhysicalBuffer);
 
-	// get IA32\_VMX\_BASIC\_MSR RevisionId
+	// get IA32_VMX_BASIC_MSR RevisionId
 
-	IA32\_VMX\_BASIC\_MSR basic = { 0 };
+	IA32_VMX_BASIC_MSR basic = { 0 };
 
-	basic.All = \_\_readmsr(MSR\_IA32\_VMX\_BASIC);
+	basic.All = __readmsr(MSR_IA32_VMX_BASIC);
 
-	DbgPrint("\[\*\] MSR\_IA32\_VMX\_BASIC (MSR 0x480) Revision Identifier %llx", basic.Fields.RevisionIdentifier);
+	DbgPrint("[*] MSR_IA32_VMX_BASIC (MSR 0x480) Revision Identifier %llx", basic.Fields.RevisionIdentifier);
 
-	//\* (UINT64 \*)alignedVirtualBuffer  = 04;
+	//* (UINT64 *)alignedVirtualBuffer  = 04;
 
 	//Changing Revision Identifier
-	\*(UINT64 \*)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
+	*(UINT64 *)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
 
-	int status = \_\_vmx\_on(&alignedPhysicalBuffer);
+	int status = __vmx_on(&alignedPhysicalBuffer);
 	if (status)
 	{
-		DbgPrint("\[\*\] VMXON failed with status %d\\n", status);
+		DbgPrint("[*] VMXON failed with status %d\n", status);
 		return FALSE;
 	}
 
-	vmState->VMXON\_REGION = alignedPhysicalBuffer;
+	vmState->VMXON_REGION = alignedPhysicalBuffer;
 
 	return TRUE;
 }
@@ -431,8 +431,8 @@ BOOLEAN Allocate\_VMXON\_Region(IN PVirtualMachineState vmState)
 Let's explain the  above function,
 
 ```
-	// at IRQL > DISPATCH\_LEVEL memory allocation routines don't work
-	if (KeGetCurrentIrql() > DISPATCH\_LEVEL)
+	// at IRQL > DISPATCH_LEVEL memory allocation routines don't work
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL)
 		KeRaiseIrqlToDpcLevel();
 ```
 
@@ -461,14 +461,14 @@ In my experience, the **MmAllocateContiguousMemory** allocation is always align
 If you are interested in Page Frame Number (PFN) then you can read [Inside Windows Page Frame Number (PFN) – Part 1](https://rayanfam.com/topics/inside-windows-page-frame-number-part1/) and [Inside Windows Page Frame Number (PFN) – Part 2](https://rayanfam.com/topics/inside-windows-page-frame-number-part2/).
 
 ```
-	PHYSICAL\_ADDRESS PhysicalMax = { 0 };
+	PHYSICAL_ADDRESS PhysicalMax = { 0 };
 	PhysicalMax.QuadPart = MAXULONG64;
 
-	int VMXONSize = 2 \* VMXON\_SIZE;
-	BYTE\* Buffer = MmAllocateContiguousMemory(VMXONSize, PhysicalMax);  // Allocating a 4-KByte Contigous Memory region
+	int VMXONSize = 2 * VMXON_SIZE;
+	BYTE* Buffer = MmAllocateContiguousMemory(VMXONSize, PhysicalMax);  // Allocating a 4-KByte Contigous Memory region
 	if (Buffer == NULL) {
-		DbgPrint("\[\*\] Error : Couldn't Allocate Buffer for VMXON Region.");
-		return FALSE;// ntStatus = STATUS\_INSUFFICIENT\_RESOURCES;
+		DbgPrint("[*] Error : Couldn't Allocate Buffer for VMXON Region.");
+		return FALSE;// ntStatus = STATUS_INSUFFICIENT_RESOURCES;
 	}
 ```
 
@@ -477,16 +477,16 @@ Now we should convert the address of the allocated memory to its physical addres
 Memory that **MmAllocateContiguousMemory** allocates is uninitialized. A kernel-mode driver must first set this memory to zero. Now we should use **RtlSecureZeroMemory** for this case.
 
 ```
-	UINT64 PhysicalBuffer = VirtualAddress\_to\_PhysicallAddress(Buffer);
+	UINT64 PhysicalBuffer = VirtualAddress_to_PhysicallAddress(Buffer);
 
 	// zero-out memory 
-	RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT\_PAGE\_SIZE);
-	UINT64 alignedPhysicalBuffer = (BYTE\*)((ULONG\_PTR)(PhysicalBuffer + ALIGNMENT\_PAGE\_SIZE - 1) &~(ALIGNMENT\_PAGE\_SIZE - 1));
-	UINT64 alignedVirtualBuffer = (BYTE\*)((ULONG\_PTR)(Buffer + ALIGNMENT\_PAGE\_SIZE - 1) &~(ALIGNMENT\_PAGE\_SIZE - 1));
+	RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT_PAGE_SIZE);
+	UINT64 alignedPhysicalBuffer = (BYTE*)((ULONG_PTR)(PhysicalBuffer + ALIGNMENT_PAGE_SIZE - 1) &~(ALIGNMENT_PAGE_SIZE - 1));
+	UINT64 alignedVirtualBuffer = (BYTE*)((ULONG_PTR)(Buffer + ALIGNMENT_PAGE_SIZE - 1) &~(ALIGNMENT_PAGE_SIZE - 1));
 
-	DbgPrint("\[\*\] Virtual allocated buffer for VMXON at %llx", Buffer);
-	DbgPrint("\[\*\] Virtual aligned allocated buffer for VMXON at %llx", alignedVirtualBuffer);
-	DbgPrint("\[\*\] Aligned physical buffer allocated for VMXON at %llx", alignedPhysicalBuffer);
+	DbgPrint("[*] Virtual allocated buffer for VMXON at %llx", Buffer);
+	DbgPrint("[*] Virtual aligned allocated buffer for VMXON at %llx", alignedVirtualBuffer);
+	DbgPrint("[*] Aligned physical buffer allocated for VMXON at %llx", alignedPhysicalBuffer);
 ```
 
 From Intel's manual (24.11.5 VMXON Region ):
@@ -498,29 +498,29 @@ From Intel's manual (24.11.5 VMXON Region ):
 So let's get the Revision Identifier from **IA32\_VMX\_BASIC\_MSR**  and write it to our VMXON Region.
 
 ```
-	// get IA32\_VMX\_BASIC\_MSR RevisionId
+	// get IA32_VMX_BASIC_MSR RevisionId
 
-	IA32\_VMX\_BASIC\_MSR basic = { 0 };
+	IA32_VMX_BASIC_MSR basic = { 0 };
 
-	basic.All = \_\_readmsr(MSR\_IA32\_VMX\_BASIC);
+	basic.All = __readmsr(MSR_IA32_VMX_BASIC);
 
-	DbgPrint("\[\*\] MSR\_IA32\_VMX\_BASIC (MSR 0x480) Revision Identifier %llx", basic.Fields.RevisionIdentifier);
+	DbgPrint("[*] MSR_IA32_VMX_BASIC (MSR 0x480) Revision Identifier %llx", basic.Fields.RevisionIdentifier);
 
 	//Changing Revision Identifier
-	\*(UINT64 \*)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
+	*(UINT64 *)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
 ```
 
 The last part is used for executing VMXON instruction.
 
 ```
-	int status = \_\_vmx\_on(&alignedPhysicalBuffer);
+	int status = __vmx_on(&alignedPhysicalBuffer);
 	if (status)
 	{
-		DbgPrint("\[\*\] VMXON failed with status %d\\n", status);
+		DbgPrint("[*] VMXON failed with status %d\n", status);
 		return FALSE;
 	}
 
-	vmState->VMXON\_REGION = alignedPhysicalBuffer;
+	vmState->VMXON_REGION = alignedPhysicalBuffer;
 
 	return TRUE;
 ```
@@ -583,57 +583,57 @@ The following picture illustrates the contents of a VMCS Region.
 The following code is responsible for allocating VMCS Region :
 
 ```
-BOOLEAN Allocate\_VMCS\_Region(IN PVirtualMachineState vmState)
+BOOLEAN Allocate_VMCS_Region(IN PVirtualMachineState vmState)
 {
-	// at IRQL > DISPATCH\_LEVEL memory allocation routines don't work
-	if (KeGetCurrentIrql() > DISPATCH\_LEVEL)
+	// at IRQL > DISPATCH_LEVEL memory allocation routines don't work
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL)
 		KeRaiseIrqlToDpcLevel();
 
-	PHYSICAL\_ADDRESS PhysicalMax = { 0 };
+	PHYSICAL_ADDRESS PhysicalMax = { 0 };
 	PhysicalMax.QuadPart = MAXULONG64;
 
-	int VMCSSize = 2 \* VMCS\_SIZE;
-	BYTE\* Buffer = MmAllocateContiguousMemory(VMCSSize + ALIGNMENT\_PAGE\_SIZE, PhysicalMax);  // Allocating a 4-KByte Contigous Memory region
+	int VMCSSize = 2 * VMCS_SIZE;
+	BYTE* Buffer = MmAllocateContiguousMemory(VMCSSize + ALIGNMENT_PAGE_SIZE, PhysicalMax);  // Allocating a 4-KByte Contigous Memory region
 
-	PHYSICAL\_ADDRESS Highest = { 0 }, Lowest = { 0 };
+	PHYSICAL_ADDRESS Highest = { 0 }, Lowest = { 0 };
 	Highest.QuadPart = ~0;
 
-	//BYTE\* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT\_PAGE\_SIZE, Lowest, Highest, Lowest, MmNonCached);
+	//BYTE* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT_PAGE_SIZE, Lowest, Highest, Lowest, MmNonCached);
 
-	UINT64 PhysicalBuffer = VirtualAddress\_to\_PhysicallAddress(Buffer);
+	UINT64 PhysicalBuffer = VirtualAddress_to_PhysicallAddress(Buffer);
 	if (Buffer == NULL) {
-		DbgPrint("\[\*\] Error : Couldn't Allocate Buffer for VMCS Region.");
-		return FALSE;// ntStatus = STATUS\_INSUFFICIENT\_RESOURCES;
+		DbgPrint("[*] Error : Couldn't Allocate Buffer for VMCS Region.");
+		return FALSE;// ntStatus = STATUS_INSUFFICIENT_RESOURCES;
 	}
 	// zero-out memory 
-	RtlSecureZeroMemory(Buffer, VMCSSize + ALIGNMENT\_PAGE\_SIZE);
-	UINT64 alignedPhysicalBuffer = (BYTE\*)((ULONG\_PTR)(PhysicalBuffer + ALIGNMENT\_PAGE\_SIZE - 1) &~(ALIGNMENT\_PAGE\_SIZE - 1));
+	RtlSecureZeroMemory(Buffer, VMCSSize + ALIGNMENT_PAGE_SIZE);
+	UINT64 alignedPhysicalBuffer = (BYTE*)((ULONG_PTR)(PhysicalBuffer + ALIGNMENT_PAGE_SIZE - 1) &~(ALIGNMENT_PAGE_SIZE - 1));
 
-	UINT64 alignedVirtualBuffer = (BYTE\*)((ULONG\_PTR)(Buffer + ALIGNMENT\_PAGE\_SIZE - 1) &~(ALIGNMENT\_PAGE\_SIZE - 1));
+	UINT64 alignedVirtualBuffer = (BYTE*)((ULONG_PTR)(Buffer + ALIGNMENT_PAGE_SIZE - 1) &~(ALIGNMENT_PAGE_SIZE - 1));
 
-	DbgPrint("\[\*\] Virtual allocated buffer for VMCS at %llx", Buffer);
-	DbgPrint("\[\*\] Virtual aligned allocated buffer for VMCS at %llx", alignedVirtualBuffer);
-	DbgPrint("\[\*\] Aligned physical buffer allocated for VMCS at %llx", alignedPhysicalBuffer);
+	DbgPrint("[*] Virtual allocated buffer for VMCS at %llx", Buffer);
+	DbgPrint("[*] Virtual aligned allocated buffer for VMCS at %llx", alignedVirtualBuffer);
+	DbgPrint("[*] Aligned physical buffer allocated for VMCS at %llx", alignedPhysicalBuffer);
 
-	// get IA32\_VMX\_BASIC\_MSR RevisionId
+	// get IA32_VMX_BASIC_MSR RevisionId
 
-	IA32\_VMX\_BASIC\_MSR basic = { 0 };
+	IA32_VMX_BASIC_MSR basic = { 0 };
 
-	basic.All = \_\_readmsr(MSR\_IA32\_VMX\_BASIC);
+	basic.All = __readmsr(MSR_IA32_VMX_BASIC);
 
-	DbgPrint("\[\*\] MSR\_IA32\_VMX\_BASIC (MSR 0x480) Revision Identifier %llx", basic.Fields.RevisionIdentifier);
+	DbgPrint("[*] MSR_IA32_VMX_BASIC (MSR 0x480) Revision Identifier %llx", basic.Fields.RevisionIdentifier);
 
 	//Changing Revision Identifier
-	\*(UINT64 \*)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
+	*(UINT64 *)alignedVirtualBuffer = basic.Fields.RevisionIdentifier;
 
-	int status = \_\_vmx\_vmptrld(&alignedPhysicalBuffer);
+	int status = __vmx_vmptrld(&alignedPhysicalBuffer);
 	if (status)
 	{
-		DbgPrint("\[\*\] VMCS failed with status %d\\n", status);
+		DbgPrint("[*] VMCS failed with status %d\n", status);
 		return FALSE;
 	}
 
-	vmState->VMCS\_REGION = alignedPhysicalBuffer;
+	vmState->VMCS_REGION = alignedPhysicalBuffer;
 
 	return TRUE;
 }
@@ -646,24 +646,24 @@ In VMCS also we should find the **Revision Identifier** from **MSR\_IA32\_VMX\_
 The MSR\_IA32\_VMX\_BASIC  is defined as below.
 
 ```
-typedef union \_IA32\_VMX\_BASIC\_MSR
+typedef union _IA32_VMX_BASIC_MSR
 {
 	ULONG64 All;
 	struct
 	{
-		ULONG32 RevisionIdentifier : 31;   // \[0-30\]
-		ULONG32 Reserved1 : 1;             // \[31\]
-		ULONG32 RegionSize : 12;           // \[32-43\]
-		ULONG32 RegionClear : 1;           // \[44\]
-		ULONG32 Reserved2 : 3;             // \[45-47\]
-		ULONG32 SupportedIA64 : 1;         // \[48\]
-		ULONG32 SupportedDualMoniter : 1;  // \[49\]
-		ULONG32 MemoryType : 4;            // \[50-53\]
-		ULONG32 VmExitReport : 1;          // \[54\]
-		ULONG32 VmxCapabilityHint : 1;     // \[55\]
-		ULONG32 Reserved3 : 8;             // \[56-63\]
+		ULONG32 RevisionIdentifier : 31;   // [0-30]
+		ULONG32 Reserved1 : 1;             // [31]
+		ULONG32 RegionSize : 12;           // [32-43]
+		ULONG32 RegionClear : 1;           // [44]
+		ULONG32 Reserved2 : 3;             // [45-47]
+		ULONG32 SupportedIA64 : 1;         // [48]
+		ULONG32 SupportedDualMoniter : 1;  // [49]
+		ULONG32 MemoryType : 4;            // [50-53]
+		ULONG32 VmExitReport : 1;          // [54]
+		ULONG32 VmxCapabilityHint : 1;     // [55]
+		ULONG32 Reserved3 : 8;             // [56-63]
 	} Fields;
-} IA32\_VMX\_BASIC\_MSR, \*PIA32\_VMX\_BASIC\_MSR;
+} IA32_VMX_BASIC_MSR, *PIA32_VMX_BASIC_MSR;
 ```
 
 ## **VMXOFF**
@@ -673,24 +673,24 @@ After configuring the above regions, now its time to think about **DrvClose** wh
 The following function is responsible for executing VMXOFF then calling to **MmFreeContiguousMemory** in order to free the allocated memory :
 
 ```
-void Terminate\_VMX(void) {
+void Terminate_VMX(void) {
 
-	DbgPrint("\\n\[\*\] Terminating VMX...\\n");
+	DbgPrint("n[*] Terminating VMX...\n");
 
 	KAFFINITY kAffinityMask;
-	for (size\_t i = 0; i < ProcessorCounts; i++)
+	for (size_t i = 0; i < ProcessorCounts; i++)
 	{
 		kAffinityMask = ipow(2, i);
 		KeSetSystemAffinityThread(kAffinityMask);
-		DbgPrint("\\t\\tCurrent thread is executing in %d th logical processor.", i);
+		DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
 
-		\_\_vmx\_off();
-		MmFreeContiguousMemory(PhysicalAddress\_to\_VirtualAddress(vmState\[i\].VMXON\_REGION));
-		MmFreeContiguousMemory(PhysicalAddress\_to\_VirtualAddress(vmState\[i\].VMCS\_REGION));
+		__vmx_off();
+		MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMXON_REGION));
+		MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMCS_REGION));
 
 	}
 
-	DbgPrint("\[\*\] VMX Operation turned off successfully. \\n");
+	DbgPrint("[*] VMX Operation turned off successfully. \n");
 
 }
 ```
@@ -709,37 +709,37 @@ Let's create a test case for our code, first a function for Initiating VMXON and
 PVirtualMachineState vmState;
 int ProcessorCounts;
 
-PVirtualMachineState Initiate\_VMX(void) {
+PVirtualMachineState Initiate_VMX(void) {
 
-	if (!Is\_VMX\_Supported())
+	if (!Is_VMX_Supported())
 	{
-		DbgPrint("\[\*\] VMX is not supported in this machine !");
+		DbgPrint("[*] VMX is not supported in this machine !");
 		return NULL;
 	}
 
 	ProcessorCounts = KeQueryActiveProcessorCount(0);
-	vmState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VirtualMachineState)\* ProcessorCounts, POOLTAG);
+	vmState = ExAllocatePoolWithTag(NonPagedPool, sizeof(VirtualMachineState)* ProcessorCounts, POOLTAG);
 
-	DbgPrint("\\n=====================================================\\n");
+	DbgPrint("\n=====================================================\n");
 
 	KAFFINITY kAffinityMask;
-	for (size\_t i = 0; i < ProcessorCounts; i++)
+	for (size_t i = 0; i < ProcessorCounts; i++)
 	{
 		kAffinityMask = ipow(2, i);
 		KeSetSystemAffinityThread(kAffinityMask);
 		// do st here !
-		DbgPrint("\\t\\tCurrent thread is executing in %d th logical processor.", i);
+		DbgPrint("\t\tCurrent thread is executing in %d th logical processor.", i);
 
-		Enable\_VMX\_Operation();	// Enabling VMX Operation
-		DbgPrint("\[\*\] VMX Operation Enabled Successfully !");
+		Enable_VMX_Operation();	// Enabling VMX Operation
+		DbgPrint("[*] VMX Operation Enabled Successfully !");
 
-		Allocate\_VMXON\_Region(&vmState\[i\]);
-		Allocate\_VMCS\_Region(&vmState\[i\]);
+		Allocate_VMXON_Region(&vmState[i]);
+		Allocate_VMCS_Region(&vmState[i]);
 
-		DbgPrint("\[\*\] VMCS Region is allocated at  ===============> %llx", vmState\[i\].VMCS\_REGION);
-		DbgPrint("\[\*\] VMXON Region is allocated at ===============> %llx", vmState\[i\].VMXON\_REGION);
+		DbgPrint("[*] VMCS Region is allocated at  ===============> %llx", vmState[i].VMCS_REGION);
+		DbgPrint("[*] VMXON Region is allocated at ===============> %llx", vmState[i].VMXON_REGION);
 
-		DbgPrint("\\n=====================================================\\n");
+		DbgPrint("\n=====================================================\n");
 	}
 }
 ```
@@ -747,38 +747,38 @@ PVirtualMachineState Initiate\_VMX(void) {
 The above function should be called from IRP MJ CREATE so let's modify our **DrvCreate** to :
 
 ```
-NTSTATUS DrvCreate(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
 
-	DbgPrint("\[\*\] DrvCreate Called !");
+	DbgPrint("[*] DrvCreate Called !");
 
-	if (Initiate\_VMX()) {
-		DbgPrint("\[\*\] VMX Initiated Successfully.");
+	if (Initiate_VMX()) {
+		DbgPrint("[*] VMX Initiated Successfully.");
 	}
 
-	Irp->IoStatus.Status = STATUS\_SUCCESS;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO\_NO\_INCREMENT);
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS\_SUCCESS;
+	return STATUS_SUCCESS;
 }
 ```
 
 And modify DrvClose to :
 
 ```
-NTSTATUS DrvClose(IN PDEVICE\_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("\[\*\] DrvClose Called !");
+	DbgPrint("[*] DrvClose Called !");
 
 	// executing VMXOFF on every logical processor
-	Terminate\_VMX();
+	Terminate_VMX();
 
-	Irp->IoStatus.Status = STATUS\_SUCCESS;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO\_NO\_INCREMENT);
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS\_SUCCESS;
+	return STATUS_SUCCESS;
 }
 ```
 

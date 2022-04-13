@@ -67,22 +67,22 @@ Create a directory and  put this piece of code into a file (like ko\_example.c)
 #include <linux/module.h>
 #include <linux/kernel.h>
 
-MODULE\_LICENSE("GPL");
-MODULE\_AUTHOR("Shahriar EV");
-MODULE\_DESCRIPTION("sample linux kernel module.");
-MODULE\_VERSION("1.00");
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Shahriar EV");
+MODULE_DESCRIPTION("sample linux kernel module.");
+MODULE_VERSION("1.00");
 
-static int \_\_init mylkm\_init(void) {
- printk(KERN\_INFO "HI!\\n");
+static int __init mylkm_init(void) {
+ printk(KERN_INFO "HI!\n");
  return 0;
 }
 
-static void \_\_exit mylkm\_exit(void) {
- printk(KERN\_INFO "BYE!\\n");
+static void __exit mylkm_exit(void) {
+ printk(KERN_INFO "BYE!\n");
 }
 
-module\_init(mylkm\_init);
-module\_exit(mylkm\_exit);
+module_init(mylkm_init);
+module_exit(mylkm_exit);
 ```
 
 - The **includes** at the top are pretty obvious. they are required for linux kernel programming and provide us with all the functions we are using here.
@@ -98,7 +98,7 @@ That is enough code for now, however we need a **Makefile** to compile the kerne
 Save this in a file name **Makefile** in the same directory as the source code:
 
 ```
-obj-m += lkm\_example.o
+obj-m += lkm_example.o
 
 all:
  make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
@@ -110,7 +110,7 @@ clean:
 Now run **make** and it should build successfully. To load it run (as root):
 
 ```
-insmod ko\_example.ko
+insmod ko_example.ko
 ```
 
 If everything is okay, you can see "Hello World" in dmesg buffer:
@@ -124,7 +124,7 @@ The module should now be visible on **lsmod** output.
 On unloading of the kernel module, printk is called again:
 
 ```
-rmmod ko\_example.ko
+rmmod ko_example.ko
 ```
 
 * * *

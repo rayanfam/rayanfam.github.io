@@ -22,7 +22,7 @@ author:
 
 ![](../../assets/images/VMCS-auditor-cover-2.jpg)
 
-# **Introduction** 
+## Introduction 
 
 If you've ever had experience with developing your own hypervisor from scratch then you definitely faced with the problems of layout checking. What makes it hard to develop a hypervisor is the fact that Intel has a small number of errors for a huge checklist described in **\[****CHAPTER 26\] VM ENTRIES** from **Intel's 64 and IA-32 Architectures Software Developer’s Manual** including:
 
@@ -44,13 +44,13 @@ Keep in mind, Bochs is just an implementation of Intel's VMX behavior and by no 
 
 Note that even VMCS Auditor is a Windows executable file that runs in **Windows**, but its checks are related to CPU (not the OS) so it's clear that you can give your VMCS Layout in other OSs like **Linux** or **OS X** an expect the same result.
 
-# **Source code & Executables**
+## Source code & Executables
 
 The full source code and executable file are available on Github:
 
 \[[https://github.com/SinaKarvandi/VMCS-Auditor](https://github.com/SinaKarvandi/VMCS-Auditor)\]
 
-# **Error Detection**
+## Error Detection
 
 The following table describes what error can occur for every vmx instructions.
 
@@ -58,7 +58,7 @@ The following table describes what error can occur for every vmx instructions.
 
 VMCS Auditor focuses on Error Number #7 and #8 to perform the checking lists described in Intel's SDM as implemented in Bochs emulator.
 
-# **How to use?**
+## How to use?
 
 In order to use VMCS Auditor, first, you have to enter some MSRs related to Intel's VMX (e.g IA32\_VMX\_PINBASED\_CTL). Second VMCS Auditor asks you for other options based on your settings, newer settings are appearing and if you have any problem configuring these options then the error(s) are shown to you. 
 
@@ -78,44 +78,44 @@ The following MSRs representing my own system's MSRs for VMX.
 
 ```
 lkd> rdmsr 0x481
-msr\[481\] = 0000007f\`00000016
+msr[481] = 0000007f`00000016
 lkd> rdmsr 0x482
-msr\[482\] = fff9fffe\`0401e172
+msr[482] = fff9fffe`0401e172
 lkd> rdmsr 0x48b
-msr\[48b\] = 001ffcff\`00000000
+msr[48b] = 001ffcff`00000000
 lkd> rdmsr 0x483
-msr\[483\] = 01ffffff\`00036dff
+msr[483] = 01ffffff`00036dff
 lkd> rdmsr 0x484
-msr\[484\] = 0003ffff\`000011ff
+msr[484] = 0003ffff`000011ff
 lkd> rdmsr 0x48c
-msr\[48c\] = 00000f01\`06334141
+msr[48c] = 00000f01`06334141
 lkd> rdmsr 0x491
-msr\[491\] = 00000000\`00000001
+msr[491] = 00000000`00000001
 lkd> rdmsr 0x486
-msr\[486\] = 00000000\`80000021
+msr[486] = 00000000`80000021
 lkd> rdmsr 0x487
-msr\[487\] = 00000000\`ffffffff
+msr[487] = 00000000`ffffffff
 lkd> rdmsr 0x488
-msr\[488\] = 00000000\`00002000
+msr[488] = 00000000`00002000
 lkd> rdmsr 0x489
-msr\[489\] = 00000000\`003767ff
+msr[489] = 00000000`003767ff
 ```
 
-# **Future Works**
+## Future Works
 
 - Adding support for config file that works with VMCS Auditor.
 
-# **Contribution**
+## Contribution
 
 If you want to contribute to this project (e.g adding more checks or make VMCS Auditor more precise) then you can use the GitHub or suggest edits below in the comments.
 
 ![Isn't it cute ? :)](../../assets/images/anime-boy-girl-cycle.jpg)
 
-# **Conclusion**
+## Conclusion
 
 This tool is published in order to ease the hypervisor development, in the future part of the tutorial [Hypervisor From Scratch](https://rayanfam.com/tutorials/), we'll use this tool to test our VMCS Layout before any real-world testing.
 
-# **References**
+## References
 
 \[1\] Vol 3C – 26 VM ENTRIES  ([https://software.intel.com/en-us/articles/intel-sdm](https://software.intel.com/en-us/articles/intel-sdm))
 

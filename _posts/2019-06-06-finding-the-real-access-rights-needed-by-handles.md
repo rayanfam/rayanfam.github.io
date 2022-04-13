@@ -46,39 +46,40 @@ Each type of securable object defines its own set of specific access rights and 
 Here is the list of some objects in Windows (From Windows Internals) that have security descriptor and of course ACCESS\_MASK.
 
 ```
-1.       Files, directories and volumes (NTFS file system)
-2.       Devices
-3.       Mailslots
-4.       Named and anonymous pipes
-5.       Jobs
-6.       Processes
-7.       Threads
-8.       Events, keyed events and event pairs
-9.       Mutexes, semaphores
-10.      Shared memory sections
-11.      I/O completion ports
-12.      LPC ports
-13.      Waitable timers
-14.      Access tokens
-15.      Windows stations
-16.      Desktops
-17.      Network shares
-18.      Services
+1. Files, directories and volumes(NTFS file system)
+2. Devices
+3. Mailslots
+4. Named and anonymous pipes
+5. Jobs
+6. Processes
+7. Threads
+8. Events, keyed events and event pairs
+9. Mutexes, semaphores
+10. Shared memory sections
+11. I / O completion ports
+12. LPC ports
+13. Waitable timers
+14. Access tokens
+15. Windows stations
+16. Desktops
+17. Network shares
+18. Services
 ```
 
 The structure of ACCESS\_MASK is like this :
 
 ```
-     typedef struct _ACCESS_MASK {
-           WORD  SpecificRights;
-            BYTE  StandardRights;
-            BYTE  AccessSystemAcl : 1;
-            BYTE  Reserved        : 3;
-            BYTE  GenericAll      : 1;
-            BYTE  GenericExecute  : 1;
-            BYTE  GenericWrite    : 1;
-            BYTE  GenericRead     : 1;
-    } ACCESS_MASK;
+     typedef struct _ACCESS_MASK {
+       WORD SpecificRights;
+       BYTE StandardRights;
+       BYTE AccessSystemAcl: 1;
+       BYTE Reserved: 3;
+       BYTE GenericAll: 1;
+       BYTE GenericExecute: 1;
+       BYTE GenericWrite: 1;
+       BYTE GenericRead: 1;
+     }
+     ACCESS_MASK;
 ```
 
 For more information you can read these [two pdfs](../../assets/files/Access-Mask-Blog.zip).
@@ -92,18 +93,18 @@ The most interesting part for me was where [James Forshaw](https://twitter.com/t
 > What's going on? Basically, the documentation is wrong, you don't need QueryInformation to open the process token only QueryLimitedInformation. You can disassemble NtOpenProcessTokenEx in the kernel if you don't believe me:
 
 ```
-NTSTATUS NtOpenProcessTokenEx(HANDLE ProcessHandle, 
-                              ACCESS\_MASK DesiredAccess, 
-                              DWORD HandleAttributes, 
-                              PHANDLE TokenHandle) {
-  EPROCESS\* ProcessObject;
-  NTSTATUS status = ObReferenceObjectByHandle(
-                        ProcessHandle,
-                        PROCESS\_QUERY\_LIMITED\_INFORMATION,
-                        PsProcessType,
-                        &ProcessObject,
-                        NULL);
-  ...
+NTSTATUS NtOpenProcessTokenEx(HANDLE ProcessHandle,
+  ACCESS_MASK DesiredAccess,
+  DWORD HandleAttributes,
+  PHANDLE TokenHandle) {
+  EPROCESS * ProcessObject;
+  NTSTATUS status = ObReferenceObjectByHandle(
+    ProcessHandle,
+    PROCESS_QUERY_LIMITED_INFORMATION,
+    PsProcessType, &
+    ProcessObject,
+    NULL);
+  ...
 }
 ```
 
@@ -168,54 +169,65 @@ As you can see the above function doesn't seems to valuable in our case from the
 The following code is the IDA Python script for finding XREFs of our target function then find the second argument from the decompiled source:
 
 ```
-from idautils import \*
-from idaapi import \*
-from idc import \*
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+from idautils import *
+from idaapi import *
+from idc import *
 
-FunctionName = "ObReferenceObjectByHandle"
+FunctionName = 'ObReferenceObjectByHandle'
+
 
 def PrintDecompiledLine(line):
-    print "Decompiled Line : " + line
-    print "ACCESS\_MASK     : " + line.split(FunctionName)\[1\].split(",")\[1\]
-    print ""
+    print 'Decompiled Line : ' + line
+    print 'ACCESS_MASK     : ' + line.split(FunctionName)[1].split(','
+            )[1]
+    print ''
+
 
 # Finding Function
+
 ea = BeginEA()
-#for funcAddr in Functions(SegStart(ea), SegEnd(ea)):
+
+# for funcAddr in Functions(SegStart(ea), SegEnd(ea)):
+
 for funcAddr in Functions(0x140001000, 0x140909410):
-    funcName = GetFunctionName(funcAddr)
-    if funcName == FunctionName:
-        print "Function %s is located at 0x%x" % (funcName, funcAddr)
-        print "====================================================="
-        ea = funcAddr
+    funcName = GetFunctionName(funcAddr)
+    if funcName == FunctionName:
+        print 'Function %s is located at 0x%x' % (funcName, funcAddr)
+        print '====================================================='
+        ea = funcAddr
 
 for ref in CodeRefsTo(ea, 1):
-    print "Function        : " + GetFunctionName(ref)
-    print ""
-    try:
-        cfunc=idaapi.decompile(ref)
-    except:
-        print "Failed to decompile : " + GetFunctionName(ref)
-    
-    multiline = False
-    multilinestring = ""
-    # print cfunc
-    for item in str(cfunc).split("\\n"):
-        if multiline :
-            if ")" in item and not "(" in item :
-                multiline = False
-                multilinestring += item.strip()
-                PrintDecompiledLine(multilinestring)
-            else :
-                multilinestring += item.strip()
-        elif FunctionName in item:
-            if ")" in item :
-                PrintDecompiledLine(item.strip())
-            else:
-                multiline = True
-                multilinestring = item.strip()
-                
-    print "-------------------------------------------------"
+    print 'Function        : ' + GetFunctionName(ref)
+    print ''
+    try:
+        cfunc = idaapi.decompile(ref)
+    except:
+        print 'Failed to decompile : ' + GetFunctionName(ref)
+
+    multiline = False
+    multilinestring = ''
+
+    # print cfunc
+
+    for item in str(cfunc).split('\n'):
+        if multiline:
+            if ')' in item and not '(' in item:
+                multiline = False
+                multilinestring += item.strip()
+                PrintDecompiledLine(multilinestring)
+            else:
+                multilinestring += item.strip()
+        elif FunctionName in item:
+            if ')' in item:
+                PrintDecompiledLine(item.strip())
+            else:
+                multiline = True
+                multilinestring = item.strip()
+
+    print '-------------------------------------------------'
+
 ```
 
 ## **Results**

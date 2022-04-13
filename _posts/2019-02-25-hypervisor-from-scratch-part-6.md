@@ -24,11 +24,11 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-6-cover.png)
 
-# **Introduction**
+## Introduction
 
 Hello and welcome to the 6th part of the tutorial Hypervisor From Scratch. In this part, I try to give you an idea of how to virtualize an already running system using Hypervisor. Like other parts, this part is really dependent to the previous parts so make sure to read them first.
 
-# **Overview**
+## Overview
 
 In the 6th part, we'll see how we can virtualize our currently running system by configuring VMCS, then we use monitoring features to detect execution of some important instructions like CPUID (and change the result of CPUID from user and kernel-mode), detecting modifications on different control registers, describing about VMX capabilities on different microarchitectures, talking about MSR Bitmaps and lot's of other cool thing.
 
@@ -42,21 +42,20 @@ Note: Please keep in mind that hypervisors change during the time because new fe
 
 Please make sure to have your own lab to test your hypervisor, I test my hypervisor on the 7th generation of Intel processors, so some features might not be supported on your processor and without a remote kernel debugger (not local kernel debugger) you might see your system halting or BSODs without understanding the actual error. By the way, It's time to see our hypervisor...
 
-# **Table of contents**
+## Table of contents
 
 - **Introduction**
 - **Overview**
 - **Table of contents**
 - **VMX 0-settings and 1-settings**
 - **VMX-Fixed Bits in CR0 and CR4**
-- **Capturing the State of** **Current Machine**
+- **Capturing the State of the Current Machine**
     - Configuring VMCS Fields
     - Changing IRQL on all Cores
 - **Changing the User-mode App**
     - Getting handle using CreateFile
-- **Using** **VMX Monitoring Features**  
+- **Using VMX Monitoring Features**  
     - CR3-Target Controls  
-        
     - Handling guest CPUID execution
     - Instructions That Cause VM Exits Conditionally
     - Control Registers Modification Detection
@@ -72,7 +71,7 @@ Please make sure to have your own lab to test your hypervisor, I test my hypervi
 - **Conclusion**
 - **References**
 
-# **VMX 0-settings and 1-settings**
+## VMX 0-settings and 1-settings
 
 In the previous parts, we implement a function called **AdjustControl**. This is an important part of each hypervisor as you might want to run your hypervisor on many different processors with different microarchitectures so you should be aware of your processor capabilities to avoid undefined behaviors and VM-Entry errors.
 
@@ -122,11 +121,11 @@ I really recommend seeing the result of **AdjustControls** specifically for **MS
 
 ![](../../assets/images/anime-girl-bloom.jpg)
 
-# **VMX-Fixed Bits in CR0 and CR4**
+## VMX-Fixed Bits in CR0 and CR4
 
 For CR0, **IA32\_VMX\_CR0\_FIXED0** MSR (index 486H) and **IA32\_VMX\_CR0\_FIXED1** MSR (index 487H) and for CR4 **IA32\_VMX\_CR4\_FIXED0** MSR (index 488H) and **IA32\_VMX\_CR4\_FIXED1** MSR (index 489H) indicate how bits in CR0 and CR4 may be set in VMX operation. If bit X is 1 in **IA32\_VMX\_CRx\_FIXED0**, then that bit of CRx is fixed to 1 in VMX operation. Similarly, if bit X is 0 in **IA32\_VMX\_CRx\_FIXED1**, then that bit of CRx is fixed to 0 in VMX operation. It is always the case that, if bit X is 1 in **IA32\_VMX\_CRx\_FIXEDx**, then that bit is also 1 in **IA32\_VMX\_CRx\_FIXED1**.
 
-# **Capturing the State of** **Current Machine**
+## Capturing the State of the Current Machine
 
 In the 5th part, we saw how to configure different VMCS fields and finally execute our instruction (HLT) under the guest state. This part is really similar to the previous part with some minor changes in some VMCS attributes, let's review and see the differences.
 
@@ -219,7 +218,7 @@ ErrorReturn:
 
 From the above code, **Setup\_VMCS\_Virtualizing \_Current\_Machine** is new, so let's see what's inside this function.
 
-# **Configuring VMCS Fields**
+### Configuring VMCS Fields
 
 VMCS Fields are nothing new, it should the be configured to manage the state of virtualized core.
 
@@ -292,7 +291,7 @@ Our tiny driver is designed to be used in just One core, or two, three and even 
 
 You can edit this line to virtualize a special number of cores or just a specific core but the above code virtualize all the cores by default.
 
-# **Changing IRQL on all Cores**
+### Changing IRQL on all Cores
 
 There is a special function called **RunOnProcessor**. This function takes processor ID as its first parameter, initialized EPTP pointer (explained in the 4th part) as the second parameter and a special routine called **VMXSaveState** as the third. **RunOnProcessor** set the processor affinity to a special core, then it raises the IRQL to Dispatch Level so the Windows Scheduler can't kick in to change the context thus it runs our Routine and when it returns from **VMXSaveState**, the currently running core is virtualized so it can lower the IRQL to what it was before and now Windows can continue its normal execution while it's under hypervisor. IRQL stands for **I**nterrupt **R**e**q**uest **L**evel which is a Windows-specific mechanism to manage interrupts or giving priority by their level so raising IRQL means your routine will execute with higher priority than normal Windows codes (PASSIVE LEVEL & APC LEVEL ). For more information, you can visit [here](https://blogs.msdn.microsoft.com/doronh/2010/02/02/what-is-irql/).
 
@@ -398,11 +397,11 @@ In the above function first, we remove the Shadow Space and restore the register
 
 This function will be called many times (based on your logical cores count) and eventually, all of your cores are under VMX operation and now you are in **VMX non-root operation**.
 
-# **Changing the User-mode App**
+## Changing the User-mode App
 
 Based on the above assumptions we have to make some trivial changes on our user-mode application, so after loading the driver it can be used to notify kernel-mode code to start and end of loading the hypervisor.
 
-## **Getting handle using CreateFile**
+### Getting handle using CreateFile
 
 After some checks for the vendor and presence of hypervisor, now we have to call **DrvCreate** and it's through **CreateFile** user-mode function.
 
@@ -428,11 +427,11 @@ After some checks for the vendor and presence of hypervisor, now we have to call
 
 **CreateFile** API gives us a handle that can be used in our future functions but whenever you close the application or call **CloseHandle** then **DrvClose** is automatically called. **DrvClose** turns off the hypervisor and restores the state to what it was before (not virtualized).
 
-# **Using VMX Monitoring Features**
+## Using VMX Monitoring Features
 
 After configuring all the above fields, now it's time to use the monitoring features using VMX, you'll see how these features are unique in the case of security applications.
 
-# **CR3-Target Controls**
+### CR3-Target Controls
 
 The VM-execution control fields include a set of 4 CR3-target values and a CR3-target count. If you see the VMCS I presented in the **Setup\_VMCS\_Virtualizing\_ Current\_Machine** then you can see the following lines :
 
@@ -515,7 +514,7 @@ BOOLEAN SetTargetControls(UINT64 CR3, UINT64 Index) {
 
 I don't have any good example of how this control might be helpful in a regular Windows as there are thousands of CR3 changes for each process but one of my friends told me that, it's used in some special cases in scientific projects to improve the overall performance.
 
-# **Handling guest CPUID execution**
+### Handling guest CPUID execution
 
 CPUID is one the main instructions that cause the VM-Exit. As you know, CPUID is used because it allows software to discover details of the processor. \[If you want to know additional usage, I saw software use CPUID for flushing the pipeline for processors that don't support instruction like RDTSCP so they can use CPUID + RDTSC and somehow gain a better result.\]
 
@@ -526,7 +525,6 @@ Let's implement our handler,
 The default behaviour for handling every VM-Exit (caused by execution of CPUID in VMX Non-root) is to get the original result by using **\_cpuidex** which is the intrinsic function for CPUID.
 
 ```
-
 __cpuidex(cpu_info, (INT32)state->rax, (INT32)state->rcx);
 ```
 
@@ -633,7 +631,7 @@ BOOLEAN HandleCPUID(PGUEST_REGS state)
 
 It's somehow like instruction level hooking for CPUID, also you can have the same handling functions for many other important instructions by configuring the primary and secondary processor based controls below is a list of these instructions.
 
-# **Instructions That Cause VM Exits Conditionally**
+### Instructions That Cause VM Exits Conditionally
 
 Thanks to my friend, [@LordNoteworthy](https://twitter.com/LordNoteworthy) the following list is available.
 
@@ -660,7 +658,7 @@ Thanks to my friend, [@LordNoteworthy](https://twitter.com/LordNoteworthy) the f
     - WBINVD
     - XRSTORS, XSAVES
 
-# **Control Registers Modification Detection**
+### Control Registers Modification Detection
 
 Detecting and Handling Control Registers' modifications is one of the great security features provided by hypervisors. Imagine if someone exploits the Windows Kernel (or any other OSs) and want to unset one of the bits of a control register (let's say Write Protected or SMEP) then hypervisor detects this modification and prevent further execution.
 
@@ -813,7 +811,7 @@ void HandleControlRegisterAccess(PGUEST_REGS GuestRegs)
 
 The reason why implementing functions like **HandleControlRegisterAccess** is mandatory is because processors (even the recent Intel processor) have 1-settings of some processor based VM-execution controls like CR3-Load Exiting & CR3-Store Existing so you have to manage these kinds of VM-Exits by yourself but if your processor can continue without these settings it's strongly recommended to reduce the amounts of VM-Exits because modern OSs access control registers a lot, thus, it has a notable performance penalty.
 
-# **MSR Bitmaps**
+### MSR Bitmaps
 
 Everything here is based on whether you set the 28th bit of Primary Processor Based controls or not.
 
@@ -831,7 +829,7 @@ Definition of MSR bitmap is pretty clear in Intel SDM, so I just copied them fro
 
 Ok, let's implement the above sentences, if any of the RDMSR or WRMSR caused a VM-Exit then we have to manually execute RDMSR or WRMSR and set the results into the registers, because of this we have a function to manage our RDMSRs like :
 
-## **Handling MSRs Read**
+#### Handling MSRs Read**
 
 ```
 void HandleMSRRead(PGUEST_REGS GuestRegs)
@@ -864,7 +862,7 @@ void HandleMSRRead(PGUEST_REGS GuestRegs)
 
 You can see that it just checks for the sanity of MSR and then executing the RDMSR and finally put the results into RAX and RDX (because a non-virtualized RDMSR does the same thing).
 
-## **Handling MSRs Writes**
+#### Handling MSRs Writes
 
 There is another function for handling WRMSR VM-Exits :
 
@@ -974,7 +972,7 @@ BOOLEAN SetMSRBitmap(ULONG64 msr, int ProcessID, BOOLEAN ReadDetection, BOOLEAN 
 
 Just one more thing to remember, only the above MSR ranges are currently valid in Intel processors so even any other RDMSRs and WRMSRs cause a VM-Exit but the sanity check here is mandatory as the guest might send invalid MSRs and cause the whole system to crash (in VMX Root mode) !!!
 
-# **Turning off VMX and Exit from Hypervisor**
+## Turning off VMX and Exit from Hypervisor
 
 It's time to turn off our hypervisor and restore the processor state to what it was before running hypervisor.
 
@@ -1286,7 +1284,7 @@ VMXOFFHandler ENDP
 
 Now everything is done, we executed our normal Windows (driver) routine , I mean start the execution after last CPUID that executed from **RunOnProcessorForTerminateVMX** but now we're not in VMX operation.
 
-# **VM-Exit Handler**
+## VM-Exit Handler
 
 Putting all the above codes together, now we have to manage different kinds of VM-Exits, so we need to modify our previously explained (in 5th part) **MainVMExitHandler**, if you forget about it, please review the 5th part (**VM-Exit Handler**), it's exactly the same but with different actions for differrent exit reasons.
 
@@ -1404,11 +1402,11 @@ The last thing that is important for us is CPUID Handler, it call **HandleCPUID*
 	}
 ```
 
-# **Let’s Test it!**
+## Let’s Test it!
 
 Now it's time to test our hypervisor.
 
-## **Virtualizing all the cores**
+### Virtualizing all the cores
 
 First, we have to load our driver.
 
@@ -1430,7 +1428,7 @@ Driver log
 
 All the cores are now under hypervisor.
 
-## **Changing CPUID using Hypervisor**
+### Changing CPUID using Hypervisor
 
 Now let's test the presence of hypervisor, for this case, I used Immunity Debugger to execute CPUID with custom EAX. You can use any other debugger or any custom application.
 
@@ -1458,7 +1456,7 @@ Test CPUID without hypervisor
 
 You can see that the original result is appeared.
 
-## **Detecting MSR Read & Write (MSRBitmap)**
+### Detecting MSR Read & Write (MSRBitmap)
 
 In order to test MSR Bitmaps, I create a local kernel debugger (using Windbg). In Windbg you can execute RDMSR & WRMSR to read and write MSRs. It's exactly like executing RDMSR and WRMSR using a system driver.
 
@@ -1484,7 +1482,7 @@ That's it all folks.
 
 ![](../../assets/images/anime-girl-reading-book.jpg)
 
-# **Conclusion**
+## Conclusion
 
 In this part, we saw how we can virtualize an already running system by configuring the VMCS fields separately for each logical core. Then we use our hypervisor to change the result of CPUID instruction and monitor every access to control registers or MSRs and after this part, our hypervisor is almost ready to be used for a practical project. The future part is about using the Extended Page Table (as I described them previously in the 4th part). Personally, I believe most of the interesting works in hypervisor can be performed using EPT because it has a special logging mechanism e.g page read/write access detection and many other cool things that you'll see in the next part.
 
@@ -1494,7 +1492,7 @@ See you in the next part.
 
 The seventh part is also available [here](https://rayanfam.com/topics/hypervisor-from-scratch-part-7/).
 
-# **References**
+## References
 
 \[1\] Vol 3C – Chapter 24 – (VIRTUAL MACHINE CONTROL STRUCTURES ([https://software.intel.com/en-us/articles/intel-sdm](https://software.intel.com/en-us/articles/intel-sdm))  
 

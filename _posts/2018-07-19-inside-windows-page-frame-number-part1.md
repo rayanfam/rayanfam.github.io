@@ -89,13 +89,13 @@ Now we can see the **System**'s threads, the details of our target thread (zero-
         Base ffffe700b7c15000 Limit ffffe700b7c0f000 Call 0000000000000000
         Priority 0 BasePriority 0 PriorityDecrement 0 IoPriority 2 PagePriority 5
         Child-SP          RetAddr           Call Site
-        ffffe700\`b7c145b0 fffff803\`46016f8a nt!KiSwapContext+0x76
-        ffffe700\`b7c146f0 fffff803\`46016951 nt!KiSwapThread+0x16a
-        ffffe700\`b7c147a0 fffff803\`46014ba7 nt!KiCommitThreadWait+0x101
-        ffffe700\`b7c14840 fffff803\`461450b7 nt!KeWaitForMultipleObjects+0x217
-        ffffe700\`b7c14920 fffff803\`460bba37 nt!MiZeroPageThread+0x1e7
-        ffffe700\`b7c14c10 fffff803\`46173456 nt!PspSystemThreadStartup+0x47
-        ffffe700\`b7c14c60 00000000\`00000000 nt!KiStartSystemThread+0x16
+        ffffe700`b7c145b0 fffff803`46016f8a nt!KiSwapContext+0x76
+        ffffe700`b7c146f0 fffff803`46016951 nt!KiSwapThread+0x16a
+        ffffe700`b7c147a0 fffff803`46014ba7 nt!KiCommitThreadWait+0x101
+        ffffe700`b7c14840 fffff803`461450b7 nt!KeWaitForMultipleObjects+0x217
+        ffffe700`b7c14920 fffff803`460bba37 nt!MiZeroPageThread+0x1e7
+        ffffe700`b7c14c10 fffff803`46173456 nt!PspSystemThreadStartup+0x47
+        ffffe700`b7c14c60 00000000`00000000 nt!KiStartSystemThread+0x16
 ```
 
 As you can see, its start address is at **nt!MiZeroPageThread** and its priority-level is 0 and if we see the call-stack then we can see nt!MiZeroPageThread was called previously.
@@ -113,14 +113,14 @@ As you see, \_MMPFN takes 28 bytes.
 PFN records are stored in the memory based on their physical address order which means you can always calculate the physical address with the help of PFN.
 
 ```
-Physical Address = PFN \* page size(e.g 4096 Byte) + offset
+Physical Address = PFN * page size(e.g 4096 Byte) + offset
 ```
 
 The address of the PFN database is located at **nt!MmPfnDatabase**, you can use the following example to get your PFN database address in Windbg.
 
 ```
 2: kd> x nt!MmPfnDatabase
-fffff800\`a2a76048 nt!MmPfnDatabase = <no type information>
+fffff800`a2a76048 nt!MmPfnDatabase = <no type information>
 ```
 
 ## !memusage
@@ -164,16 +164,16 @@ Scanning PFN database - (100% complete)
   Usage Summary (in Kb):
 Control       Valid Standby Dirty Shared Locked PageTables  name
 ffffffffd 11288      0     0     0 11288     0    AWE
-ffffd4056ec4c460     0    112     0     0     0     0  mapped\_file( LeelUIsl.ttf )
-ffffd4056ec4c8f0     0    160     0     0     0     0  mapped\_file( malgun.ttf )
-ffffd4056ec4d6b0     0    108     0     0     0     0  mapped\_file( framd.ttf )
+ffffd4056ec4c460     0    112     0     0     0     0  mapped_file( LeelUIsl.ttf )
+ffffd4056ec4c8f0     0    160     0     0     0     0  mapped_file( malgun.ttf )
+ffffd4056ec4d6b0     0    108     0     0     0     0  mapped_file( framd.ttf )
 
 .....
 
-ffffd4057034ecd0   328    148     0     0     0     0  mapped\_file( usbport.sys )
-ffffd4057034f0e0    48     28     0     0     0     0  mapped\_file( mouclass.sys )
-ffffd4057034f7d0    32     28     0     0     0     0  mapped\_file( serenum.sys )
-ffffd405703521a0     0     20     0     0     0     0  mapped\_file( swenum.sys )
+ffffd4057034ecd0   328    148     0     0     0     0  mapped_file( usbport.sys )
+ffffd4057034f0e0    48     28     0     0     0     0  mapped_file( mouclass.sys )
+ffffd4057034f7d0    32     28     0     0     0     0  mapped_file( serenum.sys )
+ffffd405703521a0     0     20     0     0     0     0  mapped_file( swenum.sys )
 
 .....
 

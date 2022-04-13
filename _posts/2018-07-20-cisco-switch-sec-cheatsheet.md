@@ -107,7 +107,7 @@ ip verify source(ip) port-security(mac)
 _Creating manual entries:_
 
 ```
-ip source binding MAC vlan # IP\_ADDRESS interface INTERFACE
+ip source binding MAC vlan # IP_ADDRESS interface INTERFACE
 ```
 
 Related show command:
@@ -120,9 +120,9 @@ show ip source binding
 
 _Ports that cannot communicate with each other directly._
 
+```
 ##private vlan edge aka protected ports : no direct traffic between those ports##
 
-```
 interface INTERFACE
 switchport protected
 ```
@@ -134,7 +134,7 @@ int INTERFACE
 	spanning-tree guard root   superior bpdu
 ```
 
-### STP BPDU Guard:
+### STP BPDU Guard
 
 - _**with Spanning tree port-fast**_
 
@@ -146,7 +146,7 @@ spanning-tree bpduguard enable
 
 ```
 interface INTERFACE
-	#(do not clip anymore – all specified traffic is dropped until end of duration \[1s\])
+	#(do not clip anymore – all specified traffic is dropped until end of duration [1s])
 	storm-conftrol broadcast level (bbp | pps | %) # #
 	show storm-control b|m|u
 	storm-control action ACTION

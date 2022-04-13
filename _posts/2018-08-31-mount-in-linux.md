@@ -62,8 +62,8 @@ TARGET                                SOURCE  �
 │ ├─/sys/fs/cgroup                    tmpfs                  tmpfs           ro,nosuid,nodev,noexec,mode=755
 │ │ ├─/sys/fs/cgroup/unified          cgroup2                cgroup2         rw,nosuid,nodev,noexec,relatime,nsdelegate
 │ │ ├─/sys/fs/cgroup/systemd          cgroup                 cgroup          rw,nosuid,nodev,noexec,relatime,xattr,name=systemd
-│ │ ├─/sys/fs/cgroup/net\_cls,net\_prio cgroup                 cgroup          rw,nosuid,nodev,noexec,relatime,net\_cls,net\_prio
-│ │ ├─/sys/fs/cgroup/perf\_event       cgroup                 cgroup          rw,nosuid,nodev,noexec,relatime,perf\_event
+│ │ ├─/sys/fs/cgroup/net_cls,net_prio cgroup                 cgroup          rw,nosuid,nodev,noexec,relatime,net_cls,net_prio
+│ │ ├─/sys/fs/cgroup/perf_event       cgroup                 cgroup          rw,nosuid,nodev,noexec,relatime,perf_event
 │ │ ├─/sys/fs/cgroup/pids             cgroup                 cgroup          rw,nosuid,nodev,noexec,relatime,pids
 │ │ ├─/sys/fs/cgroup/cpu,cpuacct      cgroup                 cgroup          rw,nosuid,nodev,noexec,relatime,cpu,cpuacct
 │ │ ├─/sys/fs/cgroup/blkio            cgroup                 cgroup          rw,nosuid,nodev,noexec,relatime,blkio
@@ -76,19 +76,19 @@ TARGET                                SOURCE  �
 │ ├─/sys/kernel/debug                 debugfs                debugfs         rw,relatime
 │ └─/sys/fs/fuse/connections          fusectl                fusectl         rw,relatime
 ├─/proc                               proc                   proc            rw,nosuid,noexec,relatime
-│ └─/proc/sys/fs/binfmt\_misc          systemd-1              autofs          rw,relatime,fd=36,pgrp=1,timeout=0,minproto=5,maxproto=5,direct
-├─/dev                                devtmpfs               devtmpfs        rw,nosuid,size=8144172k,nr\_inodes=2036043,mode=755
+│ └─/proc/sys/fs/binfmt_misc          systemd-1              autofs          rw,relatime,fd=36,pgrp=1,timeout=0,minproto=5,maxproto=5,direct
+├─/dev                                devtmpfs               devtmpfs        rw,nosuid,size=8144172k,nr_inodes=2036043,mode=755
 │ ├─/dev/shm                          tmpfs                  tmpfs           rw
 │ │ └─/dev/shm                        none                   tmpfs           rw,relatime
 │ ├─/dev/pts                          devpts                 devpts          rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000
 │ ├─/dev/mqueue                       mqueue                 mqueue          rw,relatime
 │ └─/dev/hugepages                    hugetlbfs              hugetlbfs       rw,relatime,pagesize=2M
 ├─/run                                tmpfs                  tmpfs           rw,nosuid,nodev,mode=755
-│ ├─/run/media/shahriar/Data              /dev/sda2              fuseblk         rw,nosuid,nodev,relatime,user\_id=0,group\_id=0,default\_permissions,allow\_other,blksize=4096
+│ ├─/run/media/shahriar/Data              /dev/sda2              fuseblk         rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other,blksize=4096
 │ ├─/run/user/1000                    tmpfs                  tmpfs           rw,nosuid,nodev,relatime,size=1638552k,mode=700,uid=1000,gid=1000
-│ │ └─/run/user/1000/gvfs             gvfsd-fuse             fuse.gvfsd-fuse rw,nosuid,nodev,relatime,user\_id=1000,group\_id=1000
-│ └─/run/snapd/ns                     tmpfs\[/snapd/ns\]       tmpfs           rw,nosuid,nodev,mode=755
-│   └─/run/snapd/ns/chromium.mnt      nsfs\[mnt:\[4026532495\]\] nsfs            rw
+│ │ └─/run/user/1000/gvfs             gvfsd-fuse             fuse.gvfsd-fuse rw,nosuid,nodev,relatime,user_id=1000,group_id=1000
+│ └─/run/snapd/ns                     tmpfs[/snapd/ns]       tmpfs           rw,nosuid,nodev,mode=755
+│   └─/run/snapd/ns/chromium.mnt      nsfs[mnt:[4026532495]] nsfs            rw
 ├─/tmp                                tmpfs                  tmpfs           rw,nosuid,nodev
 ├─/snap/slack/7                       /dev/loop0             squashfs        ro,nodev,relatime
 ├─/snap/sublime-text/26               /dev/loop1             squashfs        ro,nodev,relatime
@@ -102,7 +102,7 @@ TARGET                                SOURCE  �
 $ mount
 sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
 proc on /proc type proc (rw,nosuid,noexec,relatime)
-devtmpfs on /dev type devtmpfs (rw,nosuid,size=8144172k,nr\_inodes=2036043,mode=755)
+devtmpfs on /dev type devtmpfs (rw,nosuid,size=8144172k,nr_inodes=2036043,mode=755)
 securityfs on /sys/kernel/security type securityfs (rw,nosuid,nodev,noexec,relatime)
 tmpfs on /dev/shm type tmpfs (rw)
 devpts on /dev/pts type devpts (rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000)
@@ -112,8 +112,8 @@ cgroup2 on /sys/fs/cgroup/unified type cgroup2 (rw,nosuid,nodev,noexec,relatime,
 cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,xattr,name=systemd)
 efivarfs on /sys/firmware/efi/efivars type efivarfs (rw,nosuid,nodev,noexec,relatime)
 bpf on /sys/fs/bpf type bpf (rw,nosuid,nodev,noexec,relatime,mode=700)
-cgroup on /sys/fs/cgroup/net\_cls,net\_prio type cgroup (rw,nosuid,nodev,noexec,relatime,net\_cls,net\_prio)
-cgroup on /sys/fs/cgroup/perf\_event type cgroup (rw,nosuid,nodev,noexec,relatime,perf\_event)
+cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,net_cls,net_prio)
+cgroup on /sys/fs/cgroup/perf_event type cgroup (rw,nosuid,nodev,noexec,relatime,perf_event)
 cgroup on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,pids)
 cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,cpu,cpuacct)
 cgroup on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,blkio)
@@ -124,22 +124,22 @@ cgroup on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,mem
 /dev/sda4 on / type ext4 (rw,relatime,errors=remount-ro)
 mqueue on /dev/mqueue type mqueue (rw,relatime)
 hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,pagesize=2M)
-systemd-1 on /proc/sys/fs/binfmt\_misc type autofs (rw,relatime,fd=36,pgrp=1,timeout=0,minproto=5,maxproto=5,direct)
+systemd-1 on /proc/sys/fs/binfmt_misc type autofs (rw,relatime,fd=36,pgrp=1,timeout=0,minproto=5,maxproto=5,direct)
 debugfs on /sys/kernel/debug type debugfs (rw,relatime)
 tmpfs on /tmp type tmpfs (rw,nosuid,nodev)
-/var/lib/snapd/snaps/sublime-text\_26.snap on /snap/sublime-text/26 type squashfs (ro,nodev,relatime,x-gdu.hide)
-/var/lib/snapd/snaps/slack\_7.snap on /snap/slack/7 type squashfs (ro,nodev,relatime,x-gdu.hide)
-/var/lib/snapd/snaps/core\_5145.snap on /snap/core/5145 type squashfs (ro,nodev,relatime,x-gdu.hide)
-/var/lib/snapd/snaps/chromium\_412.snap on /snap/chromium/412 type squashfs (ro,nodev,relatime,x-gdu.hide)
-/var/lib/snapd/snaps/core\_5328.snap on /snap/core/5328 type squashfs (ro,nodev,relatime,x-gdu.hide)
-/var/lib/snapd/snaps/telegram-desktop\_270.snap on /snap/telegram-desktop/270 type squashfs (ro,nodev,relatime,x-gdu.hide)
+/var/lib/snapd/snaps/sublime-text_26.snap on /snap/sublime-text/26 type squashfs (ro,nodev,relatime,x-gdu.hide)
+/var/lib/snapd/snaps/slack_7.snap on /snap/slack/7 type squashfs (ro,nodev,relatime,x-gdu.hide)
+/var/lib/snapd/snaps/core_5145.snap on /snap/core/5145 type squashfs (ro,nodev,relatime,x-gdu.hide)
+/var/lib/snapd/snaps/chromium_412.snap on /snap/chromium/412 type squashfs (ro,nodev,relatime,x-gdu.hide)
+/var/lib/snapd/snaps/core_5328.snap on /snap/core/5328 type squashfs (ro,nodev,relatime,x-gdu.hide)
+/var/lib/snapd/snaps/telegram-desktop_270.snap on /snap/telegram-desktop/270 type squashfs (ro,nodev,relatime,x-gdu.hide)
 fusectl on /sys/fs/fuse/connections type fusectl (rw,relatime)
 tmpfs on /run/user/1000 type tmpfs (rw,nosuid,nodev,relatime,size=1638552k,mode=700,uid=1000,gid=1000)
-gvfsd-fuse on /run/user/1000/gvfs type fuse.gvfsd-fuse (rw,nosuid,nodev,relatime,user\_id=1000,group\_id=1000)
+gvfsd-fuse on /run/user/1000/gvfs type fuse.gvfsd-fuse (rw,nosuid,nodev,relatime,user_id=1000,group_id=1000)
 tmpfs on /run/snapd/ns type tmpfs (rw,nosuid,nodev,mode=755)
 nsfs on /run/snapd/ns/chromium.mnt type nsfs (rw)
 none on /dev/shm type tmpfs (rw,relatime)
-/dev/sda2 on /run/media/shahriar/Data type fuseblk (rw,nosuid,nodev,relatime,user\_id=0,group\_id=0,default\_permissions,allow\_other,blksize=4096,uhelper=udisks2)
+/dev/sda2 on /run/media/shahriar/Data type fuseblk (rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other,blksize=4096,uhelper=udisks2)
 ```
 
 For unmounting the device you should use **umount**:
@@ -241,7 +241,7 @@ loop5  squashfs                                �
 sda                                                                
 ├─sda1                                                       
 ├─sda2 ntfs     Data     DCDE47AADE477C30                     /run/media/shahriar/Data
-├─sda3 swap              9269aa88-3a31-4299-a1ef-f1472750717f \[SWAP\]
+├─sda3 swap              9269aa88-3a31-4299-a1ef-f1472750717f [SWAP]
 └─sda4 ext4              7fe5feba-8c3d-4fe9-ab0a-20776aabf441 /
 sdb                                                          
 ├─sdb1 ntfs     Recovery 5436D56136D544A0                     
@@ -402,16 +402,16 @@ You can view state of the mount like other units:
 **_Important:_** _If you want it to be mounted on each boot, you should also include an \[Install\] section in the unit file__:_
 
 ```
-\[Unit\]
+[Unit]
 Description=Mount Some of my files to empty mydata dir
 
-\[Mount\]
+[Mount]
 What=/dev/disk/by-uuid/9269aa88-3a31-4299-bbb1-4e528a89d222
 Where=/mnt/mydata
 Type=ext4
 Options=defaults
  
-\[Install\]
+[Install]
 WantedBy=multi-user.target
 ```
 
@@ -425,7 +425,7 @@ And the enable the unit to be started at boot:
 
 I hope you liked this post. There are still things that were left out of this post about mounting in Linux. But I leave them up to you to explore if you are interested. **Overlay filesystems**, **FUSE** and **AutoFS** are useful and are recommended for reading.
 
-### References
+## References
 
 - [https://wiki.archlinux.org/index.php/fstab](https://wiki.archlinux.org/index.php/fstab)
 - [https://www.freedesktop.org/wiki/Software/udisks/](https://www.freedesktop.org/wiki/Software/udisks/)

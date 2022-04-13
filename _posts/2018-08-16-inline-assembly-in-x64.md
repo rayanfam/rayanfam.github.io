@@ -40,7 +40,7 @@ I made a simple assembly function (Masm) along with a simple driver entry functi
 
 ```
 PUBLIC MainAsm
-.code \_text
+.code _text
 
 MainAsm PROC PUBLIC
 push rax
@@ -76,19 +76,19 @@ extern void inline MainAsm2(void);
 VOID Unload(IN WDFDRIVER Driver)
 {}
 
-NTSTATUS MyDriverEntry(\_In\_ PDRIVER\_OBJECT     DriverObject,
-	\_In\_ PUNICODE\_STRING    RegistryPath)
+NTSTATUS MyDriverEntry(_In_ PDRIVER_OBJECT     DriverObject,
+	_In_ PUNICODE_STRING    RegistryPath)
 {
 
 	// NTSTATUS variable to record success or failure
-	NTSTATUS status = STATUS\_SUCCESS;
+	NTSTATUS status = STATUS_SUCCESS;
 
 	// Allocate the driver configuration object
-	WDF\_DRIVER\_CONFIG config;
+	WDF_DRIVER_CONFIG config;
 
-	WDF\_DRIVER\_CONFIG\_INIT(
+	WDF_DRIVER_CONFIG_INIT(
 		&config,
-		WDF\_NO\_EVENT\_CALLBACK // This is a non-pnp driver.
+		WDF_NO_EVENT_CALLBACK // This is a non-pnp driver.
 	);
 
 	config.EvtDriverUnload = Unload;

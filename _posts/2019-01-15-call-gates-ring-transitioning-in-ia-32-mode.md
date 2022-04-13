@@ -35,15 +35,15 @@ There are 3 different types of privilege level checks when using call-gates:
 
 - Requestor Privilege Level (RPL)
 
-# **Current Privilege Level (CPL)**
+## Current Privilege Level (CPL)
 
 CPL is stored in the selector of currently executing CS register. It represents the privilege level (PL) of the currently executing task. It is also PL in the descriptor of the code segment and designated as Task Privilege Level (TPL).
 
-# **Descriptor Privilege Level (DPL)**
+## Descriptor Privilege Level (DPL)
 
 It is the PL of the object which is being attempted to be accessed by the current task or in the other words, the least privilege level for the caller to use this gate.
 
-# **Requestor Privilege Level (RPL)**
+## Requestor Privilege Level (RPL)
 
 It is the lowest two bits of any selector. It can be used to weaken the CPL if desired.
 
@@ -53,7 +53,7 @@ Note that PL refers to Privilege Level.
 
 Keep in mind that the above concepts also applies in other Intel structures
 
-# **GDT Entries**
+## GDT Entries
 
 GDT Stands for **Global Descriptor Table**. It contains some Segmentation Descriptors used in the age of memory segmentation and now it can be used to implement some segment change techniques like heavens gate.
 
@@ -91,7 +91,7 @@ When the `S` flag is set to 0, the meaning of a GDT entry is quite different s
 
 More information about call gates implementation, later in this topic.
 
-# **Restricting Access to Data**
+## Restricting Access to Data
 
 Assume that a task needs data from the data segment. The privilege levels are checked at the time a selector for the target segment is loaded into the data segment register. Three privilege levels enter into privilege checking mechanism.
 
@@ -101,7 +101,7 @@ Assume that a task needs data from the data segment. The privilege levels are ch
 
 Note that access is allowed only if DPL ≥ Max(CPL, RPL) and A procedure can only access the data that is at the same or less privilege level.
 
-# **CALL & JMPs (Near vs Far)**
+## CALL & JMPs (Near vs Far)
 
 The near forms of JMP and CALL transfer within the current code segment and requires only limit checking. The far forms of JMP and CALL refer to other segments and require privilege checking.
 
@@ -121,7 +121,7 @@ Confirming Segment: These segments may be called from various privilege levels b
 
 The far pointer of the control transfer instruction uses the selector part of the pointer and selects a gate. The selector and offset fields of a gate form a pointer to the entry of a procedure.
 
-# **Ring Transitioning**
+## Ring Transitioning
 
 When CPU fetches a far-call instruction, it will use that instruction’s ‘selector’ value to look up a descriptor in the GDT (or in the current LDT).
 
@@ -147,7 +147,7 @@ They’re from a special system-segment, known as the TSS (Task State Segment). 
     - Discards n parameter-bytes from that stack
     - Restores SS:SP from that current stack
 
-# **Call-Gate Descriptor** 
+## Call-Gate Descriptor
 
 Intel defines a call-gate descriptor like this (in x86 environment):
 
@@ -225,7 +225,7 @@ Now, let's see different types of entries that can be used in GDT Entries (the "
     - 1110 - 32-bit Interrupt Gate
     - 1111 - 32-bit Trap Gate
 
-# **Implementation**
+## Implementation
 
 Enough for theory, let's see how we can use them in a real environment.
 
@@ -329,11 +329,11 @@ The last thing is you should handle this situation and finally return to the pre
 
 That's it.
 
-# **Conclusion**
+## Conclusion
 
 In this topic, we see how transitions between different rings are performed in our processor, even if almost all of the modern OSs don't use this mechanism. For more i.formation you can review the following references.
 
-# **References**
+## References
 
 \[1\] Intel 64 and IA-32 Architectures Software Developer’s Manual Vol. 3A – Chapter 5 – (5.8.3 Call Gates) ([https://software.intel.com/en-us/articles/intel-sdm](https://software.intel.com/en-us/articles/intel-sdm))
 
