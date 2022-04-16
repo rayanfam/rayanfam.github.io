@@ -88,7 +88,6 @@ avatar: '/assets/images/avatar.png'
 # boolean type, the global switch for ToC in posts.
 toc: true
 
-comments: true
 
 comments:
   active: disqus        # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
@@ -110,6 +109,10 @@ comments:
   #   lang:             # optional, default to the value of `site.lang`
 
 # Self-hosted static assets, optional › https://github.com/cotes2020/chirpy-static-assets
+
+comments: true
+
+
 assets:
   self_host:
     enabled:      # boolean, keep empty means false
