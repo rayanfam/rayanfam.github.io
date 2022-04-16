@@ -29,7 +29,7 @@ description: >-                        # used by seo meta and the atom feed
   We write about Windows Internals, Hypervisors, Linux, and Networks.
 
 # fill in the protocol & hostname for your site, e.g., 'https://username.github.io'
-url: ''
+url: 'https://rayanfam.com'
 
 github:
   username: rayanfam             # change to your github username
@@ -89,23 +89,23 @@ avatar: '/assets/images/avatar.png'
 toc: true
 
 comments:
-  active: 'disqus'        # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
+  active: disqus        # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
   # The active options are as follows:
   disqus:
-    shortname: 'rayanfam'    # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
+    shortname: rayanfam    # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
   # utterances settings › https://utteranc.es/
-  utterances:
-    repo:         # <gh-username>/<repo>
-    issue_term:   # < url | pathname | title | ...>
-  # Giscus options › https://giscus.app
-  giscus:
-    repo:             # <gh-username>/<repo>
-    repo_id:
-    category:
-    category_id:
-    mapping:          # optional, default to 'pathname'
-    input_position:   # optional, default to 'bottom'
-    lang:             # optional, default to the value of `site.lang`
+  # utterances:
+  #   repo:         # <gh-username>/<repo>
+  #   issue_term:   # < url | pathname | title | ...>
+  # # Giscus options › https://giscus.app
+  # giscus:
+  #   repo:             # <gh-username>/<repo>
+  #   repo_id:
+  #   category:
+  #   category_id:
+  #   mapping:          # optional, default to 'pathname'
+  #   input_position:   # optional, default to 'bottom'
+  #   lang:             # optional, default to the value of `site.lang`
 
 # Self-hosted static assets, optional › https://github.com/cotes2020/chirpy-static-assets
 assets:
@@ -149,7 +149,7 @@ defaults:
   - scope:
       path: _drafts
     values:
-      comments: false
+      comments: true
   - scope:
       path: ''
       type: tabs             # see `site.collections`
