@@ -3,8 +3,9 @@ title: "HyperDbg’s One Thousand and One Nights"
 date: "2022-06-13"
 categories: 
   - "debugger"
+  - "debugging"
   - "hyperdbg"
-  - "tutorials"
+  - "hypervisor"
 tags: 
   - "hyperdbg"
   - "windbg"
@@ -89,6 +90,8 @@ HyperDbg tends to export all system events of interest as debugger events. So ma
 
 As one of the closest counterparts of HyperDbg, in this section, we draw a comparison between Windbg and HyperDbg in a detailed manner.
 
+![](../../assets/images/hyperdbg-and-windbg-meme-2.jpg)
+
 How different is HyperDbg from Windbg?
 HyperDbg has an entirely different and standalone architecture. Windbg operates on ring 0 (kernel) while HyperDbg is running on ring -1 (hypervisor); thus, HyperDbg is capable of providing unique features that are not available on Windbg (OS-Level).
 
@@ -126,8 +129,6 @@ HyperDbg is shipped with a vmx-root mode compatible script engine. Every check i
 For more information about the differences, please take a look at the following [tweet](https://twitter.com/HyperDbg/status/1533121695900479488).
 
 <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Here are 11 reasons why we should use <a href="https://twitter.com/hashtag/HyperDbg?src=hash&amp;ref_src=twsrc%5Etfw">#HyperDbg</a>, the differences between HyperDbg and <a href="https://twitter.com/hashtag/WinDbg?src=hash&amp;ref_src=twsrc%5Etfw">#WinDbg</a>, and how HyperDbg will change our debugging/reversing journey.<br><br>A thread (24 tweets) 🧵:</p>&mdash; HyperDbg Debugger (@HyperDbg) <a href="https://twitter.com/HyperDbg/status/1533121695900479488?ref_src=twsrc%5Etfw">June 4, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-![](../../assets/images/hyperdbg-and-windbg-meme-2.jpg)
 
 
 ## HyperDbg’s Logo
