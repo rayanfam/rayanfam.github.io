@@ -24,8 +24,6 @@ author:
 
 ![](../../assets/images/HyperDbg-v0.1-1-compressed.jpg)
 
-# HyperDbg’s One Thousand and One Nights
-
 This post is a different one, in that, it is more of an overview, rather than a technical post. Here, we provide a high-level summary of HyperDbg Debugger, its principles, and perspective.
 
 
