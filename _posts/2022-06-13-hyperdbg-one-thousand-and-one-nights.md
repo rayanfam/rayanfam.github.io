@@ -17,10 +17,8 @@ tags:
 coverImage: "../../assets/images/HyperDbg-v0.1-1-compressed.jpg"
 comments: true
 author:
-  name: Saleh Monfared
+  name: Saleh Monfared, and Mohammad Sina Karvandi
   link: https://twitter.com/sal3hh
-  name: Mohammad Sina Karvandi
-  link: https://twitter.com/Intel80x86
 ---
 
 ![](../../assets/images/HyperDbg-v0.1-1-compressed.jpg)
@@ -98,6 +96,8 @@ Additionally, HyperDbg is not just a simple debugger. It comes with modern rever
 
 WinDbg is built for development HyperDbg is built for reversing. We are not the same!
 
+![](../../assets/images/hyperdbg-and-windbg-meme-1.jpg)
+
 Microsoft made WinDbg to build Windows and perform driver development tasks. Contrarily, HyperDbg is mainly geared towards use in reverse engineering, where one has no idea about their target debuggee. Of course, WinDbg is better at debugging drivers with the source code. However, if you wanted to understand a mechanism in which you have no access to the source code or if symbols are only partially available, then HyperDbg would give you way more features to explore your debuggee.
 
 **HyperDbg is not a classic debugger.**
@@ -123,12 +123,16 @@ You can use WinDbg to debug many architectures like ARM, ARM64 (AARCH64), and AM
 **HyperDbg is faster, tremendously faster.**
 HyperDbg is shipped with a vmx-root mode compatible script engine. Every check is performed on the kernel side (vmx-root mode), and in contrast to WinDbg, nothing is passed to the debugger. This makes for a substantially faster debugging process. Based on our evaluations as part of an academic publication on HyperDbg, Windbg was able to check 6,941 conditions, while HyperDbg could check  23,214,792 in the same time period, making HyperDbg about ~3300 folds faster than Windbg in this benchmark.
 
+For more information about the differences, please take a look at the following [tweet](https://twitter.com/HyperDbg/status/1533121695900479488).
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Here are 11 reasons why we should use <a href="https://twitter.com/hashtag/HyperDbg?src=hash&amp;ref_src=twsrc%5Etfw">#HyperDbg</a>, the differences between HyperDbg and <a href="https://twitter.com/hashtag/WinDbg?src=hash&amp;ref_src=twsrc%5Etfw">#WinDbg</a>, and how HyperDbg will change our debugging/reversing journey.<br><br>A thread (24 tweets) 🧵:</p>&mdash; HyperDbg Debugger (@HyperDbg) <a href="https://twitter.com/HyperDbg/status/1533121695900479488?ref_src=twsrc%5Etfw">June 4, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+![](../../assets/images/hyperdbg-and-windbg-meme-2.jpg)
+
+
 ## HyperDbg’s Logo
 
 HyperDbg’s logo is the Schrödinger’s cat, which is both dead and alive. It serves as a reminder that analyzing and reversing is not always a deterministic route for getting the correct answer. One will try, and one might succeed or fail, and that’s the nature of the digital world, which boils down to one of the two fundamental states: ones and zeros. 
-
-
-<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Here are 11 reasons why we should use <a href="https://twitter.com/hashtag/HyperDbg?src=hash&amp;ref_src=twsrc%5Etfw">#HyperDbg</a>, the differences between HyperDbg and <a href="https://twitter.com/hashtag/WinDbg?src=hash&amp;ref_src=twsrc%5Etfw">#WinDbg</a>, and how HyperDbg will change our debugging/reversing journey.<br><br>A thread (24 tweets) 🧵:</p>&mdash; HyperDbg Debugger (@HyperDbg) <a href="https://twitter.com/HyperDbg/status/1533121695900479488?ref_src=twsrc%5Etfw">June 4, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 ## Contribution
 
