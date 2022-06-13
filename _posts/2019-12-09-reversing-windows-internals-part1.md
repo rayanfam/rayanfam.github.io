@@ -1088,6 +1088,12 @@ kd> dt nt!_OBJECT_TYPE  0xffffd689`fd0f9750+20+30 -y Name
    +0x010 Name : _UNICODE_STRING "DxgkCompositionObject"
 ```
 
+There is also another way that you can enumerate the above list by using the following command (thanks to [Bruce Dang
+](https://twitter.com/brucedang) for mentioning it):
+```
+dx Debugger.Utility.Collections.FromListEntry( (*(nt!_OBJECT_TYPE **)&nt!ObpTypeObjectType)->TypeList, "nt!_OBJECT_TYPE", "TypeList").Select(o => (nt!_OBJECT_HEADER*)((unsigned char *)&o + 0x20)).Select( o => o->ObjectName)
+```
+
 The above result contains more types than using "**!object \\ObjectTypes**" (why?) in my case, it finds 70 types while "**!object \\ObjectTypes**" gives only 67 types !!!
 
 **Update 1**: As [Alex](https://twitter.com/aionescu) mentioned, I got more objects because I copy-pasted **FilterCommunicationPort** and **NdisCmState** twice.
