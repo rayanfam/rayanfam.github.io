@@ -39,10 +39,10 @@ The design principles employed in HyperDbg make for an OS-independent debugger w
 Almost three years ago (precisely, on 18 December 2019), we finished implementing EPT hooks and VPIDs, thus setting the cornerstones for designing a new debugger. Ever since, many of our friends have joined the project to develop an advanced, fully-practical, and usable debugger.
 
 During our Windows analysis journey, we always felt the lack of two elements that we thought would most likely make our tasks much faster and more efficient, and that was our main motive, to tackle the following setbacks:
-1.  None of the current classic debuggers, (such as WinDbg) have the ability to trace read/write/executes to a large structure. Sure they have to be able to debug registers, but that’s limited. They can’t specify more than four addresses, and the size is also limited to 1, 2, and 4 Bytes.
-2.  There was no support for tracing instructions from user mode to kernel mode and from kernel mode to user mode. A feature like this would allow us to trace the parameter to the system calls and find the exact routines (basic blocks) executed due to our produced parameter in static analysis tools like IDA Pro, Ghidra, and Radare2.
+1.  None of the current classic debuggers, (such as WinDbg) have the ability to trace read/write/executes to a large structure. Sure they have to be able to use hadware debug registers, but that’s limited. They can’t specify more than four addresses, and the size is also limited to 1, 2, and 4 Bytes.
+2.  There was no support for tracing instructions from user mode to kernel mode and from kernel mode to user mode. A feature like this would allow us to trace parameters to the system calls and find the exact routines (basic blocks) executed due to our produced parameters in static analysis tools like IDA Pro, Ghidra, and Radare2.
 
-The solution to the first issue was implemented in HyperDbg and exported as a command named “!monitor”, and the secondly discussed issue was addressed with the Instrumentation Step-in or the “i”.
+The solution to the first issue was implemented in HyperDbg and exported as a command named “[!monitor](https://docs.hyperdbg.org/commands/extension-commands/monitor)”, and the secondly discussed issue was addressed with the Instrumentation Step-in or the “[i](https://docs.hyperdbg.org/commands/debugging-commands/i)”.
 
 After that, dozens of features were added to the debugger to get HyperDbg to where it is today.
 
@@ -66,7 +66,7 @@ Our motive was not to reintroduce yet another debugger with the same set of alre
 
 The central part of the HyperDbg debugger is its kernel-mode debugger called kHyperDbg. 
 
-It has been almost two decades since kernel debuggers (such as WinDbg and GDB) have had any significant changes. We wanted that to change that and advance the debugging experience to new horizons. Furthermore, HyperDbg delivers these improvements on rudimentary levels, compared to commonly used debuggers, in that, it enormously expands the range of privileges available to the user by shifting the debugging process from kernel-level (ring 0) to hypervisor-level (ring -1), a much-needed enhancement in our opinion, especially when it comes to kernel-debugging. 
+It has been almost two decades since kernel debuggers (such as WinDbg and GDB) have had any significant changes. We wanted to change that and advance the debugging experience to new horizons. Furthermore, HyperDbg delivers these improvements on rudimentary levels, compared to commonly used debuggers, in that, it enormously expands the range of privileges available to the user by shifting the debugging process from kernel-level (ring 0) to hypervisor-level (ring -1), a much-needed enhancement in our opinion, especially when it comes to kernel-debugging. 
 
 As kernel level debuggers are prohibited the access to manipulate the operating system’s structures to make facilities for the debugging, HyperDbg uses an entirely separate layer to monitor and change these structures without interfering with the operating system, the hypervisor level, that resides below the kernel of the operating system in the hardware privilege rings. This makes HyperDbg blazingly fast and a highly powerful tool in terms of the flexibility, privileges, and the transparency it can provide for debugging and analysis. Owing to this fundamental transition, HyperDbg is able to deliver state-of-the-art features that make it particularly more convenient to analyze complex modern binaries that run on kernel mode of operating systems and are crucial to the security and reliability of the system. Furthermore, the highly efficient and low-level implementation, coupled with the potent script engine, allows for some tremendously powerful abilities, such as changing the flow of the applications and even the operating system using simple scripts.
 
@@ -76,22 +76,22 @@ In this section, we will try and summarize some of the unique features of HyperD
 
 ### Tremendously Faster
 
-As described earlier, HyperDbg is incredibly fast, thanks to its low-level and efficient implementation. This brings forward new opportunities for many innovative debugging scenarios. For example, let’s imagine you want to analyze every system, or get a log from a function called at a very high rate. HyperDbg allows you to do all of them with ease and high performance.
+As described earlier, HyperDbg is incredibly fast, thanks to its low-level and efficient implementation. This brings forward new opportunities for many innovative debugging scenarios. For example, let’s imagine you want to analyze every system-calls, or get a log from a function called at a very high rate. HyperDbg allows you to do all of them with ease and high performance.
 
 ### Better Transparency
 One of the future goals of HyperDbg is to keep enhancing the stealth and transparency of its transparent mode. Of course, it is not possible to achieve 100% transparency, but we keep trying to make it more challenging for the anti-debugging methods to detect HyperDbg.
 
 ### Exporting Processor Events In Debugger
-HyperDbg tends to export all system events of interest as debugger events. So many events happen in the CPU at all times. Fortunately, the majority of them are accessible via hypervisors. In HyperDbg, we export events into HyperDbg event format. Each HyperDbg event then can be used as a trigger for executing a desired action, such as breaking the debugger, executing custom assembly codes, or running a custom script engine. This standard pipeline will apply to all the current events and possible future events.
+HyperDbg tends to export all system events of interest as debugger events. So many events happen in the CPU at all times. Fortunately, the majority of them are accessible via hypervisors. In HyperDbg, we export events into HyperDbg event format. Each HyperDbg event then can be used as a trigger for executing a desired [action](https://docs.hyperdbg.org/using-hyperdbg/prerequisites), such as breaking the debugger, executing custom assembly codes, or running a custom script engine. This standard pipeline will apply to all the current events and possible future events.
 
 ## HyperDbg vs. WinDbg
 
-As one of the closest counterparts of HyperDbg, in this section, we draw a comparison between Windbg and HyperDbg in a detailed manner.
+As one of the closest counterparts of HyperDbg, in this section, we draw a comparison between WinDbg and HyperDbg in a detailed manner.
 
 ![](../../assets/images/hyperdbg-and-windbg-meme-2.jpg)
 
-How different is HyperDbg from Windbg?
-HyperDbg has an entirely different and standalone architecture. Windbg operates on ring 0 (kernel) while HyperDbg is running on ring -1 (hypervisor); thus, HyperDbg is capable of providing unique features that are not available on Windbg (OS-Level).
+How different is HyperDbg from WinDbg?
+HyperDbg has an entirely different and standalone architecture. WinDbg operates on ring 0 (kernel) while HyperDbg is running on ring -1 (hypervisor); thus, HyperDbg is capable of providing unique features that are not available on WinDbg (OS-Level).
 
 Additionally, HyperDbg is not just a simple debugger. It comes with modern reverse engineering methods, powered by vt-x and other similar capabilities of modern processors to facilitate reverse engineering, analyzing, and fuzzing.
 
@@ -118,11 +118,12 @@ Generally, basing the debugger on the hypervisor layer makes HyperDbg more trans
 **HyperDbg is open-source, WinDbg is not.**
 HyperDbg is a community-driven debugger, and everyone can contribute to the project. In contrast, WinDbg is not open-source, although the source codes of some older versions have been leaked several times by now.
 
-WinDbg works on multi-architectures, but so far, HyperDbg only works on x64-based systems.
+**WinDbg works in almost any architecture; HyperDbg is not.**
+WinDbg works on multiple architectures, but so far, HyperDbg only works on x64-based systems.
 You can use WinDbg to debug many architectures like ARM, ARM64 (AARCH64), and AMD64 (x86_64), while HyperDbg currently only works on Intel x64-bit processors. However, it is still possible to debug x86 applications running in a system with an x64-bit processor.
 
 **HyperDbg is faster, tremendously faster.**
-HyperDbg is shipped with a vmx-root mode compatible script engine. Every check is performed on the kernel side (vmx-root mode), and in contrast to WinDbg, nothing is passed to the debugger. This makes for a substantially faster debugging process. Based on our evaluations as part of an academic publication on HyperDbg, Windbg was able to check 6,941 conditions, while HyperDbg could check  23,214,792 in the same time period, making HyperDbg about ~3300 folds faster than Windbg in this benchmark.
+HyperDbg is shipped with a vmx-root mode compatible script engine. Every check is performed on the kernel side (vmx-root mode), and in contrast to WinDbg, nothing is passed to the debugger. This makes for a substantially faster debugging process. Based on our evaluations as part of an academic publication on HyperDbg, WinDbg was able to check 6,941 conditions, while HyperDbg could check  23,214,792 in the same time period, making HyperDbg about ~3300 folds faster than WinDbg in this benchmark.
 
 For more information about the differences, please take a look at the following [tweet](https://twitter.com/HyperDbg/status/1533121695900479488).
 
@@ -135,7 +136,7 @@ HyperDbg’s logo is the Schrödinger’s cat, which is both dead and alive. It 
 
 ## Contribution
 
-HyperDbg is a large-scale project that requires a lot of time and effort from the community. Given the current number of developers and their limited time and resources, we cannot develop every part simultaneously. Therefore, new developers are warmly welcomed to join and contribute to the project. Please open discussions to discuss the HyperDbg and possible future assistance.
+HyperDbg is a large-scale project that requires a lot of time and effort from the community. Given the current number of developers and their limited time and resources, we cannot develop every part simultaneously. Therefore, new developers are warmly welcomed to join and contribute to the project. Please open [discussions](https://github.com/HyperDbg/HyperDbg/discussions) to discuss the HyperDbg and possible future assistance.
 
 ## The future works
 
