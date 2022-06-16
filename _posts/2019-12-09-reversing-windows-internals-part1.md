@@ -370,7 +370,7 @@ We'll see how they affect process handle creation, later.
 
 ## **NtOpenProcess**
 
-**NtOpenProcess**, first checks for its previous mode (user-mode or kernel-mode) the it calls **PsOpenProcess**.
+**NtOpenProcess**, first checks for its previous mode (user-mode or kernel-mode) then it calls **PsOpenProcess**.
 
 ```
 __kernel_entry NTSYSCALLAPI NTSTATUS NtOpenProcess(
