@@ -1,5 +1,5 @@
 ---
-title: "Hypervisor From Scratch - Part 1: Basic Concepts & Configuring A Test Environment"
+title: "Hypervisor From Scratch - Part 1: Basic Concepts & Configure Testing Environment"
 date: "2018-08-21"
 categories: 
   - "cpu"
