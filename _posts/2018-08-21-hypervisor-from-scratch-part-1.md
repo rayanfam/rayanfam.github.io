@@ -1,5 +1,5 @@
 ---
-title: "Hypervisor From Scratch - Part 1: Basic Concepts & Configure Testing Environment"
+title: "Hypervisor From Scratch - Part 1: Basic Concepts & Configuring A Test Environment"
 date: "2018-08-21"
 categories: 
   - "cpu"
@@ -7,6 +7,8 @@ categories:
   - "tutorials"
 tags: 
   - "hypervisor"
+  - "hypervisor-tutorial"
+  - "VMX-tutorial"
   - "create-a-virtual-machine"
   - "how-to-create-virtual-machine"
   - "hypervisor-fundamentals"
@@ -25,11 +27,31 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-1-cover.png)
 
-Hello everyone!
+
+## **Introduction**
 
 Welcome to the first part of a multi-part series of tutorials called "**Hypervisor From Scratch**". As the name implies, this course contains technical details to create a basic Virtual Machine based on hardware virtualization. If you follow this tutorial, you'll be able to create your own virtual environment and understand how VMWare, VirtualBox, KVM, and other virtualization software use processors' facilities to create a virtual environment.
 
-## **Introduction**
+# **Table of Contents**
+
+- **Introduction**
+- **Table of Contents**
+- **Overview**
+- **Hypervisors and Platforms**
+- **Installing Tools**
+- **Creating A Testing Environment**
+- **Creating A Driver**
+   - **Disabling The Driver Signature Enforcement (DSE)**
+- **Nested-Virtualization**
+    - Hyper-V's Nested-Virtualization
+    - VMware Workstation's Nested-Virtualization
+- **Concepts**
+- **VMX Instructions**
+- **Related Work**
+- **Conclusion**
+- **References**
+
+## **Overview**
 
 Both Intel and AMD support virtualization in their modern CPUs. Intel introduced **(VT-x technology)** that was previously codenamed "**Vanderpool**" on November 13, 2005, in Pentium 4 series. The CPU flag for **VT-x** capability is "**VMX**" which stands for **V**irtual **M**achine e**X**tension.
 
@@ -43,7 +65,7 @@ Even though most of the concepts about the virtualization in Intel and AMD proce
 
 The rest of these tutorials mainly focus on **VT-x** because Intel CPUs are more popular and widely used.
 
-## **Hypervisor and Platform** 
+## **Hypervisors and Platforms** 
 
 These concepts are platform independent, which means you can easily run the same code routine in both Linux or Windows and expect the same behavior from the CPU, but I prefer to use Windows as its more easily debuggable (at least for me.), but I try to give some examples for Linux systems whenever needed. 
 
@@ -53,7 +75,7 @@ At last, I might (and will) make mistakes like wrong implementation or misinform
 
 That's enough. Let's get started!
 
-## **The Tools you'll need**
+## **Installing Tools**
 
 First, we need to install Visual Studio with WDK (Windows Driver Kit).
 
@@ -166,7 +188,7 @@ The following code is responsible for creating a new device :
 		IoCreateSymbolicLink(&usDosDeviceName, &usDriverName);
 	}
 ```
-
+### **Disabling The Driver Signature Enforcement (DSE)**
 If you use Windows, you should disable Driver Signature Enforcement to load our driver. That's because Microsoft prevents any not verified code from running in Windows Kernel (Ring 0).
 
 To do this, press and hold the shift key and restart your computer. You should see a new window.
@@ -185,28 +207,32 @@ Just perform the following steps:
 In the **Regedit**, add a key:
 
 ```
-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter
+HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Debug Print Filter
 ```
 
 Under that, add a DWORD value named IHVDRIVER with a value of 0xFFFF.
 
 Reboot the machine, and it's good to go.
 
-## **What if you don't have access to a physical machine**
+## **Nested-virtualization**
+
+What if you don't have access to a separate physical machine? 
 
 You can use VMware's (or any other virtualization product) **nested-virtualization**.
 
-After that, make sure to enable the following features in your VM.
+### **VMware Workstation's Nested-Virtualization**
+
+In order to set up a nested virtualization environment, make sure to enable the following features in your VM.
 
 ![VMWare Nested Virtualization](../../assets/images/nested-virtualization-vmware-2.png)
 
 All the drivers are tested on both physical machines and VMware's nested virtualization.
 
-## **Hyper-V nested Virtualization**
+### **Hyper-V's Nested-Virtualization**
 
 Hyper-V differs from VMWare in many aspects. Therefore you can't test your hypervisor on Hyper-V's nested virtualization. In part 8, I'll describe how to modify your hypervisor in a way that can be used in Hyper-V, so after part 8, you'll be able to test your hypervisor on Hyper-V's nested virtualization.
 
-## **Some thoughts before the start**
+## **Concepts**
 
 We will frequently use some keywords in the rest of these series, and you should know about them (Most of the definitions are derived from **Intel software developer's manual, volume 3C**).
 
@@ -265,7 +291,7 @@ VMX introduces the following new instructions.
 | VMXON          | Enter VMX Operation                                |
 
 
-### **Life Cycle of VMM Software**
+### **VMM Life Cycle**
 
 ![VM Cycle](../../assets/images/vmm-life-cycle.png)
 
@@ -277,18 +303,17 @@ VMX introduces the following new instructions.
 
 That's enough for now!
 
-## **Conclusion**
-In this part, we study general keywords we should be aware of and create a simple testing environment for our future tests. In the next part, I will explain how to enable VMX on your machine using the driver we made above. Then we survey the rest of the virtualization, so see you in the next part.
-
-The second part is also available [here](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/).
-
-## **Other related-works**
-
+## **Related Work**
 Other hypervisor-related works and materials.
 
 Awesome virtualization (Introducing books, papers, projects, courses, CVEs, and other hypervisor hypervisor-related works) - [](https://github.com/Wenzel/awesome-virtualization)[https://github.com/Wenzel/awesome-virtualization](https://github.com/Wenzel/awesome-virtualization)
 
 7 Days to Virtualization: A Series on Hypervisor Development - ([https://revers.engineering/7-days-to-virtualization-a-series-on-hypervisor-development/](https://revers.engineering/7-days-to-virtualization-a-series-on-hypervisor-development/))
+
+## **Conclusion**
+In this part, we study general keywords we should be aware of and create a simple testing environment for our future tests. In the next part, I will explain how to enable VMX on your machine using the driver we made above. Then we survey the rest of the virtualization, so see you in the next part.
+
+The second part is also available [here](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/).
 
 ## **References**
 
