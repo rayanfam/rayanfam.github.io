@@ -30,18 +30,18 @@ author:
 
 ## **Introduction**
 
-Welcome to the first part of a multi-part series of tutorials called "**Hypervisor From Scratch**". As the name implies, this course contains technical details to create a basic Virtual Machine based on hardware virtualization. If you follow this tutorial, you'll be able to create your own virtual environment and understand how VMWare, VirtualBox, KVM, and other virtualization software use processors' facilities to create a virtual environment.
+Welcome to the first part of a multi-part series of tutorials called "**Hypervisor From Scratch**". As the name implies, this course contains technical details to create a basic Virtual Machine based on hardware virtualization. If you follow this tutorial, you'll be able to create your own virtual environment and understand how VMWare, VirtualBox, KVM, and other virtualization software use processors' facilities to create a virtual environment. Moreover, you can learn how the "VMM" module of the [HyperDbg Debugger](https://github.com/HyperDbg/HyperDbg) works internally.
 
-# **Table of Contents**
+## **Table of Contents**
 
 - **Introduction**
 - **Table of Contents**
 - **Overview**
 - **Hypervisors and Platforms**
 - **Installing Tools**
-- **Creating A Testing Environment**
+- **Configuring A Testing Environment**
 - **Creating A Driver**
-   - **Disabling The Driver Signature Enforcement (DSE)**
+   - Disabling The Driver Signature Enforcement (DSE)
 - **Nested-Virtualization**
     - Hyper-V's Nested-Virtualization
     - VMware Workstation's Nested-Virtualization
@@ -71,7 +71,7 @@ These concepts are platform independent, which means you can easily run the same
 
 Linux kernel manages faults like #GP and other exceptions and tries to avoid the kernel panic and keep the system up; thus, it's better to test something like a hypervisor or any CPU-related programs. In contrast, Windows never tries to manage any unexpected exception and shows a Blue Screen Of Death whenever an unexpected exception occurs; therefore, you might get lots of BSODs while testing your hypervisor. 
 
-At last, I might (and will) make mistakes like wrong implementation or misinformation or forget about mentioning some essential explanations in these series. Because of that, I should say sorry in advance if I make any mistakes, and I'll be glad for every comment that tells me my mistakes in the technical information or misinformation.
+Considering the fact that I might (and will) make mistakes like misinformation, wrong implementation, or forget about mentioning some essential explanations in these series, I should say sorry in advance, and I'll be glad and open to every comment that tells me the mistakes in the technical details. You can use the comments below to notify me about these possible errors.
 
 That's enough. Let's get started!
 
@@ -105,7 +105,7 @@ The next step is downloading **OSR Driver Loader**. We use this tool to load our
 
 ![Chameleon](../../assets/images/chameleon-1.jpg)
 
-## **Creating A Testing Environment**
+## **Configuring A Testing Environment**
 
 Most of the codes in this tutorial have to run at the kernel-level, and we must set up a Linux Kernel Module or a Windows Driver for this purpose.
 
@@ -117,7 +117,7 @@ I explained it step by step in one of my posts, so I highly recommend reading [t
 
 Now it's time to create a driver!
 
-## Creating A Driver
+## **Creating A Driver**
 There is a good article [here](https://resources.infosecinstitute.com/writing-a-windows-kernel-driver/) if you want to start with Windows Driver Kit (WDK).
 
 ```
@@ -291,7 +291,7 @@ VMX introduces the following new instructions.
 | VMXON          | Enter VMX Operation                                |
 
 
-### **VMM Life Cycle**
+## **VMM Life Cycle**
 
 ![VM Cycle](../../assets/images/vmm-life-cycle.png)
 
@@ -309,6 +309,8 @@ Other hypervisor-related works and materials.
 Awesome virtualization (Introducing books, papers, projects, courses, CVEs, and other hypervisor hypervisor-related works) - [](https://github.com/Wenzel/awesome-virtualization)[https://github.com/Wenzel/awesome-virtualization](https://github.com/Wenzel/awesome-virtualization)
 
 7 Days to Virtualization: A Series on Hypervisor Development - ([https://revers.engineering/7-days-to-virtualization-a-series-on-hypervisor-development/](https://revers.engineering/7-days-to-virtualization-a-series-on-hypervisor-development/))
+
+At last, if you want to use hypervisors for debugging, researching, or reverse-engineering, you can use [HyperDbg Debugger](https://hyperdbg.org), as many innovative methods based on hypervisors are implemented in this debugger that will help you in your reversing journey.
 
 ## **Conclusion**
 In this part, we study general keywords we should be aware of and create a simple testing environment for our future tests. In the next part, I will explain how to enable VMX on your machine using the driver we made above. Then we survey the rest of the virtualization, so see you in the next part.
