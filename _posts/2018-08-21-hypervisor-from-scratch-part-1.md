@@ -325,10 +325,12 @@ The second part is also available [here](https://rayanfam.com/topics/hypervisor-
 
 \[3\] Writing Windows Kernel Driver ([https://resources.infosecinstitute.com/writing-a-windows-kernel-driver/](https://resources.infosecinstitute.com/writing-a-windows-kernel-driver/))
 
-\[4\] What Is a Type 1 Hypervisor? ([http://www.virtualizationsoftware.com/type-1-hypervisors/](http://www.virtualizationsoftware.com/type-1-hypervisors/))
+\[4\] What Is a Type 1 Hypervisor? – ([http://www.virtualizationsoftware.com/type-1-hypervisors/](http://www.virtualizationsoftware.com/type-1-hypervisors/))
 
-\[5\] Intel / AMD CPU Internals ([https://github.com/LordNoteworthy/cpu-internals](https://github.com/LordNoteworthy/cpu-internals))
+\[5\] Intel / AMD CPU Internals – ([https://github.com/LordNoteworthy/cpu-internals](https://github.com/LordNoteworthy/cpu-internals))
 
-\[6\] Windows 10: Disable Signed Driver Enforcement ([https://ph.answers.acer.com/app/answers/detail/a\_id/38288/~/windows-10%3A-disable-signed-driver-enforcement](https://ph.answers.acer.com/app/answers/detail/a_id/38288/~/windows-10%3A-disable-signed-driver-enforcement))
+\[6\] Windows 10: Disable Signed Driver Enforcement – ([https://ph.answers.acer.com/app/answers/detail/a\_id/38288/~/windows-10%3A-disable-signed-driver-enforcement](https://ph.answers.acer.com/app/answers/detail/a_id/38288/~/windows-10%3A-disable-signed-driver-enforcement))
 
-\[7\] Instruction Set Mapping » VMX Instructions ([https://docs.oracle.com/cd/E36784\_01/html/E36859/gntbx.html](https://docs.oracle.com/cd/E36784_01/html/E36859/gntbx.html))
+\[7\] Instruction Set Mapping » VMX Instructions – ([https://docs.oracle.com/cd/E36784\_01/html/E36859/gntbx.html](https://docs.oracle.com/cd/E36784_01/html/E36859/gntbx.html))
+
+\[8\] HyperDbg Documentation – ([https://docs.hyperdbg.org](https://docs.hyperdbg.org))
