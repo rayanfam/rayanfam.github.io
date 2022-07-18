@@ -80,28 +80,30 @@ That's enough. Let's get started!
 First, we need to install Visual Studio with WDK (Windows Driver Kit).
 
 You can download the community (free) version of the Visual Studio:
+
 [\[https://visualstudio.microsoft.com/vs/community\]](https://visualstudio.microsoft.com/vs/community).
 
 After installing Visual Studio, you can get the WDK from the below link:
+
 [\[https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk\]](https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk).
 
 We'll use **WinDbg** to debug our hypervisor. We can use WinDbg and WinDbg Preview to debug our hypervisor.
 
 WinDbg is available in Windows SDK:
 
-[\[https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/\]](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk).
+[\[https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/\]](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk)
 
 Afterward, we should connect to debug the Windows kernel using WinDbg. You can read the following links to connect WinDbg to debug the kernel using KDNET.
 
-[Setting Up KDNET Network Kernel Debugging Manually](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/setting-up-a-network-debugging-connection)
-[Setting Up KDNET Network Kernel Debugging Automatically](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/setting-up-a-network-debugging-connection-automatically)
+- [Setting Up KDNET Network Kernel Debugging Manually](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/setting-up-a-network-debugging-connection)
+- [Setting Up KDNET Network Kernel Debugging Automatically](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/setting-up-a-network-debugging-connection-automatically)
 
 The next step is downloading **OSR Driver Loader**. We use this tool to load our driver. You can download it using the below link:
 
 [\[https://www.osronline.com/article.cfm?article=157\]](https://www.osronline.com/article.cfm?article=157). 
 
 
-[SysInternals DebugView](https://docs.microsoft.com/en-us/sysinternals/downloads/debugview) for printing the **DbgPrint()** results.
+Finally, we need to download [SysInternals DebugView](https://docs.microsoft.com/en-us/sysinternals/downloads/debugview) for printing the [DbgPrint()](https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-dbgprint) results.
 
 ![Chameleon](../../assets/images/chameleon-1.jpg)
 
