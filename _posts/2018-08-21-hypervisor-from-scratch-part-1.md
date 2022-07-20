@@ -32,6 +32,10 @@ author:
 
 Welcome to the first part of a multi-part series of tutorials called "**Hypervisor From Scratch**". As the name implies, this course contains technical details to create a basic Virtual Machine based on hardware virtualization. If you follow this tutorial, you'll be able to create your own virtual environment and understand how VMWare, VirtualBox, KVM, and other virtualization software use processors' facilities to create a virtual environment. Moreover, you can learn how the "VMM" module of the [HyperDbg Debugger](https://github.com/HyperDbg/HyperDbg) works internally.
 
+The full source code of this tutorial is available on GitHub :
+
+\[[https://github.com/SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)\]
+
 ## **Table of Contents**
 
 - **Introduction**
@@ -122,74 +126,86 @@ Now it's time to create a driver!
 ## **Creating A Driver**
 There is a good article [here](https://resources.infosecinstitute.com/writing-a-windows-kernel-driver/) if you want to start with Windows Driver Kit (WDK).
 
+For the first example, we'll create an elementary WDK driver.
+In WDK, we need two essential functions, first is a Driver Entry function that works as a starting point where the driver starts its execution whenever it is loaded. The second is for Driver Unload, responsible for removing the objects used in the driver.
+
+In the driver entry, our driver needs to register a device so we can communicate with our virtual environment from the user-mode. On the other hand, I defined **DrvUnload**, which uses the PnP Windows driver feature, and we can easily unload our driver and remove the device, then reload and create a new one.
+
+The following code is responsible for creating a new device :
+
+```
+    RtlInitUnicodeString(&DriverName, L"\\Device\\MyHypervisor");
+    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\MyHypervisor");
+
+    NtStatus = IoCreateDevice(DriverObject, 0, &DriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &DeviceObject);
+
+    if (NtStatus == STATUS_SUCCESS)
+    {
+        DriverObject->DriverUnload = DrvUnload;
+        DeviceObject->Flags |= IO_TYPE_DEVICE;
+        DeviceObject->Flags &= (~DO_DEVICE_INITIALIZING);
+        IoCreateSymbolicLink(&DosDeviceName, &DriverName);
+    }
+```
+
+All in all, you can compile the following file to create our first WDK driver in Visual Studio (with WDK installed).
+
+It contains a Driver Entry function which creates a device and registers the unloading routines. Whenever the driver is loaded, the `DriverEntry` function is called, and when we unload it, `DrvUnload` will be called. This function will remove the device that we registered before.
+
 ```
 #include <ntddk.h>
 #include <wdf.h>
 #include <wdm.h>
 
-extern void inline AssemblyFunc1(void);
-extern void inline AssemblyFunc2(void);
+NTSTATUS
+DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath);
 
-VOID DrvUnload(PDRIVER_OBJECT  DriverObject);
-NTSTATUS DriverEntry(PDRIVER_OBJECT  pDriverObject, PUNICODE_STRING  pRegistryPath);
+VOID
+DrvUnload(PDRIVER_OBJECT DriverObject);
 
 #pragma alloc_text(INIT, DriverEntry)
-#pragma alloc_text(PAGE, Example_Unload)
+#pragma alloc_text(PAGE, DrvUnload)
 
-NTSTATUS DriverEntry(PDRIVER_OBJECT  pDriverObject, PUNICODE_STRING  pRegistryPath)
+NTSTATUS
+DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
-	NTSTATUS NtStatus = STATUS_SUCCESS;
-	UINT64 uiIndex = 0;
-	PDEVICE_OBJECT pDeviceObject = NULL;
-	UNICODE_STRING usDriverName, usDosDeviceName;
+    NTSTATUS       NtStatus     = STATUS_SUCCESS;
+    PDEVICE_OBJECT DeviceObject = NULL;
+    UNICODE_STRING DriverName, DosDeviceName;
 
-	DbgPrint("DriverEntry Called.");
+    DbgPrint("DriverEntry Called.");
 
-	RtlInitUnicodeString(&usDriverName, L"\\Device\\MyHypervisor");
-	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\MyHypervisor");
+    RtlInitUnicodeString(&DriverName, L"\\Device\\MyHypervisor");
+    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\MyHypervisor");
 
-	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &pDeviceObject);
+    NtStatus = IoCreateDevice(DriverObject, 0, &DriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &DeviceObject);
 
-	if (NtStatus == STATUS_SUCCESS)
-	{
-		pDriverObject->DriverUnload = DrvUnload;
-		pDeviceObject->Flags |= IO_TYPE_DEVICE;
-		pDeviceObject->Flags &= (~DO_DEVICE_INITIALIZING);
-		IoCreateSymbolicLink(&usDosDeviceName, &usDriverName);
-	}
-	return NtStatus;
+    if (NtStatus == STATUS_SUCCESS)
+    {
+        DriverObject->DriverUnload = DrvUnload;
+        DeviceObject->Flags |= IO_TYPE_DEVICE;
+        DeviceObject->Flags &= (~DO_DEVICE_INITIALIZING);
+        IoCreateSymbolicLink(&DosDeviceName, &DriverName);
+    }
+    return NtStatus;
 }
 
-VOID DrvUnload(PDRIVER_OBJECT  DriverObject)
+VOID
+DrvUnload(PDRIVER_OBJECT DriverObject)
 {
-	UNICODE_STRING usDosDeviceName;
-	DbgPrint("DrvUnload Called rn");
-	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\MyHypervisor");
-	IoDeleteSymbolicLink(&usDosDeviceName);
-	IoDeleteDevice(DriverObject->DeviceObject);
+    UNICODE_STRING DosDeviceName;
+
+    DbgPrint("DrvUnload Called !");
+
+    RtlInitUnicodeString(&DosDeviceName, L"\\DosDevices\\MyHypervisor");
+
+    IoDeleteSymbolicLink(&DosDeviceName);
+    IoDeleteDevice(DriverObject->DeviceObject);
 }
 ```
 
-**AssemblyFunc1** and **AssemblyFunc2** are two external functions defined as inline x64 assembly code.
+Starting from the next version, the source code of each driver is available at [GitHub](https://github.com/SinaKarvandi/Hypervisor-From-Scratch), and we'll talk about different features in WDK drivers. Don't worry if you still don't have any idea about a Windows Driver. We'll work on it later in the next part. Just make sure to set up the environment for now.
 
-Our driver needs to register a device so we can communicate with our virtual environment from the user-mode. On the other hand, I defined **DrvUnload**, which uses the PnP Windows driver feature, and we can easily unload our driver and remove the device, then reload and create a new one.
-
-The following code is responsible for creating a new device :
-
-```
-	RtlInitUnicodeString(&usDriverName, L"\\Device\\MyHypervisor");
-	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\MyHypervisor");
-
-	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &pDeviceObject);
-
-	if (NtStatus == STATUS_SUCCESS)
-	{
-		pDriverObject->DriverUnload = DrvUnload;
-		pDeviceObject->Flags |= IO_TYPE_DEVICE;
-		pDeviceObject->Flags &= (~DO_DEVICE_INITIALIZING);
-		IoCreateSymbolicLink(&usDosDeviceName, &usDriverName);
-	}
-```
 ### **Disabling The Driver Signature Enforcement (DSE)**
 If you use Windows, you should disable Driver Signature Enforcement to load our driver. That's because Microsoft prevents any not verified code from running in Windows Kernel (Ring 0).
 
@@ -209,7 +225,7 @@ Just perform the following steps:
 In the **Regedit**, add a key:
 
 ```
-HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Debug Print Filter
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter
 ```
 
 Under that, add a DWORD value named IHVDRIVER with a value of 0xFFFF.
