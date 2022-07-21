@@ -26,7 +26,25 @@ author:
 
 ## **Introduction**
 
-It's the second part of a multiple series of a tutorial called "**Hypervisor From Scratch**", First I highly recommend reading the [first part](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/) (Basic Concepts & Configure Testing Environment) before reading this part, as it contains the essential knowledge you need to know in order to understand the rest of this tutorial.
+It's the second part of a multiple series of a tutorial called "**Hypervisor From Scratch**", First please consider reading the [first part](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/) (Basic Concepts & Configure Testing Environment) before reading this part, as it contains the essential knowledge you need to know in order to understand the rest of this tutorial. In this part, we will start making programs by using Intel VT-x.
+
+## **Table of Contents**
+
+- **Introduction**
+- **Table of Contents**
+- **Overview**
+- **IRP Major Functions**
+    - What is an IRP?
+    - Configuring IRP Major Functions
+    - IRP Major Functions List
+- **Loading Driver and Checking Device**
+- **The Problem with DbgView**
+- **Detecting Hypervisor Support**
+    - Setting CR4 VMXE Bit
+- **Conclusion**
+- **References**
+
+## **Overview**
 
 In this section, we will learn about **Detecting Hypervisor Support** for our processor, then we simply config the basic operations to **Enable VMX**, **Entering VMX Operation**, and we will learn more about **Window Driver Kit (WDK)**.
 
@@ -50,31 +68,7 @@ So, what is an **IRP**? The IRP structure is a structure that represents an I/O 
 
 Remember, when our routine in the kernel driver receives the IRP packet, it's the responsibility of our codes to investigate the caller and check its privileges, etc.
 
-### **Creating A Device**
-
-Like what we saw in the previous part, the following code creates a new device:
-
-```
-	NTSTATUS NtStatus = STATUS_SUCCESS;
-	UINT64 uiIndex = 0;
-	PDEVICE_OBJECT pDeviceObject = NULL;
-	UNICODE_STRING usDriverName, usDosDeviceName;
-
-	DbgPrint("[*] DriverEntry Called.");	
-
-	RtlInitUnicodeString(&usDriverName, L"\\Device\\MyHypervisorDevice");
-	
-	RtlInitUnicodeString(&usDosDeviceName, L"\\DosDevices\\\MyHypervisorDevice");
-
-	NtStatus = IoCreateDevice(pDriverObject, 0, &usDriverName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &pDeviceObject);
-	NTSTATUS NtStatusSymLinkResult = IoCreateSymbolicLink(&usDosDeviceName, &usDriverName);
-```
-
-As you can see, we named our device as **\\Device\\MyHypervisorDevice**.
-
-____________________________________________________________
-
-## **Configuring IRP Major Functions**
+### **Configuring IRP Major Functions**
 
 After that, we need to introduce the Major Functions of our device.
 
@@ -165,7 +159,7 @@ Now let's see the IRP MJ Functions list and other types of Windows Driver Kit h
 
 ![](../../assets/images/anime-girl-white.png)
 
-## **IRP Major Functions List**
+### **IRP Major Functions List**
 
 We can use this list of IRP Major Functions to perform different operations.
 
@@ -208,126 +202,10 @@ In this case, Windows is responsible for copying the user-mode buffer to the ker
 
 Don't worry; we use it frequently in the rest of the project, but we only support **IRP\_MJ\_CREATE** in this part and left others unimplemented for our future parts.
 
-## **IRP Minor Functions**
+There are other terms called "IRP Minor Functions". We left these functionalities as they're not used in this series.
 
-The PnP manager mainly uses IRP Minor functions to notify of a special event. For example, The PnP manager sends **IRP\_MN\_START\_DEVICE**  after it has assigned hardware resources, if any, to the device, or The PnP manager sends **IRP\_MN\_STOP\_DEVICE** to stop a device so it can reconfigure the device's hardware resources.
 
-We will need these minor functions later in this series.
-
-A list of IRP Minor Functions is available below:
-
-```
-IRP_MN_START_DEVICE
-IRP_MN_QUERY_STOP_DEVICE
-IRP_MN_STOP_DEVICE
-IRP_MN_CANCEL_STOP_DEVICE
-IRP_MN_QUERY_REMOVE_DEVICE
-IRP_MN_REMOVE_DEVICE
-IRP_MN_CANCEL_REMOVE_DEVICE
-IRP_MN_SURPRISE_REMOVAL
-IRP_MN_QUERY_CAPABILITIES	
-IRP_MN_QUERY_PNP_DEVICE_STATE
-IRP_MN_FILTER_RESOURCE_REQUIREMENTS
-IRP_MN_DEVICE_USAGE_NOTIFICATION
-IRP_MN_QUERY_DEVICE_RELATIONS
-IRP_MN_QUERY_RESOURCES
-IRP_MN_QUERY_RESOURCE_REQUIREMENTS
-IRP_MN_QUERY_ID
-IRP_MN_QUERY_DEVICE_TEXT
-IRP_MN_QUERY_BUS_INFORMATION
-IRP_MN_QUERY_INTERFACE
-IRP_MN_READ_CONFIG
-IRP_MN_WRITE_CONFIG
-IRP_MN_DEVICE_ENUMERATED
-IRP_MN_SET_LOCK
-```
-
-## **Fast I/O**
-
-For optimizing VMM, you can use **Fast I/O**, which is a different way to initiate I/O operations that are faster than IRP. Fast I/O operations are always synchronous.
-
-According to [MSDN](https://docs.microsoft.com/en-us/windows-hardware/drivers/ifs/irps-are-different-from-fast-i-o):
-
-Fast I/O is specifically designed for rapid synchronous I/O on cached files. In Fast I/O operations, data is transferred directly between user buffers and the system cache, bypassing the file system and the storage driver stack. (Storage drivers do not use fast I/O.) If all of the data to be read from a file is resident in the system cache when a fast I/O read or write request is received, the request is satisfied immediately. 
-
-When the I/O Manager receives a request for synchronous file I/O (other than paging I/O), it invokes the fast I/O routine first. If the fast I/O routine returns **TRUE**, the operation was serviced by the fast I/O routine. If the fast I/O routine returns **FALSE**, the I/O Manager creates and sends an IRP instead.
-
-The definition of the Fast I/O Dispatch table is:
-
-```
-typedef struct _FAST_IO_DISPATCH {
-  ULONG                                  SizeOfFastIoDispatch;
-  PFAST_IO_CHECK_IF_POSSIBLE             FastIoCheckIfPossible;
-  PFAST_IO_READ                          FastIoRead;
-  PFAST_IO_WRITE                         FastIoWrite;
-  PFAST_IO_QUERY_BASIC_INFO              FastIoQueryBasicInfo;
-  PFAST_IO_QUERY_STANDARD_INFO           FastIoQueryStandardInfo;
-  PFAST_IO_LOCK                          FastIoLock;
-  PFAST_IO_UNLOCK_SINGLE                 FastIoUnlockSingle;
-  PFAST_IO_UNLOCK_ALL                    FastIoUnlockAll;
-  PFAST_IO_UNLOCK_ALL_BY_KEY             FastIoUnlockAllByKey;
-  PFAST_IO_DEVICE_CONTROL                FastIoDeviceControl;
-  PFAST_IO_ACQUIRE_FILE                  AcquireFileForNtCreateSection;
-  PFAST_IO_RELEASE_FILE                  ReleaseFileForNtCreateSection;
-  PFAST_IO_DETACH_DEVICE                 FastIoDetachDevice;
-  PFAST_IO_QUERY_NETWORK_OPEN_INFO       FastIoQueryNetworkOpenInfo;
-  PFAST_IO_ACQUIRE_FOR_MOD_WRITE         AcquireForModWrite;
-  PFAST_IO_MDL_READ                      MdlRead;
-  PFAST_IO_MDL_READ_COMPLETE             MdlReadComplete;
-  PFAST_IO_PREPARE_MDL_WRITE             PrepareMdlWrite;
-  PFAST_IO_MDL_WRITE_COMPLETE            MdlWriteComplete;
-  PFAST_IO_READ_COMPRESSED               FastIoReadCompressed;
-  PFAST_IO_WRITE_COMPRESSED              FastIoWriteCompressed;
-  PFAST_IO_MDL_READ_COMPLETE_COMPRESSED  MdlReadCompleteCompressed;
-  PFAST_IO_MDL_WRITE_COMPLETE_COMPRESSED MdlWriteCompleteCompressed;
-  PFAST_IO_QUERY_OPEN                    FastIoQueryOpen;
-  PFAST_IO_RELEASE_FOR_MOD_WRITE         ReleaseForModWrite;
-  PFAST_IO_ACQUIRE_FOR_CCFLUSH           AcquireForCcFlush;
-  PFAST_IO_RELEASE_FOR_CCFLUSH           ReleaseForCcFlush;
-} FAST_IO_DISPATCH, *PFAST_IO_DISPATCH;
-```
-
-## **Defined Headers**
-
-I created the following headers (source.h) for the driver.
-
-```
-#pragma once
-#include <ntddk.h>
-#include <wdf.h>
-#include <wdm.h>
-
-extern void inline Breakpoint(void);
-extern void inline Enable_VMX_Operation(void);
-
-NTSTATUS DriverEntry(PDRIVER_OBJECT  pDriverObject, PUNICODE_STRING  pRegistryPath);
-VOID DrvUnload(PDRIVER_OBJECT  DriverObject);
-NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-NTSTATUS DrvIOCTLDispatcher(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp);
-
-VOID PrintChars(_In_reads_(CountChars) PCHAR BufferAddress, _In_ size_t CountChars);
-VOID PrintIrpInfo(PIRP Irp);
-
-#pragma alloc_text(INIT, DriverEntry)
-#pragma alloc_text(PAGE, DrvUnload)
-#pragma alloc_text(PAGE, DrvCreate)
-#pragma alloc_text(PAGE, DrvRead)
-#pragma alloc_text(PAGE, DrvWrite)
-#pragma alloc_text(PAGE, DrvClose)
-#pragma alloc_text(PAGE, DrvUnsupported)
-#pragma alloc_text(PAGE, DrvIOCTLDispatcher)
-
-// IOCTL Codes and Its meanings
-#define IOCTL_TEST 0x1 // In case of testing 
-```
-
-Now just compile your driver.
-
-## **Loading Driver and Check the presence of Device**
+## **Loading Driver and Checking Device**
 
 In order to load our driver (MyHypervisorDriver), first, download OSR Driver Loader, then run Sysinternals DbgView as administrator. Ensure that your DbgView captures the kernel (you can check by going Capture -> Capture Kernel).
 
@@ -520,7 +398,7 @@ System BIOS can use this bit to provide a setup option for BIOS to disable suppo
 -  Bit 1 enables VMXON in SMX operation. If this bit is clear, execution of VMXON in SMX operation causes a general-protection exception. Attempts to set this bit on logical processors that do not support both VMX operation and SMX operation cause general-protection exceptions.
 -  Bit 2 enables VMXON outside SMX operation. If this bit is clear, execution of VMXON outside SMX operation causes a general-protection exception. Attempts to set this bit on logical processors that do not support VMX operation cause general-protection exceptions.
 
-## **Setting CR4 VMXE Bit**
+### **Setting CR4 VMXE Bit**
 
  Do you remember the previous part where I told you how to [create an inline assembly in Windows Driver Kit x64](https://rayanfam.com/topics/inline-assembly-in-x64/)? 
 
@@ -597,7 +475,7 @@ The third part is also available [here].(https://rayanfam.com/topics/hypervisor-
 
 ![](../../assets/images/aninme-girl-watching-monitor.jpg)
 
-## References
+## **References**
 
 \[1\] Intel® 64 and IA-32 architectures software developer’s manual combined volumes 3 ([https://software.intel.com/en-us/articles/intel-sdm](https://software.intel.com/en-us/articles/intel-sdm)) 
 
