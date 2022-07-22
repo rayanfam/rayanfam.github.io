@@ -26,7 +26,7 @@ author:
 
 ## **Introduction**
 
-It's the second part of a multiple series of a tutorial called "**Hypervisor From Scratch**", First please consider reading the [first part](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/) (Basic Concepts & Configure Testing Environment) before reading this part, as it contains the essential knowledge you need to know in order to understand the rest of this tutorial. In this part, we will start making programs by using Intel VT-x.
+It's the second part of a multiple series of a tutorial called "**Hypervisor From Scratch**". First, please consider reading the [first part](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/) (Basic Concepts & Configure Testing Environment) before reading this part, as it contains the essential knowledge you need to know in order to understand the rest of this tutorial. In this part, we'll talk about WDK drivers and finally start enabling VT-x.
 
 ## **Table of Contents**
 
@@ -38,7 +38,7 @@ It's the second part of a multiple series of a tutorial called "**Hypervisor Fro
     - Configuring IRP Major Functions
     - IRP Major Functions List
 - **Loading Driver and Checking Device**
-- **The Problem with DbgView**
+- **Viewing Debugging Messages In DbgView**
 - **Detecting Hypervisor Support**
     - Setting CR4 VMXE Bit
 - **Conclusion**
@@ -54,23 +54,27 @@ The source code of this tutorial is available at :
 
 ## **IRP Major Functions**
 
-Besides our kernel-mode driver ("**MyHypervisorDriver**"), we'll create a user-mode application called "**MyHypervisorApp**". First of all, I should encourage you to write most of your codes (whenever it's possible) in user-mode rather than the kernel-mode, and that's because you might not have handled exceptions properly. Hence, it leads to BSODs, or on the other hand, running less code in kernel-mode reduces the possibility of putting some nasty kernel-mode bugs.
+Besides our kernel-mode driver ("**MyHypervisorDriver**"), we'll create a user-mode application called "**MyHypervisorApp**". First of all, I should encourage you to write most of the codes (whenever it's possible) in user-mode rather than the kernel-mode, and that's because you might not have handled exceptions properly. Hence, it leads to BSODs, or on the other hand, running less code in kernel-mode reduces the possibility of putting some nasty kernel-mode bugs.
 
-If you remember from the [previous part](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/), we create a Windows driver. Now we want to extend our project to support more IRP Major functions.
+If you remember from the [previous part](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/), we created a Windows driver. Now we want to extend our project to support more IRP Major functions.
 
-IRP Major Functions are located in a conventional Windows table created for every device. Once you register your device in Windows, you have to introduce these functions in which you handle these IRP Major Functions.
+IRP Major Functions are located in a conventional Windows table created for every device. Once we register a device in Windows, we have to introduce a handler for these IRP Major Functions.
 
-That's like every device has a table of its Major Functions. Whenever a user-mode application calls any of these functions, Windows finds the corresponding function (if the device driver supports that MJ Function), then passes an IRP to the kernel driver.
+That's like every device has a table of Major Functions. Whenever a user-mode application calls any of these functions, Windows finds the corresponding function (if the device driver supports that MJ Function), then passes an IRP to the kernel driver.
 
 ### **What is an IRP?**
 
-So, what is an **IRP**? The IRP structure is a structure that represents an I/O Request Packet. This packet contains many details about its caller, parameters, state of the packet, etc. We extract the caller parameters from the IRP packet.
+So, what is an **IRP**? IRP is a structure that represents an I/O Request Packet. This packet contains many details about its caller, parameters, state of the packet, etc. We extract the caller parameters from the IRP packet.
 
-Remember, when our routine in the kernel driver receives the IRP packet, it's the responsibility of our codes to investigate the caller and check its privileges, etc.
+Now, we can handle the user-mode request in the kernel based on the details provided by IRP.
+
+Remember, when our functions in the kernel driver receive the IRP packet, it's the responsibility of our code to investigate the caller and check its privileges, etc.
 
 ### **Configuring IRP Major Functions**
 
-After that, we need to introduce the Major Functions of our device.
+After registering a device (explained in the previous part), we need to introduce the Major Functions of our device.
+
+The following code is responsible for configuring different IRP MJ Functions and introducing custom kernel-mode functions as the IRP handlers.
 
 ```
 	if (NtStatus == STATUS_SUCCESS && NtStatusSymLinkResult == STATUS_SUCCESS)
@@ -92,7 +96,9 @@ After that, we need to introduce the Major Functions of our device.
 	}
 ```
 
-You can see that I put "**DrvUnsupported**" to all functions. This function handles all MJ Functions and tells the user that it's not supported. The main body of this function is like this:
+You can see that we used "**DrvUnsupported**" for all functions. This function handles all MJ Functions and tells the user that it's not supported. 
+
+The main body of  "**DrvUnsupported**" is like this:
 
 ```
 NTSTATUS DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
@@ -161,7 +167,7 @@ Now let's see the IRP MJ Functions list and other types of Windows Driver Kit h
 
 ### **IRP Major Functions List**
 
-We can use this list of IRP Major Functions to perform different operations.
+We can use this list of IRP Major Functions to perform different operations in a WDK driver.
 
 ```
 #define IRP_MJ_CREATE                   0x00
@@ -196,38 +202,37 @@ We can use this list of IRP Major Functions to perform different operations.
 #define IRP_MJ_MAXIMUM_FUNCTION         0x1b
 ```
 
-Every major function will only trigger if we call its corresponding function from user-mode. For instance, there is a function (in user-mode) called **CreateFile** (And all its variants like **CreateFileA** and **CreateFileW** for **ASCII** and **Unicode**), so every time we call **CreateFile**, the function that registered as **IRP\_MJ\_CREATE** will be called or if we call **ReadFile** then **IRP\_MJ\_READ** and **WriteFile** then **IRP\_MJ\_WRITE ** will be called. You can see that Windows treats its devices like files, and everything we need to pass from user-mode to kernel-mode is available in **PIRP Irp** as a buffer when the function is called.
+Every major function will only trigger if we call its corresponding function from the user-mode. For instance, there is a function (in user-mode) called **CreateFile** (And all its variants like **CreateFileA** and **CreateFileW** for **ASCII** and **Unicode**), so every time we call **CreateFile**, the function that registered as **IRP\_MJ\_CREATE** will be called, if we call **ReadFile** then **IRP\_MJ\_READ**, or **WriteFile** then **IRP\_MJ\_WRITE ** will be triggered. 
 
-In this case, Windows is responsible for copying the user-mode buffer to the kernel mode stack.
+You can see that Windows treats its devices like files, and everything we need to pass from user-mode to kernel-mode is available in an argument with the `IRP *` type and available as a buffer to the kernel IRP MJ Function handlers. Windows is responsible for copying the user-mode buffer to the kernel mode stack.
 
-Don't worry; we use it frequently in the rest of the project, but we only support **IRP\_MJ\_CREATE** in this part and left others unimplemented for our future parts.
+Don't worry; we use it frequently in the rest of the project, but we only support **IRP\_MJ\_CREATE** in this part and left others unimplemented for future parts.
 
 There are other terms called "IRP Minor Functions". We left these functionalities as they're not used in this series.
 
-
 ## **Loading Driver and Checking Device**
 
-In order to load our driver (MyHypervisorDriver), first, download OSR Driver Loader, then run Sysinternals DbgView as administrator. Ensure that your DbgView captures the kernel (you can check by going Capture -> Capture Kernel).
+In order to load our driver (**MyHypervisorDriver**), first, download **OSR Driver Loader**, then run **Sysinternals DbgView** as administrator. Ensure that your DbgView captures the kernel (you can check by going to `Capture -> Capture Kernel`).
 
 ![Enable Capturing Event](../../assets/images/capture-kernel.png)
 
-After that open the OSR Driver Loader (go to OsrLoader -> kit-> WNET -> AMD64 -> FRE) and open OSRLOADER.exe (in an x64 environment). Now, if you build your driver, find the **.sys** file (in `MyHypervisorDriver\x64\Debug\` should be a file named: "**MyHypervisorDriver.sys**"), in OSR Driver Loader, click to browse and select (MyHypervisorDriver.sys) and then click to "**Register Service**" after the message box that shows your driver registered successfully, you should click on "Start Service".
+After that open the OSR Driver Loader (go to `OsrLoader -> kit-> WNET -> AMD64 -> FRE`) and open **OSRLOADER.exe**. Now, if you build your driver, find the **.sys** file (in `MyHypervisorDriver\x64\Debug\` should be a file named: "**MyHypervisorDriver.sys**"), in OSR Driver Loader, click to browse and select (MyHypervisorDriver.sys) and then click to "**Register Service**" after that, you see a message box that shows your driver registered successfully, you should click on "**Start Service**".
 
 Please note that you should have [WDK](https://docs.microsoft.com/en-us/windows-hardware/drivers/download-the-wdk) installed for your Visual Studio in order to be able to build your project.
 
 ![Load Driver in OSR Driver Loader](../../assets/images/osr-driver-loader-gui.png)
 
-Now come back to DbgView, you should see that your driver loaded successfully, and a message "**\[\*\] DriverEntry Called.**" should appear.
+Now come back to the DbgView, you should see that your driver loaded successfully, and a message "**\[\*\] DriverEntry Called.**" should appear.
 
 If there is no problem, then you're good to go. Otherwise, you can check the next step if you have a problem with DbgView.
 
-Keep in mind that now you have registered your driver, so you can use **SysInternals WinObj** to see whether "**MyHypervisorDevice**" is available or not.
+Keep in mind that now we have registered our driver, so we can use **SysInternals WinObj** to see whether "**MyHypervisorDevice**" is available or not.
 
 ![WinObj](../../assets/images/winobj-devices.png)
 
-## **The Problem with DbgView**
+## **Viewing Debugging Messages In DbgView**
 
-Unfortunately, for some unknown reason, I'm unable to view the result of DbgPrint(). If you can see the result, then you can skip this step but if you have a problem, then perform the following steps:
+Unfortunately, for some unknown reason, I'm unable to view the result of `DbgPrint()`. If you can see the result, then you can skip this step but if you have a problem, perform the following steps:
 
 As I mentioned in [part 1](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/):
 
@@ -239,32 +244,16 @@ HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print 
 
 Under that, add a DWORD value named IHVDRIVER with a value of 0xFFFF.
 
-Reboot the machine, and you'll be good to go.
+This method should solve the problem, but if the problem still persists, we have another option. For this purpose, we can use WinDbg to find a Windows Kernel global variable called `nt!Kd\_DEFAULT\_Mask`. This variable is responsible for showing the results in DbgView. It has a mask that I'm not aware of, so I just put a `0xffffffff` into it to simply make it show everything!
 
-In order to solve this problem, you need to find a Windows Kernel Global variable called **nt!Kd\_DEFAULT\_Mask,** this variable is responsible for showing the results in DbgView. It has a mask that I'm not aware of, so I just put a 0xffffffff in it to simply make it shows everything!
-
-To do this, you need a Windows Local Kernel Debugging using WinDbg.
-
-1. Open a Command Prompt window as Administrator. Enter **bcdedit /debug on**
-2. If the computer is not already configured as the target of a debug transport, enter **bcdedit /dbgsettings local**
-3. Reboot the computer.
-
-After that, you need to open WinDbg with UAC Administrator privilege, go to File > Kernel Debug > Local > press OK, and in your local WinDbg, find the **nt!Kd\_DEFAULT\_Mask** using the following command :
+To do this, you need a Windows Kernel Debugging using WinDbg. In WinDbg, you can run the following command:
 
 ```
-kd> x nt!kd_Default_Mask
-fffff801`f5211808 nt!Kd_DEFAULT_Mask = <no type information>
+kd> eb nt!kd_Default_Mask ff ff ff ff
 ```
-
-Now change its value to 0xffffffff.
-
-```
-kd> eb fffff801`f5211808 ff ff ff ff
-```
-
 ![kd_DEFAULT_Mask](../../assets/images/kd-DEFAULT-Mask.png)
 
-After that, you should see the results, and you'll be ready.
+After that, we should see the results and everything we'll be ready for the next step.
 
 Remember, this is an essential step for the rest of the topic because if we can't see any kernel messages, sure, we can't debug it too.
 
@@ -276,9 +265,9 @@ Discovering support for **VMX** is the first thing we should consider before ena
 
 You could know the presence of VMX using **CPUID** if **CPUID.1:ECX.VMX\[bit 5\] = 1**, then VMX operation is supported.
 
-First, we need to know whether or not we're running on an Intel-based processor. We can understand this by checking the CPUID instruction and finding the vendor string "**GenuineIntel**".
+First, we need to know whether or not we're running on an Intel-based processor. We can understand this using the `CPUID` instruction and finding the vendor string "**GenuineIntel**".
 
-The following function returns the vendor string from CPUID instruction.
+The following function returns the vendor string by using the `CPUID` instruction.
 
 ```
 string GetCpuID()
@@ -320,7 +309,7 @@ string GetCpuID()
 }
 ```
 
-The last step is checking for the presence of VMX. We can check it using the following code :
+The last step is checking for the presence of **VMX**. We can check it using the following code :
 
 ```
 bool VMX_Support_Detection()
@@ -345,9 +334,9 @@ bool VMX_Support_Detection()
 }
 ```
 
-As you can see, it checks CPUID with EAX=1, and if the 5th (6th) bit is one, then the VMX Operation is supported. We can also perform the same thing in Kernel Driver.
+As you can see, it checks `CPUID` with `EAX=1`, and if the 5th (6th) bit is one, then the VMX Operation is supported. We can also perform the same thing in Kernel Driver.
 
-All in all, our main code should be something like this:
+All in all, our main code to detect the support for VMX should be something like this:
 
 ```
 int main()
@@ -383,6 +372,7 @@ The final result:
 
 ![User-mode app](../../assets/images/vmx-detection.png)
 
+________________________________________________________
 ## **Enabling VMX Operation**
 
 If the processor supports the VMX Operation, it's time to enable it. As I told you above, **IRP\_MJ\_CREATE** is the first function that should be used to start the operation.
@@ -390,6 +380,7 @@ If the processor supports the VMX Operation, it's time to enable it. As I told y
 Form Intel Software Developer's Manual (**23.7 ENABLING AND ENTERING VMX OPERATION**):
 
 Before system software can enter VMX operation, it enables VMX by setting CR4.VMXE\[bit 13\] = 1. VMX operation is then entered by executing the VMXON instruction. VMXON causes an invalid-opcode exception (#UD) if executed with CR4.VMXE = 0. Once in VMX operation, it is not possible to clear CR4.VMXE. System software leaves VMX operation by executing the VMXOFF instruction. CR4.VMXE can be cleared outside of VMX operation after executing VMXOFF.  
+
 VMXON is also controlled by the IA32\_FEATURE\_CONTROL MSR (MSR address 3AH). This MSR is cleared to zero when a logical processor is reset. The relevant bits of the MSR are:
 
 -  Bit 0 is the lock bit. If this bit is clear, VMXON causes a general-protection (#GP) exception. If the lock bit is set, WRMSR to this MSR causes a general-protection exception; the MSR cannot be modified until a power-up reset. 
