@@ -77,23 +77,29 @@ After registering a device (explained in the previous part), we need to introduc
 The following code is responsible for configuring different IRP MJ Functions and introducing custom kernel-mode functions as the IRP handlers.
 
 ```
-	if (NtStatus == STATUS_SUCCESS && NtStatusSymLinkResult == STATUS_SUCCESS)
-	{
-		for (uiIndex = 0; uiIndex < IRP_MJ_MAXIMUM_FUNCTION; uiIndex++)
-			pDriverObject->MajorFunction[uiIndex] = DrvUnsupported;
+    if (NtStatus == STATUS_SUCCESS)
+    {
+        for (Index = 0; Index < IRP_MJ_MAXIMUM_FUNCTION; Index++)
+        {
+            DriverObject->MajorFunction[Index] = DrvUnsupported;
+        }
 
-		DbgPrint("[*] Setting Devices major functions.");
-		pDriverObject->MajorFunction[IRP_MJ_CLOSE] = DrvClose;
-		pDriverObject->MajorFunction[IRP_MJ_CREATE] = DrvCreate;
-		pDriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvIOCTLDispatcher;
-		pDriverObject->MajorFunction[IRP_MJ_READ] = DrvRead;
-		pDriverObject->MajorFunction[IRP_MJ_WRITE] = DrvWrite;
+        DbgPrint("[*] Setting Devices major functions.");
+        DriverObject->MajorFunction[IRP_MJ_CLOSE]          = DrvClose;
+        DriverObject->MajorFunction[IRP_MJ_CREATE]         = DrvCreate;
+        DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DrvIoctlDispatcher;
 
-		pDriverObject->DriverUnload = DrvUnload;
-	}
-	else {
-		DbgPrint("[*] There was some errors in creating device.");
-	}
+        DriverObject->MajorFunction[IRP_MJ_READ]  = DrvRead;
+        DriverObject->MajorFunction[IRP_MJ_WRITE] = DrvWrite;
+
+        DriverObject->DriverUnload = DrvUnload;
+
+        IoCreateSymbolicLink(&DosDeviceName, &DriverName);
+    }
+    else
+    {
+        DbgPrint("[*] There were some errors in creating device.");
+    }
 ```
 
 You can see that we used "**DrvUnsupported**" for all functions. This function handles all MJ Functions and tells the user that it's not supported. 
@@ -101,63 +107,56 @@ You can see that we used "**DrvUnsupported**" for all functions. This function h
 The main body of  "**DrvUnsupported**" is like this:
 
 ```
-NTSTATUS DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS
+DrvUnsupported(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("[*] This function is not supported :( !");
+    DbgPrint("[*] This function is not supported :( !");
 
-	Irp->IoStatus.Status = STATUS_SUCCESS;
-	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO_NO_INCREMENT);
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
+    Irp->IoStatus.Information = 0;
+    IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS_SUCCESS;
+    return STATUS_SUCCESS;
 }
 ```
 
 We also introduce other Major Functions that are essential for our device. We'll complete the implementation of some of these MJ Functions in the future parts. 
 
 ```
-NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS
+DrvRead(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("[*] Not implemented yet :( !");
+    DbgPrint("[*] Not implemented yet :( !");
 
-	Irp->IoStatus.Status = STATUS_SUCCESS;
-	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO_NO_INCREMENT);
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
+    Irp->IoStatus.Information = 0;
+    IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS_SUCCESS;
+    return STATUS_SUCCESS;
 }
 
-NTSTATUS DrvRead(IN PDEVICE_OBJECT DeviceObject,IN PIRP Irp)
+NTSTATUS
+DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("[*] Not implemented yet :( !");
+    DbgPrint("[*] Not implemented yet :( !");
 
-	Irp->IoStatus.Status = STATUS_SUCCESS;
-	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO_NO_INCREMENT);
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
+    Irp->IoStatus.Information = 0;
+    IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS_SUCCESS;
+    return STATUS_SUCCESS;
 }
 
-NTSTATUS DrvWrite(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS
+DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	DbgPrint("[*] Not implemented yet :( !");
+    DbgPrint("[*] Not implemented yet :( !");
 
-	Irp->IoStatus.Status = STATUS_SUCCESS;
-	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO_NO_INCREMENT);
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
+    Irp->IoStatus.Information = 0;
+    IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
-	return STATUS_SUCCESS;
-}
-
-NTSTATUS DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
-{
-	DbgPrint("[*] Not implemented yet :( !");
-
-	Irp->IoStatus.Status = STATUS_SUCCESS;
-	Irp->IoStatus.Information = 0;
-	IoCompleteRequest(Irp, IO_NO_INCREMENT);
-
-	return STATUS_SUCCESS;
+    return STATUS_SUCCESS;
 }
 ```
 
@@ -198,7 +197,7 @@ We can use this list of IRP Major Functions to perform different operations in a
 #define IRP_MJ_QUERY_QUOTA              0x19
 #define IRP_MJ_SET_QUOTA                0x1a
 #define IRP_MJ_PNP                      0x1b
-#define IRP_MJ_PNP_POWER                IRP_MJ_PNP      // Obsolete....
+#define IRP_MJ_PNP_POWER                IRP_MJ_PNP // Obsolete....
 #define IRP_MJ_MAXIMUM_FUNCTION         0x1b
 ```
 
@@ -270,53 +269,54 @@ First, we need to know whether or not we're running on an Intel-based processor.
 The following function returns the vendor string by using the `CPUID` instruction.
 
 ```
-string GetCpuID()
+std::string
+GetCpuID()
 {
-	//Initialize used variables
-	char SysType[13]; //Array consisting of 13 single bytes/characters
-	string CpuID; //The string that will be used to add all the characters to
-				  //Starting coding in assembly language
-	_asm
-	{
-		//Execute CPUID with EAX = 0 to get the CPU producer
+    // Initialize used variables
+    char   SysType[13]; // Array consisting of 13 single bytes/characters
+    string CpuID;       // The string that will be used to add all the characters to
+                        // Starting coding in assembly language
+    _asm
+        {
+            // Execute CPUID with EAX = 0 to get the CPU producer
 		XOR EAX, EAX
 		CPUID
-		//MOV EBX to EAX and get the characters one by one by using shift out right bitwise operation.
+                    // MOV EBX to EAX and get the characters one by one by using shift out right bitwise operation.
 		MOV EAX, EBX
-		MOV SysType[0], al
-		MOV SysType[1], ah
+		MOV SysType[0], AL
+		MOV SysType[1], AH
 		SHR EAX, 16
-		MOV SysType[2], al
-		MOV SysType[3], ah
-		//Get the second part the same way but these values are stored in EDX
+		MOV SysType[2], AL
+		MOV SysType[3], AH
+                // Get the second part the same way but these values are stored in EDX
 		MOV EAX, EDX
-		MOV SysType[4], al
-		MOV SysType[5], ah
+		MOV SysType[4], AL
+		MOV SysType[5], AH
 		SHR EAX, 16
-		MOV SysType[6], al
-		MOV SysType[7], ah
-		//Get the third part
+		MOV SysType[6], AL
+		MOV SysType[7], AH
+                // Get the third part
 		MOV EAX, ECX
-		MOV SysType[8], al
-		MOV SysType[9], ah
+		MOV SysType[8], AL
+		MOV SysType[9], AH
 		SHR EAX, 16
-		MOV SysType[10], al
-		MOV SysType[11], ah
+		MOV SysType[10], AL
+		MOV SysType[11], AH
 		MOV SysType[12], 00
-	}
-	CpuID.assign(SysType, 12);
-	return CpuID;
+        }
+    CpuID.assign(SysType, 12);
+    return CpuID;
 }
 ```
 
 The last step is checking for the presence of **VMX**. We can check it using the following code :
 
 ```
-bool VMX_Support_Detection()
+bool
+DetectVmxSupport()
 {
-
-	bool VMX = false;
-	__asm {
+    bool VMX = false;
+    __asm {
 		xor    eax, eax
 		inc    eax
 		cpuid
@@ -328,9 +328,9 @@ bool VMX_Support_Detection()
 		mov    VMX, 0x1
 		NopInstr :
 		nop
-	}
+    }
 
-	return VMX;
+    return VMX;
 }
 ```
 
@@ -339,31 +339,49 @@ As you can see, it checks `CPUID` with `EAX=1`, and if the 5th (6th) bit is one,
 All in all, our main code to detect the support for VMX should be something like this:
 
 ```
-int main()
+int
+main()
 {
-	string CpuID;
-	CpuID = GetCpuID();
-	cout << "[*] The CPU Vendor is : " << CpuID << endl;
-	if (CpuID == "GenuineIntel")
-	{
-		cout << "[*] The Processor virtualization technology is VT-x. \n";
-	}
-	else
-	{
-		cout << "[*] This program is not designed to run in a non-VT-x environemnt !\n";
-		return 1;
-	}
-	
-	if (VMX_Support_Detection())
-	{
-		cout << "[*] VMX Operation is supported by your processor .\n";
-	}
-	else
-	{
-		cout << "[*] VMX Operation is not supported by your processor .\n";
-		return 1;
-	}
-	_getch();
+    std::string CpuId;
+
+    PrintAppearance();
+
+    CpuId = GetCpuID();
+
+    cout << "[*] The CPU Vendor is : " << CpuId << endl;
+
+    if (CpuId == "GenuineIntel")
+    {
+        cout << "[*] The Processor virtualization technology is VT-x. \n";
+    }
+    else
+    {
+        cout << "[*] This program is not designed to run in a non-VT-x environment !\n";
+        return 1;
+    }
+
+    if (DetectVmxSupport())
+    {
+        cout << "[*] VMX Operation is supported by your processor .\n";
+    }
+    else
+    {
+        cout << "[*] VMX Operation is not supported by your processor .\n";
+        return 1;
+    }
+
+    HANDLE hWnd = CreateFile(L"\\\\.\\MyHypervisorDevice",
+                             GENERIC_READ | GENERIC_WRITE,
+                             FILE_SHARE_READ |
+                                 FILE_SHARE_WRITE,
+                             NULL, /// lpSecurityAttirbutes
+                             OPEN_EXISTING,
+                             FILE_ATTRIBUTE_NORMAL |
+                                 FILE_FLAG_OVERLAPPED,
+                             NULL); /// lpTemplateFile
+
+    _getch();
+
     return 0;
 }
 ```
@@ -372,80 +390,93 @@ The final result:
 
 ![User-mode app](../../assets/images/vmx-detection.png)
 
-________________________________________________________
 ## **Enabling VMX Operation**
 
 If the processor supports the VMX Operation, it's time to enable it. As I told you above, **IRP\_MJ\_CREATE** is the first function that should be used to start the operation.
 
-Form Intel Software Developer's Manual (**23.7 ENABLING AND ENTERING VMX OPERATION**):
+Before entering the VMX operation, we should enable VMX by setting CR4.VMXE\[bit 13\] = 1. VMX operation is then entered by executing the VMXON instruction. VMXON causes an invalid-opcode exception (#UD) if executed with CR4.VMXE = 0. Once in VMX operation, it is not possible to clear CR4.VMXE. 
 
-Before system software can enter VMX operation, it enables VMX by setting CR4.VMXE\[bit 13\] = 1. VMX operation is then entered by executing the VMXON instruction. VMXON causes an invalid-opcode exception (#UD) if executed with CR4.VMXE = 0. Once in VMX operation, it is not possible to clear CR4.VMXE. System software leaves VMX operation by executing the VMXOFF instruction. CR4.VMXE can be cleared outside of VMX operation after executing VMXOFF.  
+After that, we can leave the VMX operation by executing the VMXOFF instruction and, this time, CR4.VMXE can be cleared.  
 
-VMXON is also controlled by the IA32\_FEATURE\_CONTROL MSR (MSR address 3AH). This MSR is cleared to zero when a logical processor is reset. The relevant bits of the MSR are:
+VMXON is also controlled by the IA32\_FEATURE\_CONTROL MSR (MSR address 3AH). This MSR is cleared to zero when a logical processor is reset. 
+
+Let's look at the first bit of this MSR:
 
 -  Bit 0 is the lock bit. If this bit is clear, VMXON causes a general-protection (#GP) exception. If the lock bit is set, WRMSR to this MSR causes a general-protection exception; the MSR cannot be modified until a power-up reset. 
 
+What does it mean? It means that we can disable the VMX feature without the ability to be enabled again. Only after a system reset, we can enable the VMX.
+
 System BIOS can use this bit to provide a setup option for BIOS to disable support for VMX. To enable VMX support in a platform, BIOS must set bit 1, bit 2, or both, as well as the lock bit.
--  Bit 1 enables VMXON in SMX operation. If this bit is clear, execution of VMXON in SMX operation causes a general-protection exception. Attempts to set this bit on logical processors that do not support both VMX operation and SMX operation cause general-protection exceptions.
--  Bit 2 enables VMXON outside SMX operation. If this bit is clear, execution of VMXON outside SMX operation causes a general-protection exception. Attempts to set this bit on logical processors that do not support VMX operation cause general-protection exceptions.
 
 ### **Setting CR4 VMXE Bit**
 
- Do you remember the previous part where I told you how to [create an inline assembly in Windows Driver Kit x64](https://rayanfam.com/topics/inline-assembly-in-x64/)? 
+ Do you remember the previous part where I told you how to [create an inline assembly in Windows Driver Kit (x64)](https://rayanfam.com/topics/inline-assembly-in-x64/)? 
 
-Now you should create some function to perform this operation in assembly.
+Now we should create some function to perform this operation in assembly.
 
 Just in Header File (in my case **Source.h**) declare your function:
 
 ```
-extern void inline Enable_VMX_Operation(void);
+extern void inline AsmEnableVmxOperation(void);
 ```
 
-Then in the assembly file (in my case SourceAsm.asm), add this function (Which sets the 13th (14th) bit of CR4).
+Then in the assembly file (in my case, "SourceAsm.asm"), add this function (Which sets the 13th (14th) bit of CR4).
 
 ```
-Enable_VMX_Operation PROC PUBLIC
-push rax			; Save the state
+AsmEnableVmxOperation PROC PUBLIC
 
-xor rax,rax			; Clear the RAX
-mov rax,cr4
-or rax,02000h		        ; Set the 14th bit
-mov cr4,rax
+	PUSH RAX			    ; Save the state
+	
+	XOR RAX, RAX			; Clear the RAX
+	MOV RAX, CR4
 
-pop rax				; Restore the state
-ret
-Enable_VMX_Operation ENDP
+	OR RAX,02000h	    	; Set the 14th bit
+	MOV CR4, RAX
+	
+	POP RAX			     	; Restore the state
+	RET
+
+AsmEnableVmxOperation ENDP
 ```
 
 Also, declare your function in the above of SourceAsm.asm.
 
 ```
-PUBLIC Enable_VMX_Operation
+PUBLIC AsmEnableVmxOperation
 ```
 
-The above function should be called in **DrvCreate**:
+This assembly function should be called in **DrvCreate**:
 
 ```
-NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS
+DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-	Enable_VMX_Operation();	// Enabling VMX Operation
-	DbgPrint("[*] VMX Operation Enabled Successfully !");
-	return STATUS_SUCCESS;
+    //
+    // Enabling VMX Operation
+    //
+    AsmEnableVmxOperation();
+    DbgPrint("[*] VMX Operation Enabled Successfully !");
+
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
+    Irp->IoStatus.Information = 0;
+    IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+    return STATUS_SUCCESS;
 }
 ```
 
 At last, we should call the following function from the user-mode:
 
 ```
-	HANDLE hWnd = CreateFile(L"\\\\.\\MyHypervisorDevice",
-		GENERIC_READ | GENERIC_WRITE,
-		FILE_SHARE_READ |
-		FILE_SHARE_WRITE,
-		NULL, /// lpSecurityAttirbutes
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL |
-		FILE_FLAG_OVERLAPPED,
-		NULL); /// lpTemplateFile 
+    HANDLE hWnd = CreateFile(L"\\\\.\\MyHypervisorDevice",
+                             GENERIC_READ | GENERIC_WRITE,
+                             FILE_SHARE_READ |
+                                 FILE_SHARE_WRITE,
+                             NULL, /// lpSecurityAttirbutes
+                             OPEN_EXISTING,
+                             FILE_ATTRIBUTE_NORMAL |
+                                 FILE_FLAG_OVERLAPPED,
+                             NULL); /// lpTemplateFile
 ```
 
 If you see the following result, you successfully completed the second part.
@@ -456,7 +487,7 @@ If you see the following result, you successfully completed the second part.
 
 ## **Conclusion**
 
-In this part, you learned about the basic stuff you need to know to create a Windows Driver Kit program, and then we entered our virtual environment to build a cornerstone for the rest of the parts.
+In this part, we learned about the basic stuff we need to know to create a Windows Driver Kit program, and then we entered our virtual environment to build a cornerstone for the rest of the parts.
 
 In the third part, we're getting deeper with Intel VT-x and making our driver even more advanced.
 
