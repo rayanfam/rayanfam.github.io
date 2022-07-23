@@ -31,7 +31,7 @@ author:
 
 ## **Introduction**
 
-This is the third part of the tutorial "**Hypervisor From Scratch**". This part should familiarize you with how to start creating your own VMM. In the previous part, we learned how to make WDK drivers that handle user-mode requests and enable the VMX bit in our processor. In this part, we extend our driver and add VMX functionalities to our VMM. At last, we use different VT-x instructions in the VMM.
+This is the third part of the tutorial "**Hypervisor From Scratch**". In this part, we'll continue our journey toward learning hypervisors and how to start creating our custom VMM. In the previous part, we learned how to make WDK drivers that handle user-mode requests and enable the VMX bit in our processor. In this part, we extend our driver and add VMX functionalities to our VMM. At last, we use different VT-x instructions in the VMM.
 
 ## **Table of Contents**
 
@@ -40,6 +40,10 @@ This is the third part of the tutorial "**Hypervisor From Scratch**". This part 
 - **Overview**
 - **Interacting with the driver from user-mode**
     - Buffer Descriptions for I/O Control Codes
+            1. METHOD\_BUFFERED
+            2. METHOD\_IN\_DIRECT and METHOD\_OUT\_DIRECT
+            3. METHOD\_NIETHER
+    - IOCTL Structure
     - IOCTL Dispatcher
 - **Per Processor Configuration**
     - Setting Affinity
@@ -55,9 +59,9 @@ This is the third part of the tutorial "**Hypervisor From Scratch**". This part 
 
 ## **Overview**
 
-In this part, we demonstrate how to interact with the VMM from Windows user-mode (**IOCTL Dispatcher**), then we solve the problems with the affinity and running code in a particular core. Finally, we get familiar with initializing **VMXON Regions** and **VMCS Regions**, then we load our hypervisor regions into each core and implement our custom functions to work with hypervisor instruction and many more things related to Virtual-Machine Control Data Structures (**VMCS**).
+In this part, we demonstrate how to interact with VMM from Windows user-mode (**IOCTL Dispatcher**), then we solve the problems with the affinity and running code in a particular core. Finally, we get familiar with initializing **VMXON Regions** and **VMCS Regions**, then we load our hypervisor into each core and implement our custom functions to work with hypervisor instructions and many more things related to Virtual-Machine Control Data Structures (**VMCS**).
 
-Some of the implementations are derived from [HyperBone](https://github.com/DarthTon/HyperBone) (Minimalistic VT-X hypervisor with hooks) and [HyperPlatform](https://github.com/tandasat/HyperPlatform) by [Satoshi Tanda](https://github.com/tandasat/HyperPlatform) and [hvpp](https://github.com/wbenny/hvpp) which is amazing work by my friend [Petr Beneš](https://twitter.com/PetrBenes) the person who helped me creating these series.
+Some of the implementations are derived from [HyperBone](https://github.com/DarthTon/HyperBone) (Minimalistic VT-X hypervisor with hooks), [HyperPlatform](https://github.com/tandasat/HyperPlatform) by [Satoshi Tanda](https://github.com/tandasat) and [hvpp](https://github.com/wbenny/hvpp) which is amazing work by my friend [Petr Beneš](https://twitter.com/PetrBenes).
 
 The full source code of this tutorial is available on :
 
@@ -65,57 +69,67 @@ The full source code of this tutorial is available on :
 
 ## **Interacting with the driver from user-mode**
 
-The most important function in IRP MJ functions for us is **DrvIOCTLDispatcher (IRP\_MJ\_DEVICE\_CONTROL)**, and that's because this function can be called from user-mode with a particular IOCTL number, which means you can have a special code in your driver and implement a unique functionality corresponding this code, then by knowing the code (from user-mode) you can ask your driver to perform your request, so you can imagine that how useful this function would be.
-
-Now let's implement our functions for dispatching IOCTL code and print it from our kernel-mode driver.
+The most important function for us in IRP MJ functions is **DrvIoctlDispatcher** or (IRP\_MJ\_DEVICE\_CONTROL) Major Function, and that's because this function can be called from user-mode with a particular IOCTL number, which means we can have a special code in our driver and implement a unique functionality corresponding this code, then by knowing the code (from user-mode) we can ask our driver to perform the request, so this way we can request a certain functionality from the kernel.
 
 ### **Buffer Descriptions for I/O Control Codes**
 
-As long as I know, there are several methods by which you can dispatch IOCTL, e.g., **METHOD\_BUFFERED, METHOD\_NIETHER, METHOD\_IN\_DIRECT, METHOD\_OUT\_DIRECT**. These methods should be followed by the user-mode caller (the difference is in the place where buffers transfer between user-mode and kernel-mode or vice versa). I just copied the implementations with minor modifications from [Microsoft's Windows Driver Samples](https://github.com/Microsoft/Windows-driver-samples). You can see the full code for [user-mode](https://github.com/Microsoft/Windows-driver-samples/blob/master/general/ioctl/wdm/exe/testapp.c) and [kernel-mode](https://github.com/Microsoft/Windows-driver-samples/blob/master/general/ioctl/wdm/sys/sioctl.c).
+As explained above, IOCTL codes request a certain functionality from the kernel-mode. It's clear that in most cases, we need to transfer a buffer (structure) to the kernel, which shows different details about our request. Thus, we need to copy the buffer from the user-mode and pass it to the kernel-mode routines.
 
-Imagine we have the following IOCTL codes:
+There are several methods in which Windows copies the buffer of the user-mode codes to the kernel for dispatching IOCTs. The following methods
+METHOD\_BUFFERED
+METHOD\_IN\_DIRECT
+METHOD\_OUT\_DIRECT
+METHOD\_NIETHER
+The difference is where buffers transfer between user-mode and kernel-mode. Let's see each of them in detail.
 
-```
-//
-// Device type           -- in the "User Defined" range."
-//
-#define SIOCTL_TYPE 40000
+#### **METHOD\_BUFFERED**
 
-//
-// The IOCTL function codes from 0x800 to 0xFFF are for customer use.
-//
-#define IOCTL_SIOCTL_METHOD_IN_DIRECT \
-    CTL_CODE( SIOCTL_TYPE, 0x900, METHOD_IN_DIRECT, FILE_ANY_ACCESS  )
+For METHOD\_BUFFERED, the pointer to the user-mode buffer is available at **Irp->AssociatedIrp.SystemBuffer**, and we can put the output buffer to the same address (**Irp->AssociatedIrp.SystemBuffer**). 
 
-#define IOCTL_SIOCTL_METHOD_OUT_DIRECT \
-    CTL_CODE( SIOCTL_TYPE, 0x901, METHOD_OUT_DIRECT , FILE_ANY_ACCESS  )
+This method is typically used for transferring small amounts of data per request. Most I/O control codes for device and intermediate drivers use this type as Windows copies the user-mode buffer to the kernel-mode and the kernel-mode buffer to the user-mode.
 
-#define IOCTL_SIOCTL_METHOD_BUFFERED \
-    CTL_CODE( SIOCTL_TYPE, 0x902, METHOD_BUFFERED, FILE_ANY_ACCESS  )
+#### **METHOD\_IN\_DIRECT and METHOD\_OUT\_DIRECT**
 
-#define IOCTL_SIOCTL_METHOD_NEITHER \
-    CTL_CODE( SIOCTL_TYPE, 0x903, METHOD_NEITHER , FILE_ANY_ACCESS  )
-```	
+For these methods, the pointer to the user-mode buffer is available at **Irp->AssociatedIrp.SystemBuffer**.
 
-There is a convention for defining IOCTLs as mentioned [here](https://www.codeproject.com/Articles/9575/Driver-Development-Part-2-Introduction-to-Implemen),
+This type is generally used for reading or writing large amounts of data that must be transferred fast as it won't copy the data and instead shares the pages.
 
-The IOCTL is a 32-bit number. The first two low bits define the "transfer type", which can be METHOD\_OUT\_DIRECT, METHOD\_IN\_DIRECT, METHOD\_BUFFERED, or METHOD\_NEITHER.
+The _METHOD_IN_DIRECT_ is specified if the caller pass data to the driver, and the _METHOD_OUT_DIRECT_ is selected if the caller will receive data from the driver.
 
-The next set of bits from 2 to 13 define the "Function Code". The high bit is referred to as the "custom bit". This is used to determine user-defined IOCTLs versus system defined. This means that function codes 0x800 and greater are customs defined similarly to how WM\_USER works for Windows Messages.
+#### **METHOD\_NIETHER**
+
+The input buffer address is specified by **Parameters.DeviceIoControl.Type3InputBuffer** in the driver's **IO_STACK_LOCATION** structure, and the output buffer(to the user-mode) is specified by **Irp->UserBuffer**.
+
+This method is neither buffered nor direct I/O. The I/O manager does not provide any system buffers, and the IRP provides the user-mode virtual addresses of the input and output buffers without validating or mapping them.
+
+### **IOCTL Structure**
+
+We should specify all of the above transferring types into the following structure.
+
+![](../../assets/images/ioctl-structure.png)
+
+There is a convention for defining IOCTLs as mentioned [here](https://www.codeproject.com/Articles/9575/Driver-Development-Part-2-Introduction-to-Implemen). The IOCTL is a 32-bit number. The first two low bits represent the "transfer type", which can be METHOD\_OUT\_DIRECT, METHOD\_IN\_DIRECT, METHOD\_BUFFERED, or METHOD\_NEITHER.
+
+The next set of bits from 2 to 13 define the "Function Code". The high bit is referred to as the "custom bit". This is used to determine user-defined IOCTLs versus system defined. This means that function codes 0x800 and greater are customs defined for Windows Messages.
 
 The next two bits define the access required to issue the IOCTL. This is how the I/O Manager can reject IOCTL requests if the handle has not been opened with the correct access. The access types are such as FILE\_READ\_DATA, FILE\_WRITE\_DATA, etc.
 
 The last bits represent the device type the IOCTLs are written for. The high bit again represents user-defined values.
 
-In IOCTL Dispatcher, The "**Parameters.DeviceIoControl .IoControlCode**" of the **IO\_STACK\_LOCATION** contains the IOCTL code being invoked.
+We can use the following defined macro to create our IOCTL code.
 
-For **METHOD\_IN\_DIRECT** and **METHOD\_OUT\_DIRECT**, the difference between IN and OUT is that with IN, you can use the output buffer to pass in data while the OUT is only used to return data.
-
-The **METHOD\_BUFFERED** is a buffer that the data is copied from this buffer. The buffer is created as the larger of the two sizes, the input or output buffer. Then the read buffer is copied to this new buffer. Before you return, you simply copy the return data into the same buffer. The return value is put into the **IO\_STATUS\_BLOCK**, and the I/O Manager copies the data into the output buffer. The **METHOD\_NEITHER** is the same.
+```
+#define IOCTL_Device_Function CTL_CODE(DeviceType, Function, Method, Access)
+```
+For example, the following IOCTL code can be defined.
+```
+#define IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL \
+    CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS)
+```
 
 ### **IOCTL Dispatcher**
 
-Ok, let's see an example :
+Now let's implement our functions for dispatching IOCTL codes and print them from our kernel-mode driver.
 
 First, we declare all our needed variables.
 
@@ -851,3 +865,7 @@ Note: Remember that hypervisors change over time because new features are added
 \[7\] Memory Caching Types ([https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/wdm/ne-wdm-\_memory\_caching\_type)](https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/wdm/ne-wdm-_memory_caching_type)
 
 \[8\] What is writeback cache? ([https://whatis.techtarget.com/definition/write-back](https://whatis.techtarget.com/definition/write-back))
+
+\[9\] Buffer Descriptions for I/O Control Codes ([https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/buffer-descriptions-for-i-o-control-codes](https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/buffer-descriptions-for-i-o-control-codes))
+
+\[10\] Defining I/O Control Codes ([https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/defining-i-o-control-codes](https://docs.microsoft.com/en-us/windows-hardware/drivers/kernel/defining-i-o-control-codes))
