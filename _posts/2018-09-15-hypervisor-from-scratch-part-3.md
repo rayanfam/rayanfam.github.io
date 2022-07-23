@@ -40,9 +40,9 @@ This is the third part of the tutorial "**Hypervisor From Scratch**". In this pa
 - **Overview**
 - **Interacting with the driver from user-mode**
     - Buffer Descriptions for I/O Control Codes
-            1. METHOD\_BUFFERED
-            2. METHOD\_IN\_DIRECT and METHOD\_OUT\_DIRECT
-            3. METHOD\_NIETHER
+    - METHOD\_BUFFERED
+    - METHOD\_IN\_DIRECT and METHOD\_OUT\_DIRECT
+    - METHOD\_NIETHER
     - IOCTL Structure
     - IOCTL Dispatcher
 - **Per Processor Configuration**
@@ -75,28 +75,30 @@ The most important function for us in IRP MJ functions is **DrvIoctlDispatcher*
 
 As explained above, IOCTL codes request a certain functionality from the kernel-mode. It's clear that in most cases, we need to transfer a buffer (structure) to the kernel, which shows different details about our request. Thus, we need to copy the buffer from the user-mode and pass it to the kernel-mode routines.
 
-There are several methods in which Windows copies the buffer of the user-mode codes to the kernel for dispatching IOCTs. The following methods
+There are several methods in which Windows copies the buffer of the user-mode codes to the kernel for dispatching IOCTs. 
+
 METHOD\_BUFFERED
 METHOD\_IN\_DIRECT
 METHOD\_OUT\_DIRECT
 METHOD\_NIETHER
+
 The difference is where buffers transfer between user-mode and kernel-mode. Let's see each of them in detail.
 
-#### **METHOD\_BUFFERED**
+### **METHOD\_BUFFERED**
 
 For METHOD\_BUFFERED, the pointer to the user-mode buffer is available at **Irp->AssociatedIrp.SystemBuffer**, and we can put the output buffer to the same address (**Irp->AssociatedIrp.SystemBuffer**). 
 
 This method is typically used for transferring small amounts of data per request. Most I/O control codes for device and intermediate drivers use this type as Windows copies the user-mode buffer to the kernel-mode and the kernel-mode buffer to the user-mode.
 
-#### **METHOD\_IN\_DIRECT and METHOD\_OUT\_DIRECT**
+### **METHOD\_IN\_DIRECT and METHOD\_OUT\_DIRECT**
 
 For these methods, the pointer to the user-mode buffer is available at **Irp->AssociatedIrp.SystemBuffer**.
 
 This type is generally used for reading or writing large amounts of data that must be transferred fast as it won't copy the data and instead shares the pages.
 
-The _METHOD_IN_DIRECT_ is specified if the caller pass data to the driver, and the _METHOD_OUT_DIRECT_ is selected if the caller will receive data from the driver.
+The METHOD\_IN\_DIRECT is specified if the caller pass data to the driver, and the METHOD\_OUT\_DIRECT is selected if the caller will receive data from the driver.
 
-#### **METHOD\_NIETHER**
+### **METHOD\_NIETHER**
 
 The input buffer address is specified by **Parameters.DeviceIoControl.Type3InputBuffer** in the driver's **IO_STACK_LOCATION** structure, and the output buffer(to the user-mode) is specified by **Irp->UserBuffer**.
 
