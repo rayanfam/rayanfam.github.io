@@ -50,6 +50,7 @@ This is the third part of the tutorial "**Hypervisor From Scratch**". In this pa
 - **Converting physical and virtual addresses**
 - **Check VMX support in the kernel**
 - **VMXON Region**
+    - Allocating VMXON Region
 - **Virtual-Machine Control Data Structures (VMCS)**
     - Initializing VMCS Region
 - **VMXOFF Instruction**
@@ -100,7 +101,7 @@ The METHOD\_IN\_DIRECT is specified if the caller pass data to the driver, and t
 
 ### **METHOD\_NIETHER**
 
-The input buffer address is specified by **Parameters.DeviceIoControl.Type3InputBuffer** in the driver's **IO_STACK_LOCATION** structure, and the output buffer(to the user-mode) is specified by **Irp->UserBuffer**.
+The input buffer address is specified by **Parameters.DeviceIoControl.Type3InputBuffer** in the driver's **IO\_STACK\_LOCATION** structure, and the output buffer(to the user-mode) is specified by **Irp->UserBuffer**.
 
 This method is neither buffered nor direct I/O. The I/O manager does not provide any system buffers, and the IRP provides the user-mode virtual addresses of the input and output buffers without validating or mapping them.
 
@@ -125,35 +126,19 @@ We can use the following defined macro to create our IOCTL code.
 ```
 For example, the following IOCTL code can be defined.
 ```
-#define IOCTL_RETURN_IRP_PENDING_PACKETS_AND_DISALLOW_IOCTL \
+#define IOCTL_TEST \
     CTL_CODE(FILE_DEVICE_UNKNOWN, 0x801, METHOD_BUFFERED, FILE_ANY_ACCESS)
 ```
 
 ### **IOCTL Dispatcher**
 
-Now let's implement our functions for dispatching IOCTL codes and print them from our kernel-mode driver.
+Now let's implement our functions for dispatching IOCTL codes.
 
-First, we declare all our needed variables.
+Note that the **PAGED\_CODE()** macro ensures that the calling thread runs at an IRQL low enough to permit paging, this macro is used to ensure that paging is enabled, for example, the current execution is not at DISPATCH\_LEVEL. Don't worry; we'll discuss IRQL in detail in the future parts.
 
-Note that the **PAGED\_CODE** macro ensures that the calling thread runs at an IRQL low enough to permit paging.
+The next step is to check the input buffer and the output buffer's length. We'll check it because we need to ensure that the user provides a buffer for the kernel and expects a buffer to be received. The following code gets the input and output buffer length from the **IO\_STACK\_LOCATION**.
 
 ```
-NTSTATUS DrvIOCTLDispatcher( PDEVICE_OBJECT DeviceObject, PIRP Irp)
-{
-	PIO_STACK_LOCATION  irpSp;// Pointer to current stack location
-	NTSTATUS            ntStatus = STATUS_SUCCESS;// Assume success
-	ULONG               inBufLength; // Input buffer length
-	ULONG               outBufLength; // Output buffer length
-	PCHAR               inBuf, outBuf; // pointer to Input and output buffer
-	PCHAR               data = "This String is from Device Driver !!!";
-	size_t              datalen = strlen(data) + 1;//Length of data including null
-	PMDL                mdl = NULL;
-	PCHAR               buffer = NULL;
-
-	UNREFERENCED_PARAMETER(DeviceObject);
-
-	PAGED_CODE();
-
 	irpSp = IoGetCurrentIrpStackLocation(Irp);
 	inBufLength = irpSp->Parameters.DeviceIoControl.InputBufferLength;
 	outBufLength = irpSp->Parameters.DeviceIoControl.OutputBufferLength;
@@ -167,7 +152,7 @@ NTSTATUS DrvIOCTLDispatcher( PDEVICE_OBJECT DeviceObject, PIRP Irp)
 ...
 ```
 
-Then we have to use switch-case through the IOCTLs (Just copy buffers and show it from **DbgPrint()**).
+Then we have to use the switch-case through the IOCTL code. Finally, we show the data from the user-mode by using the **DbgPrint()** function.
 
 ```
 	switch (irpSp->Parameters.DeviceIoControl.IoControlCode)
@@ -213,9 +198,7 @@ VOID PrintIrpInfo(PIRP Irp)
 }
 ```
 
-We only use the **IOCTL\_SIOCTL\_METHOD\_BUFFERED** method in the rest of the post.
-
-Now from user-mode and if you remember from the [previous part](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/) where we create a handle (HANDLE) using **CreateFile**, now we can use the **DeviceIoControl** to call **DrvIOCTLDispatcher** (**IRP\_MJ\_DEVICE\_CONTROL**) along with our parameters from user-mode.
+If you remember from the [previous part](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/) where we created a handle (HANDLE) using `CreateFile`, now we can use the `DeviceIoControl` with the previous handle and call  `DrvIoctlDispatcher` or (**IRP\_MJ\_DEVICE\_CONTROL**) along with our provided buffer in the kernel.
 
 ```
 	char OutputBuffer[1000];
@@ -249,9 +232,9 @@ Now from user-mode and if you remember from the [previous part](https://rayanfam
 	printf("    OutBuffer (%d): %s\n", bytesReturned, OutputBuffer);
 ```
 
-There is an old, yet great topic [here](https://www.codeproject.com/Articles/9575/Driver-Development-Part-2-Introduction-to-Implemen) which describes the different types of IOCT dispatching.
+For further reading, there is an old, yet great topic [here](https://www.codeproject.com/Articles/9575/Driver-Development-Part-2-Introduction-to-Implemen) which describes the different types of IOCTL dispatching.
 
-I think we're done with WDK basics. It's time to see how we can use Windows to build our VMM.
+We're done with WDK basics! It's time to see how we can use Windows to build our VMM.
 
 ![](../../assets/images/anime-girl-blue-moon.jpg)
 
@@ -259,15 +242,15 @@ I think we're done with WDK basics. It's time to see how we can use Windows to b
 
 ## **Per Processor Configuration**
 
-Affinity to a special logical processor is one of the main things we should consider when working with the hypervisor.
+Affinity to a special logical processor is one of the main considerations when working with the hypervisor.
 
-Unfortunately, in Windows, there is nothing like **on\_each\_cpu** (like it is in Linux Kernel Module), so we have to change our affinity manually in order to run on each logical processor. In my **Intel Core i7 6820HQ**, I have four physical cores, and each core can run two threads simultaneously (due to the presence of hyper-threading); thus, we have eight logical processors and, of course, eight sets of all the registers (including general purpose registers and MSR registers) so we should configure our VMM to work on eight logical processors.
+In my **Intel Core i7 6820HQ**, I have four physical cores, and each core can run two threads simultaneously (due to the hyper-threading); thus, we have eight logical processors and, of course, eight sets of all the registers (including general purpose registers and MSR registers) and more importantly, eight sets of VMCSs and VMXON Regions, etc. so we should configure our VMM to work on eight logical processors.
 
 ### **Setting Affinity**
 
-To get the count of logical processors, you can use **KeQueryActiveProcessorCount(0)**. Then we should pass a **KAFFINITY** mask to the **KeSetSystemAffinityThread**, which sets the system affinity of the current thread.
+To get the count of logical processors, we can use `KeQueryActiveProcessorCount(0)`. Then we should pass a **KAFFINITY** mask to the `KeSetSystemAffinityThread`, which sets the system affinity of the current thread.
 
-**KAFFINITY** mask can be configured using a simple power function :
+**KAFFINITY** mask can be configured using a simple power function:
 
 ```
 int ipow(int base, int exp) {
@@ -289,7 +272,7 @@ int ipow(int base, int exp) {
 }
 ```
 
-then we should use the following code to change the affinity of the processor and run our code in all the logical cores separately:
+After that, we should use the following code to change the affinity of the processor and run our code in all the logical cores separately:
 
 ```
 	KAFFINITY kAffinityMask;
@@ -299,14 +282,16 @@ then we should use the following code to change the affinity of the processor an
 		KeSetSystemAffinityThread(kAffinityMask);
 		DbgPrint("=====================================================");
 		DbgPrint("Current thread is executing in %d th logical processor.",i);
-		// Put you function here !
+		
+		// Put your function here!
 
 	}
 ```
+This way, we can run our codes in the different logical cores. Now, let's see other essential functionalities we need for our hypervisor.
 
 ## **Converting physical and virtual addresses**
 
-VMXON Regions and VMCS Regions (see below) use the physical address as the operand to VMXON and VMPTRLD instruction, so we should create functions to convert Virtual Address to Physical address:
+VMXON Regions and VMCS Regions (see below) use the physical address as the operand to VMXON and VMPTRLD instructions, so we should create functions to convert Virtual Address to Physical address:
 
 ```
 UINT64 VirtualAddress_to_PhysicallAddress(void* va)
@@ -315,7 +300,7 @@ UINT64 VirtualAddress_to_PhysicallAddress(void* va)
 }
 ```
 
-And as long as we can't directly use physical addresses for our modifications in protected-mode, we have to convert physical addresses to virtual addresses.
+And as long as we can't directly use physical addresses for our modifications in protected-mode, we have to convert Physical addresses to Virtual addresses too.
 
 ```
 UINT64 PhysicalAddress_to_VirtualAddress(UINT64 pa)
@@ -329,7 +314,7 @@ UINT64 PhysicalAddress_to_VirtualAddress(UINT64 pa)
 
 ## **Check VMX support in the kernel**
 
-In the previous part, we query about the presence of hypervisor from user-mode, but we should also consider checking about hypervisor from kernel-mode. This reduces the possibility of getting kernel errors in the future, or there might be something that disables the hypervisor using the **lock bit**. By the way, the following code checks **IA32\_FEATURE\_CONTROL** MSR (MSR address 3AH) to see if the **lock bit** is set or not.
+In the previous part, we query about the presence of hypervisor from user-mode, but we should also consider checking about hypervisor from kernel-mode too. This reduces the possibility of getting kernel errors in the future, or there might be something that disables the hypervisor using the **lock bit**. By the way, the following code checks **IA32\_FEATURE\_CONTROL** MSR (MSR address 3AH) to see if the **lock bit** is set or not.
 
 ```
 BOOLEAN Is_VMX_Supported()
@@ -392,13 +377,13 @@ typedef struct _CPUID
 
 Several regions are used in the VMX to handle the virtual machine state. In this part, we will walk through the VMXON Region and the VMCS Region.
 
-Before executing VMXON, software should allocate a naturally aligned 4-KByte region of memory that a logical processor may use to support VMX operation. This region is called the **VMXON region**. The address of the **VMXON region** (the VMXON pointer) is provided in an operand to VMXON.
+Before executing VMXON, we should allocate a naturally aligned 4-KByte region of memory that our logical processor will use it to support VMX operation. This region is called the **VMXON Region**. The address of the VMXON Region (the VMXON pointer) is provided in an operand to VMXON instruction.
 
-A VMM can (should) use different VMXON Regions for each logical processor; otherwise, the behavior is "undefined".
+A VMM should use different VMXON Regions for each logical processor; otherwise, the behavior is "undefined".
 
-Note: The first processors to support VMX operation require that the following bits be 1 in VMX operation: CR0.PE, CR0.NE, CR0.PG, and CR4.VMXE. The restrictions on CR0.PE and CR0.PG implies that VMX operation is supported only in paged protected mode (including IA-32e mode). Therefore, the guest software cannot be run in unpaged protected mode or in real-address mode. 
+Please note that VMX operation requires that the following bits be 1 in VMX operation: CR0.PE, CR0.NE, CR0.PG, and CR4.VMXE. The restrictions on CR0.PE and CR0.PG implies that VMX operation is supported only in paged protected-mode. Therefore, the guest software cannot be run in unpaged protected-mode or in real-address mode. 
 
-Now that we are configuring the hypervisor, we should have a global variable that describes the state of our virtual machine. The following structure is created for this purpose. We currently have two fields (**VMXON\_REGION** and **VMCS\_REGION**), but we will add new fields in this structure in the future.
+Now that we are configuring the hypervisor, we should have a global variable that describes the state of our virtual machine. The following structure is created for this purpose. We currently have two fields called (**VMXON\_REGION** and **VMCS\_REGION**), but we will add new fields and enhance this structure in the future.
 
 ```
 typedef struct _VirtualMachineState
@@ -414,7 +399,9 @@ And, of course, a global variable:
 extern PVirtualMachineState vmState;
 ```
 
-I create the following function (in "memory.c") to allocate VMXON Region and execute VMXON instruction using the allocated region's pointer.
+### **Allocating VMXON Region**
+
+The following function (in "**memory.c**") to allocate VMXON Region and execute VMXON instruction using the allocated region's pointer.
 
 ```
 BOOLEAN Allocate_VMXON_Region(IN PVirtualMachineState vmState)
@@ -476,37 +463,22 @@ BOOLEAN Allocate_VMXON_Region(IN PVirtualMachineState vmState)
 }
 ```
 
-Let's explain the  above function,
+Let's explain the above function. In the above function, we used `MmAllocateContiguousMemory` to allocate a contiguous and aligned page. We can also use `MmAllocateContiguousMemorySpecifyCache` to specify the cache type for the allocated memory.
 
-```
-	// at IRQL > DISPATCH_LEVEL memory allocation routines don't work
-	if (KeGetCurrentIrql() > DISPATCH_LEVEL)
-		KeRaiseIrqlToDpcLevel();
-```
 
-This code is for changing the current **IRQL Level** to **DISPATCH\_LEVEL**, but we can ignore this code as long as we use:
+You can read [this](https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/wdm/ne-wdm-_memory_caching_type) link to learn about different types of memory caches.
 
-```
-MmAllocateContiguousMemory
-```
+To ensure proper behavior in VMX operation, we should maintain the VMCS region and related structures in writeback cacheable memory. Alternatively, we may map any of these regions or structures with the UC (uncached) memory type. Doing so is strongly discouraged unless necessary as it will cause the performance of transitions using those structures to suffer significantly.
 
-but if you want to use another type of memory for your VMXON region, you should use  
+Writeback is a storage method in which data is written into the cache every time a change occurs but is written into the corresponding location in the main memory only at specified intervals or under certain conditions. Being cachable or not cachable can be determined from the **cache disable bit** in paging structures (PTE) and in the Memory type range register (MTRR), which is described thoroughly in the 7th part of this series.
 
-```
-MmAllocateContiguousMemorySpecifyCache
-```
-
-Other types of memory you can use can be found [here](https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/wdm/ne-wdm-_memory_caching_type).
-
-Note that to ensure proper behavior in VMX operation, you should maintain the VMCS region and related structures in writeback cacheable memory. Alternatively, you may map any of these regions or structures with the UC memory type. Doing so is strongly discouraged unless necessary as it will cause the performance of transitions using those structures to suffer significantly.
-
-Writeback is a storage method in which data is written into the cache every time a change occurs but is written into the corresponding location in the main memory only at specified intervals or under certain conditions. Being cachable or not cachable can be determined from the **cache disable bit** in paging structures (PTE).
-
-By the way, we should allocate 8192 Byte because there is no guarantee that Windows allocates the aligned memory so that we can find a piece of 4096 Bytes aligned in 8196 Bytes. (by aligning, I mean the physical address should be divisible by 4096 without any reminder).
+By the way, we allocated 8192 bytes because there is no guarantee that Windows allocates the aligned memory so that we can find a piece of 4096 bytes aligned in 8196 bytes. (by aligning, I mean the physical address should be divisible by 4096 without any reminder).
 
 In my experience, the **MmAllocateContiguousMemory** allocation is always aligned. Maybe it is because every page in PFN is allocated by 4096 bytes, and as long as we need 4096 bytes, thus it's aligned.
 
-If you are interested in Page Frame Number (PFN), then you can read [Inside Windows Page Frame Number (PFN) – Part 1](https://rayanfam.com/topics/inside-windows-page-frame-number-part1/) and [Inside Windows Page Frame Number (PFN) – Part 2](https://rayanfam.com/topics/inside-windows-page-frame-number-part2/).
+If you are interested in Page Frame Number (PFN), you can read [Inside Windows Page Frame Number (PFN) – Part 1](https://rayanfam.com/topics/inside-windows-page-frame-number-part1/) and [Inside Windows Page Frame Number (PFN) – Part 2](https://rayanfam.com/topics/inside-windows-page-frame-number-part2/).
+
+Now we should convert the allocated memory address to its physical address and make sure it's aligned.
 
 ```
 	PHYSICAL_ADDRESS PhysicalMax = { 0 };
@@ -520,9 +492,7 @@ If you are interested in Page Frame Number (PFN), then you can read [Inside Win
 	}
 ```
 
-Now we should convert the allocated memory address to its physical address and make sure it's aligned.
-
-Memory that **MmAllocateContiguousMemory** allocates is uninitialized. A kernel-mode driver must first set this memory to zero. Now we should use **RtlSecureZeroMemory** for this case.
+Memory that `MmAllocateContiguousMemory` allocates is uninitialized. The kernel-mode driver must first set this memory to zero, and we use `RtlSecureZeroMemory` for this purpose.
 
 ```
 	UINT64 PhysicalBuffer = VirtualAddress_to_PhysicallAddress(Buffer);
@@ -543,7 +513,7 @@ From Intel's manual (24.11.5 VMXON Region ):
 > 
 > It need not initialize the VMXON region in any other way. Software should use a separate region for each logical processor and should not access or modify the VMXON region of a logical processor between the execution of VMXON and VMXOFF on that logical processor. Doing otherwise may lead to unpredictable behavior.
 
-So let's get the Revision Identifier from **IA32\_VMX\_BASIC\_MSR**  and write it to our VMXON Region.
+So let's get the Revision Identifier from **IA32\_VMX\_BASIC\_MSR**  and write it to the VMXON Region.
 
 ```
 	// get IA32_VMX_BASIC_MSR RevisionId
@@ -581,11 +551,9 @@ The last part is used for executing VMXON instruction.
 | 1 | The operation failed with extended status available in the `VM-instruction error field` of the current VMCS. |
 | 2 | The operation failed without status available. |
 
-If we set the VMXON Region using VMXON and it fails, then status = 1. If there isn't any VMCS, the status = 2; if the operation was successful, the status = 0.
+If we set the VMXON Region using VMXON and it fails, then the status is equal to 1. If there isn't any VMCS, the status is equal to 2, and if the operation was successful, the status is zero. We get errors if we execute the above code twice without executing VMXOFF.
 
-If you execute the above code twice without executing VMXOFF, you get errors.
-
-Now, our VMXON Region is ready, and we're good to go.
+Now, the VMXON Region is ready, and we're good to go.
 
 ## **Virtual-Machine Control Data Structures (VMCS)**
 
