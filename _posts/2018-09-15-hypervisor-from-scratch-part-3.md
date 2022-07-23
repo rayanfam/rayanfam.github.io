@@ -39,7 +39,10 @@ This is the third part of the tutorial "**Hypervisor From Scratch**". This part 
 - **Table of Contents**
 - **Overview**
 - **Interacting with the driver from user-mode**
-- **Per Processor Configuration and Setting Affinity**
+    - Buffer Descriptions for I/O Control Codes
+    - IOCTL Dispatcher
+- **Per Processor Configuration**
+    - Setting Affinity
 - **Converting physical and virtual addresses**
 - **Check VMX support in the kernel**
 - **VMXON Region**
@@ -65,6 +68,8 @@ The full source code of this tutorial is available on :
 The most important function in IRP MJ functions for us is **DrvIOCTLDispatcher (IRP\_MJ\_DEVICE\_CONTROL)**, and that's because this function can be called from user-mode with a particular IOCTL number, which means you can have a special code in your driver and implement a unique functionality corresponding this code, then by knowing the code (from user-mode) you can ask your driver to perform your request, so you can imagine that how useful this function would be.
 
 Now let's implement our functions for dispatching IOCTL code and print it from our kernel-mode driver.
+
+### **Buffer Descriptions for I/O Control Codes**
 
 As long as I know, there are several methods by which you can dispatch IOCTL, e.g., **METHOD\_BUFFERED, METHOD\_NIETHER, METHOD\_IN\_DIRECT, METHOD\_OUT\_DIRECT**. These methods should be followed by the user-mode caller (the difference is in the place where buffers transfer between user-mode and kernel-mode or vice versa). I just copied the implementations with minor modifications from [Microsoft's Windows Driver Samples](https://github.com/Microsoft/Windows-driver-samples). You can see the full code for [user-mode](https://github.com/Microsoft/Windows-driver-samples/blob/master/general/ioctl/wdm/exe/testapp.c) and [kernel-mode](https://github.com/Microsoft/Windows-driver-samples/blob/master/general/ioctl/wdm/sys/sioctl.c).
 
@@ -107,6 +112,8 @@ In IOCTL Dispatcher, The "**Parameters.DeviceIoControl .IoControlCode**" of the
 For **METHOD\_IN\_DIRECT** and **METHOD\_OUT\_DIRECT**, the difference between IN and OUT is that with IN, you can use the output buffer to pass in data while the OUT is only used to return data.
 
 The **METHOD\_BUFFERED** is a buffer that the data is copied from this buffer. The buffer is created as the larger of the two sizes, the input or output buffer. Then the read buffer is copied to this new buffer. Before you return, you simply copy the return data into the same buffer. The return value is put into the **IO\_STATUS\_BLOCK**, and the I/O Manager copies the data into the output buffer. The **METHOD\_NEITHER** is the same.
+
+### **IOCTL Dispatcher**
 
 Ok, let's see an example :
 
@@ -234,11 +241,13 @@ I think we're done with WDK basics. It's time to see how we can use Windows to b
 
 * * *
 
-## **Per Processor Configuration and Setting Affinity**
+## **Per Processor Configuration**
 
 Affinity to a special logical processor is one of the main things we should consider when working with the hypervisor.
 
 Unfortunately, in Windows, there is nothing like **on\_each\_cpu** (like it is in Linux Kernel Module), so we have to change our affinity manually in order to run on each logical processor. In my **Intel Core i7 6820HQ**, I have four physical cores, and each core can run two threads simultaneously (due to the presence of hyper-threading); thus, we have eight logical processors and, of course, eight sets of all the registers (including general purpose registers and MSR registers) so we should configure our VMM to work on eight logical processors.
+
+### **Setting Affinity**
 
 To get the count of logical processors, you can use **KeQueryActiveProcessorCount(0)**. Then we should pass a **KAFFINITY** mask to the **KeSetSystemAffinityThread**, which sets the system affinity of the current thread.
 
@@ -562,7 +571,7 @@ If you execute the above code twice without executing VMXOFF, you get errors.
 
 Now, our VMXON Region is ready, and we're good to go.
 
-### **Virtual-Machine Control Data Structures (VMCS)**
+## **Virtual-Machine Control Data Structures (VMCS)**
 
 A logical processor uses virtual-machine control data structures (VMCSs) while it's in VMX operation. These manage transitions into and out of VMX non-root operation (VM entries and VM exits) as well as processor behavior in VMX non-root operation. This structure is manipulated by the new instructions VMCLEAR, VMPTRLD, VMREAD, and VMWRITE.
 
