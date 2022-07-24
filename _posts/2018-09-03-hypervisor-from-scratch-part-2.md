@@ -317,17 +317,17 @@ DetectVmxSupport()
 {
     bool VMX = false;
     __asm {
-		xor    eax, eax
-		inc    eax
-		cpuid
-		bt     ecx, 0x5
-		jc     VMXSupport
+		XOR    EAX, EAX
+		INC    EAX
+		CPUID
+		BT     ECX, 0x5
+		JC     VMXSupport
 		VMXNotSupport :
-		jmp     NopInstr
+		JMP     NopInstr
 		VMXSupport :
-		mov    VMX, 0x1
+		MOV    VMX, 0x1
 		NopInstr :
-		nop
+		NOP
     }
 
     return VMX;
