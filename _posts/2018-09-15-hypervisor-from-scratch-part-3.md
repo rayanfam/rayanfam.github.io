@@ -314,7 +314,7 @@ VMXON Regions and VMCS Regions (see below) use the physical address as the opera
 
 ```
 UINT64
-VirtualToPhysicallAddress(void * Va)
+VirtualToPhysicalAddress(void * Va)
 {
     return MmGetPhysicalAddress(Va).QuadPart;
 }
@@ -454,7 +454,7 @@ AllocateVmxonRegion(IN VIRTUAL_MACHINE_STATE * GuestState)
         DbgPrint("[*] Error : Couldn't Allocate Buffer for VMXON Region.");
         return FALSE; // ntStatus = STATUS_INSUFFICIENT_RESOURCES;
     }
-    UINT64 PhysicalBuffer = VirtualToPhysicallAddress(Buffer);
+    UINT64 PhysicalBuffer = VirtualToPhysicalAddress(Buffer);
 
     // zero-out memory
     RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT_PAGE_SIZE);
@@ -517,7 +517,7 @@ Now we should convert the allocated memory address to its physical address and m
 Memory that `MmAllocateContiguousMemory` allocates is uninitialized. The kernel-mode driver must first set this memory to zero, and we use `RtlSecureZeroMemory` for this purpose.
 
 ```
-    UINT64 PhysicalBuffer = VirtualToPhysicallAddress(Buffer);
+    UINT64 PhysicalBuffer = VirtualToPhysicalAddress(Buffer);
 
     // zero-out memory
     RtlSecureZeroMemory(Buffer, VMXONSize + ALIGNMENT_PAGE_SIZE);
@@ -641,7 +641,7 @@ AllocateVmcsRegion(IN VIRTUAL_MACHINE_STATE * GuestState)
 
     // BYTE* Buffer = MmAllocateContiguousMemorySpecifyCache(VMXONSize + ALIGNMENT_PAGE_SIZE, Lowest, Highest, Lowest, MmNonCached);
 
-    UINT64 PhysicalBuffer = VirtualToPhysicallAddress(Buffer);
+    UINT64 PhysicalBuffer = VirtualToPhysicalAddress(Buffer);
     if (Buffer == NULL)
     {
         DbgPrint("[*] Error : Couldn't Allocate Buffer for VMCS Region.");

@@ -31,25 +31,42 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-4-cover.png)
 
-Hello guys!
+## **Introduction**
 
-Welcome to the fourth part of the "Hypervisor From Scratch". This part is primarily about translating guest address through **Extended Page Table (EPT)** and its implementation. We also see how shadow tables work and other cool stuff.
+Welcome to the 4th part of the "Hypervisor From Scratch". This part is primarily about translating guest addresses through **Extended Page Table (EPT)** and its implementation. We also see how shadow tables work and other cool stuff.
+
+## **Table of Contents**
+
+- **Introduction**
+- **Table of Contents**
+- **Overview**
+- **Second Level Address Translation (SLAT)**
+- **Software-assisted paging (Shadow Page Tables)**
+- **Hardware-assisted paging (Extended Page Table)**
+- **Extended Page Table vs. Shadow Page Table**
+- **Detecting Support for EPT, NPT**
+- **EPT Translation**
+    - Implementing Extended Page Table (EPT)
+    - Accessed and Dirty Flags in EPTP
+- **5-Level EPT Translation**
+- **Conclusion**
+- **References**
+
+## **Overview**
 
 First of all, make sure to read the [earlier parts](http://rayanfam.com/tutorials) before reading this topic as these parts are really dependent on each other also you should have a basic understanding of paging mechanism and how page tables work. A good article is [here](https://www.triplefault.io/2017/07/introduction-to-ia-32e-hardware-paging.html) for paging tables.
 
-Most of this topic derived from  **Chapter 28** - (**VMX SUPPORT FOR ADDRESS TRANSLATION**) available at Intel 64 and IA-32 architectures software developer’s manual combined volumes 3.
+Most of this topic derived from  **Chapter 28** - (**VMX SUPPORT FOR ADDRESS TRANSLATION**) available at Intel 64 and IA-32 architectures software developer's manual combined volumes 3.
 
 The full source code of this tutorial is available on GitHub :
 
 \[[https://github.com/SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)\]
 
-Note: Please keep in mind that hypervisors change during the time because new features added to the operating systems or using new technologies, for example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors, so if you want to use Hypervisor From Scratch in your projects, researches or whatever, you have to use the driver from the latest parts of these tutorial series as this tutorial is actively updated and changes are applied to the newer parts (earlier parts keep untouched) so you might encounter errors and instability problems in the earlier parts thus make sure to use the latest parts in real-world projects.
-
 Before starting, I should give my thanks to [Petr Beneš](https://twitter.com/PetrBenes), as this part would never be completed without his help.
 
 Note: This part tends to give you basic information about EPT, the main implementation of EPT for our hypervisor is explained in [part 7](https://rayanfam.com/topics/hypervisor-from-scratch-part-7/).
 
-## Introduction
+## **Second Level Address Translation (SLAT)**
 
 **Second Level Address Translation** (**SLAT**) or nested paging, is an extended layer in the paging mechanism that is used to map hardware-based virtualization virtual addresses into the physical memory.
 
@@ -59,7 +76,7 @@ Note: This part tends to give you basic information about EPT, the main implemen
 
 There are two methods, the first one is Shadow Page Tables and the second one is Extended Page Tables.
 
-## Software-assisted paging (Shadow Page Tables)
+## **Software-assisted paging (Shadow Page Tables)**
 
 Shadow page tables are used by the hypervisor to keep track of the state of physical memory in which the guest thinks that it has access to physical memory but in the real world, the hardware prevents it to access hardware memory otherwise it will control the host and it is not what it intended to be.
 
@@ -69,7 +86,7 @@ In this case, VMM maintains shadow page tables that map guest-virtual pages dire
 
 By the way, using Shadow Page Table is not recommended today as always lead to VMM traps (which result in a vast amount of VM-Exits) and losses the performance due to the TLB flush on every switch and another caveat is that there is a memory overhead due to shadow copying of guest page tables.
 
-## Hardware-assisted paging (Extended Page Table)
+## **Hardware-assisted paging (Extended Page Table)**
 
 ![Nothing Special :)](../../assets/images/anime-girl-designing.jpg)
 
@@ -86,7 +103,7 @@ In EPT,
 
 so for each memory access operation, EPT MMU directly gets the guest physical address from the guest page table and then gets the host physical address by the VMM mapping table automatically.
 
-## Extended Page Table vs Shadow Page Table
+## **Extended Page Table vs. Shadow Page Table**
 
 EPT:
 
@@ -111,19 +128,19 @@ SPT:
     - Complicated reverse map
     - Permission emulation
 
-## Detecting Support for EPT, NPT
+## **Detecting Support for EPT, NPT**
 
 If you want to see whether your system supports EPT on Intel processor or NPT on AMD processor without using assembly (CPUID), you can download **coreinfo.exe** from Sysinternals, then run it. The last line will show you if your processor supports EPT or NPT.
 
 ![](../../assets/images/EPT-support.png)
 
-## EPT Translation
+## **EPT Translation**
 
 EPT defines a layer of address translation that augments the translation of linear addresses.
 
 The extended page-table mechanism (EPT) is a feature that can be used to support the virtualization of physical memory. When EPT is in use, certain addresses that would normally be treated as physical addresses (and used to access memory) are instead treated as guest-physical addresses. Guest-physical addresses are translated by traversing a set of EPT paging structures to produce physical addresses that are used to access memory.
 
-**EPT is used when the “enable EPT” VM-execution control is 1. It translates the guest-physical addresses used in VMX non-root operation and those used by VM entry for event injection.**
+**EPT is used when the "enable EPT" VM-execution control is 1. It translates the guest-physical addresses used in VMX non-root operation and those used by VM entry for event injection.**
 
 EPT translation is exactly like regular paging translation but with some minor differences. In paging, the processor translates Virtual Address to Physical Address while in EPT translation you want to translate a Guest Virtual Address to Host Physical Address.
 
@@ -143,8 +160,8 @@ The answer is the processor internally translates all tables physical address on
 
 If you want to think about x86 EPT virtualization,  assume, for example, that CR4.PAE = CR4.PSE = 0. The translation of a **32-bit** linear address then operates as follows:
 
-- Bits 31:22 of the linear address select an entry in the guest page directory located at the guest-physical address in CR3. The guest-physical address of the guest page-directory entry (PDE) is translated through EPT to determine the guest PDE’s physical address.
-- Bits 21:12 of the linear address select an entry in the guest page table located at the guest-physical address in the guest PDE. The guest-physical address of the guest page-table entry (PTE) is translated through EPT to determine the guest PTE’s physical address.
+- Bits 31:22 of the linear address select an entry in the guest page directory located at the guest-physical address in CR3. The guest-physical address of the guest page-directory entry (PDE) is translated through EPT to determine the guest PDE's physical address.
+- Bits 21:12 of the linear address select an entry in the guest page table located at the guest-physical address in the guest PDE. The guest-physical address of the guest page-table entry (PTE) is translated through EPT to determine the guest PTE's physical address.
 - Bits 11:0 of the linear address is the offset in the page frame located at the guest-physical address in the guest PTE. The guest physical address determined by this offset is translated through EPT to determine the physical address to which the original linear address translates.
 
 Note that PAE stands for **P**hysical **A**ddress **E**xtension which is a memory management feature for the x86 architecture that extends the address space and PSE stands for **P**age **S**ize **E**xtension that refers to a feature of x86 processors that allows for pages larger than the traditional 4 KiB size.
@@ -153,7 +170,7 @@ In addition to translating a guest-physical address to a host physical address, 
 
 Keep in mind that address **never** translates through EPT, when there is no access. That your guest-physical address is never used until there is access (Read or Write) to that location in memory.
 
-## Implementing Extended Page Table (EPT)
+### **Implementing Extended Page Table (EPT)**
 
 Now that we know some basics, let's implement what we've learned before. Based on Intel manual we should write (VMWRITE) EPTP or Extended-Page-Table Pointer to the VMCS. The EPTP structure described below.
 
@@ -488,7 +505,7 @@ Our implementation consist of 4 tables, therefore, the full layout is like this:
 
 ![EPT Layout](../../assets/images/EPT-layout.png)
 
-## Accessed and Dirty Flags in EPTP
+### **Accessed and Dirty Flags in EPTP**
 
 In EPTP, you'll decide whether enable accessed and dirty flags for EPT or not using the 6th bit of the extended-page-table pointer (EPTP). Setting this flag causes processor accesses to guest paging structure entries to be treated as writes.
 
@@ -498,9 +515,9 @@ Whenever the processor uses an EPT paging-structure entry as part of the guest-p
 
 Whenever there is a write to a guest-physical address, the processor sets the dirty flag (if it is not already set) in the EPT paging-structure entry that identifies the final physical address for the guest-physical address (either an EPT PTE or an EPT paging-structure entry in which bit 7 is 1).
 
-These flags are “sticky,” meaning that, once set, the processor does not clear them; only software can clear them.
+These flags are "sticky," meaning that, once set, the processor does not clear them; only software can clear them.
 
-## 5-Level EPT Translation
+## **5-Level EPT Translation**
 
 Intel suggests a new table in translation hierarchy, called PML5 which extends the EPT into a 5-layer table and guest operating systems can use up to 57 bit for the virtual-addresses while the classic 4-level EPT is limited to translating 48-bit guest-physical  
 addresses. None of the modern OSs use this feature yet.
@@ -521,7 +538,7 @@ The only difference is you should put PML5 physical address instead of the PML4 
 
 For more information about 5-layer paging take a look at [this Intel documentation](https://software.intel.com/sites/default/files/managed/2b/80/5-level_paging_white_paper.pdf).
 
-## Conclusion
+## **Conclusion**
 
 In this part, we see how to initialize the Extended Page Table and map guest physical address to host physical address then we build the EPTP based on the allocated addresses.
 
@@ -533,7 +550,7 @@ Have a good time!
 
 ![Animeeeeeeee](../../assets/images/anime-girl-playing.jpg)
 
-## References
+## **References**
 
 \[1\] Vol 3C - 28.2 THE EXTENDED PAGE TABLE MECHANISM (EPT) ([https://software.intel.com/en-us/articles/intel-sdm](https://software.intel.com/en-us/articles/intel-sdm))
 
