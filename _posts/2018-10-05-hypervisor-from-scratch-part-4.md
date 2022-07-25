@@ -33,7 +33,7 @@ author:
 
 ## **Introduction**
 
-Welcome to the 4th part of the "Hypervisor From Scratch". This part is primarily about translating guest addresses through **Extended Page Table (EPT)** and its implementation. We also see how shadow tables work and other cool stuff.
+Welcome to the 4th part of the "Hypervisor From Scratch". This part primarily involves translating guest addresses through **Extended Page Table (EPT)** and its implementation. We also see how shadow tables work and other cool stuff.
 
 ## **Table of Contents**
 
@@ -54,54 +54,54 @@ Welcome to the 4th part of the "Hypervisor From Scratch". This part is primarily
 
 ## **Overview**
 
-First of all, make sure to read the [earlier parts](http://rayanfam.com/tutorials) before reading this topic as these parts are really dependent on each other also you should have a basic understanding of paging mechanism and how page tables work. A good article is [here](https://www.triplefault.io/2017/07/introduction-to-ia-32e-hardware-paging.html) for paging tables.
+First of all, make sure to read the [earlier parts](http://rayanfam.com/tutorials) before reading this topic, as these parts depend on each other. It would help if you also had a basic understanding of the paging mechanism and how page tables work. A good article is [here](https://www.triplefault.io/2017/07/introduction-to-ia-32e-hardware-paging.html) for paging tables.
 
-Most of this topic derived from  **Chapter 28** - (**VMX SUPPORT FOR ADDRESS TRANSLATION**) available at Intel 64 and IA-32 architectures software developer's manual combined volumes 3.
+Most of this topic is derived from  **Chapter 28** - (**VMX SUPPORT FOR ADDRESS TRANSLATION**) available at Intel 64 and IA-32 architectures software developer's manual combined volumes 3.
 
 The full source code of this tutorial is available on GitHub :
 
 \[[https://github.com/SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)\]
 
-Before starting, I should give my thanks to [Petr Beneš](https://twitter.com/PetrBenes), as this part would never be completed without his help.
+Before starting, I should give my thanks to [Petr Beneš](https://twitter.com/PetrBenes), as this part would never have been completed without his help.
 
-Note: This part tends to give you basic information about EPT, the main implementation of EPT for our hypervisor is explained in [part 7](https://rayanfam.com/topics/hypervisor-from-scratch-part-7/).
+**Note:** This part tends to give you basic information about EPT. The main implementation of EPT for our hypervisor is explained in [part 7](https://rayanfam.com/topics/hypervisor-from-scratch-part-7/).
 
 ## **Second Level Address Translation (SLAT)**
 
-**Second Level Address Translation** (**SLAT**) or nested paging, is an extended layer in the paging mechanism that is used to map hardware-based virtualization virtual addresses into the physical memory.
+**Second Level Address Translation** (**SLAT**) or nested paging is an extended layer in the paging mechanism used to map hardware-based virtualization virtual addresses into the physical memory.
 
-**AMD** implemented **SLAT** through the **Rapid Virtualization Indexing (RVI)** technology known as **Nested Page Tables (NPT)** since the introduction of its third-generation **Opteron** processors and microarchitecture code name **Barcelona**. **Intel** also implemented **SLAT** in **Intel® VT-x technologies** since the introduction of microarchitecture code name **Nehalem** and its known as **Extended Page Table (EPT)** and is used in  **Core i9,** **Core i7****, Core i5**, and **Core i3** processors.
+**AMD** implemented **SLAT** through the **Rapid Virtualization Indexing (RVI)** technology known as **Nested Page Tables (NPT)** since the introduction of its third-generation **Opteron** processors and microarchitecture code name **Barcelona**. **Intel** also implemented **SLAT** in **Intel® VT-x technologies** since the introduction of microarchitecture code name **Nehalem** and it's known as **Extended Page Table (EPT)** and is used in  **Core i9,** **Core i7****, Core i5**, and **Core i3** processors.
 
-**ARM** processors also have some kind of implementation known as known as **Stage-2 page-tables**.
+**ARM** processors also have an implementation known as **Stage-2 page-tables**.
 
-There are two methods, the first one is Shadow Page Tables and the second one is Extended Page Tables.
+There are two methods, the first one is Shadow Page Tables, and the second one is Extended Page Tables.
 
 ## **Software-assisted paging (Shadow Page Tables)**
 
-Shadow page tables are used by the hypervisor to keep track of the state of physical memory in which the guest thinks that it has access to physical memory but in the real world, the hardware prevents it to access hardware memory otherwise it will control the host and it is not what it intended to be.
+The hypervisor uses Shadow page tables to keep track of the state of physical memory in which the guest thinks that it has access to physical memory, but in the real world, the hardware prevents it from accessing hardware memory; otherwise, it will control the host, and it is not what it intended to be.
 
 In this case, VMM maintains shadow page tables that map guest-virtual pages directly to machine pages and any guest modifications to V->P tables synced to VMM V->M shadow page tables.
 
 ![](../../assets/images/shadow-page-tables-1.png)
 
-By the way, using Shadow Page Table is not recommended today as always lead to VMM traps (which result in a vast amount of VM-Exits) and losses the performance due to the TLB flush on every switch and another caveat is that there is a memory overhead due to shadow copying of guest page tables.
+By the way, using Shadow Page Table is not recommended today as it always leads to VMM traps (which result in a vast amount of VM-Exits) and losses the performance due to the TLB flush on every switch. Another caveat is that there is a memory overhead due to shadow copying of guest page tables.
 
 ## **Hardware-assisted paging (Extended Page Table)**
 
 ![Nothing Special :)](../../assets/images/anime-girl-designing.jpg)
 
-To reduce the complexity of Shadow Page Tables and avoiding the excessive vm-exits and reducing the number of TLB flushes, EPT, a hardware-assisted paging strategy implemented to increase the performance.
+To reduce the complexity of Shadow Page Tables, avoid the excessive vm-exits, and reduce the number of TLB flushes, EPT implemented a hardware-assisted paging strategy to increase the performance.
 
 According to a **VMware** evaluation paper: "**EPT** provides performance gains of up to 48% for MMU-intensive benchmarks and up to 600% for MMU-intensive microbenchmarks".
 
-EPT implemented one more page table hierarchy, to map Guest-Virtual Address to Guest-Physical address which is valid in the main memory.
+EPT implemented one more page table hierarchy to map Guest-Virtual Address to Guest-Physical address, which is valid in the main memory.
 
 In EPT,
 
 - One page table is maintained by guest OS, which is used to generate the guest-physical address.
-- The other page table is maintained by VMM, which is used to map guest physical address to host physical address.
+- The other page table is maintained by VMM, which maps the guest's physical address to the host's physical address.
 
-so for each memory access operation, EPT MMU directly gets the guest physical address from the guest page table and then gets the host physical address by the VMM mapping table automatically.
+So for each memory access operation, EPT MMU directly gets the guest's physical address from the guest page table and then automatically gets the host's physical address from the VMM mapping table.
 
 ## **Extended Page Table vs. Shadow Page Table**
 
@@ -142,19 +142,19 @@ The extended page-table mechanism (EPT) is a feature that can be used to support
 
 **EPT is used when the "enable EPT" VM-execution control is 1. It translates the guest-physical addresses used in VMX non-root operation and those used by VM entry for event injection.**
 
-EPT translation is exactly like regular paging translation but with some minor differences. In paging, the processor translates Virtual Address to Physical Address while in EPT translation you want to translate a Guest Virtual Address to Host Physical Address.
+EPT translation is exactly like regular paging translation but with some minor differences. In paging, the processor translates Virtual Address to Physical Address, while in EPT translation, you want to translate a Guest Virtual Address to Host Physical Address.
 
-If you're familiar with paging, the 3rd control register (CR3) is the base address of PML4 Table (in an x64 processor or more generally it points to root paging directory), in EPT guest is not aware of EPT Translation so it has CR3 too but this CR3 is used to convert Guest Virtual Address to Guest Physical Address, whenever you find your target Guest Physical Address, it's **EPT mechanism that treats your Guest Physical Address like a virtual address and the EPTP is the CR3**. 
+If you're familiar with paging, the 3rd control register (CR3) is the base address of the PML4 table (in an x64 processor or, more generally, it points to the root paging directory). In EPT guest is not aware of EPT Translation, so it has CR3 too, but this CR3 is used to convert the guest's virtual address to the guest's physical address. Whenever you find your target the guest's physical address, it's **EPT mechanism that treats your guest's physical address like a virtual address, and the EPTP is the CR3**. 
 
 Just think about the above sentence one more time!
 
-So your target physical address should be divided into 4 part, the first 9 bits points to EPT PML4E (note that PML4 base address is in EPTP), the second 9 bits point the EPT PDPT Entry (the base address of PDPT comes from EPT PML4E), the third 9 bits point to EPT PD Entry (the base address of PD comes from EPT PDPTE) and the last 9 bit of the guest physical address point to an entry in EPT PT table (the base address of PT comes form EPT PDE) and now the EPT PT Entry points to the host physical address of the corresponding page.
+So your target physical address should be divided into four parts. The first 9 bits point to EPT PML4E (note that the PML4 base address is in EPTP). The second 9 bits indicate the EPT PDPT Entry (the base address of PDPT comes from EPT PML4E), the third 9 bits point to EPT PD Entry (the base address of PD comes from EPT PDPTE), and the last 9 bits of the guest physical address point to an entry in EPT PT table (the base address of PT comes from EPT PDE) and now the EPT PT Entry points to the host physical address of the corresponding page.
 
 ![EPT Translation](../../assets/images/EPT-translations.png)
 
-You might ask, as a simple Virtual to Physical Address translation involves accessing 4 physical address, so what happens ?! 
+You might ask, as a simple Virtual to Physical Address translation involves accessing four physical addresses, so what happens ?! 
 
-The answer is the processor internally translates all tables physical address one by one, that's why paging and accessing memory in a guest software is slower than regular address translation. The following picture illustrates the operations for a Guest Virtual Address to Host Physical Address.
+The answer is the processor internally translates all tables' physical addresses one by one; that's why paging and accessing memory in a guest software is slower than regular address translation. The following picture illustrates the operations for a guest's virtual address to the host's physical address.
 
 ![](../../assets/images/EPT-full-translation.png)
 
@@ -162,17 +162,17 @@ If you want to think about x86 EPT virtualization,  assume, for example, that C
 
 - Bits 31:22 of the linear address select an entry in the guest page directory located at the guest-physical address in CR3. The guest-physical address of the guest page-directory entry (PDE) is translated through EPT to determine the guest PDE's physical address.
 - Bits 21:12 of the linear address select an entry in the guest page table located at the guest-physical address in the guest PDE. The guest-physical address of the guest page-table entry (PTE) is translated through EPT to determine the guest PTE's physical address.
-- Bits 11:0 of the linear address is the offset in the page frame located at the guest-physical address in the guest PTE. The guest physical address determined by this offset is translated through EPT to determine the physical address to which the original linear address translates.
+- Bits 11:0 of the linear address is the offset in the page frame located at the guest-physical address in the guest PTE. The guest's physical address determined by this offset is translated through EPT to select the physical address to which the original linear address translates.
 
-Note that PAE stands for **P**hysical **A**ddress **E**xtension which is a memory management feature for the x86 architecture that extends the address space and PSE stands for **P**age **S**ize **E**xtension that refers to a feature of x86 processors that allows for pages larger than the traditional 4 KiB size.
+Note that PAE stands for **P**hysical **A**ddress **E**xtension, which is a memory management feature for the x86 architecture that extends the address space, and PSE stands for **P**age **S**ize **E**xtension that refers to a feature of x86 processors that allows for pages larger than the standard 4 KiB size.
 
 In addition to translating a guest-physical address to a host physical address, EPT specifies the privileges that software is allowed when accessing the address. Attempts at disallowed accesses are called **EPT violations** and cause **VM-exits**.
 
-Keep in mind that address **never** translates through EPT, when there is no access. That your guest-physical address is never used until there is access (Read or Write) to that location in memory.
+Keep in mind that address **never** translates through EPT when there is no access. That your guest-physical address is never used until there is access (Read or Write) to that location in memory.
 
 ### **Implementing Extended Page Table (EPT)**
 
-Now that we know some basics, let's implement what we've learned before. Based on Intel manual we should write (VMWRITE) EPTP or Extended-Page-Table Pointer to the VMCS. The EPTP structure described below.
+Now that we know some basics, let's implement what we've learned before. Based on the Intel manual, we should write (VMWRITE) EPTP or Extended-Page-Table Pointer to the VMCS. The EPTP structure is described below.
 
 ![Extended-Page-Table Pointer](../../assets/images/EPTP-structure.png)
 
@@ -193,13 +193,13 @@ typedef union _EPTP {
 }EPTP, *PEPTP;
 ```
 
-Each entry in all EPT tables is 64 bit long. EPT PML4E and EPT PDPTE and EPT PD are the same but EPT PTE has some minor differences.
+Each entry in all EPT tables is 64-bit long. EPT PML4E, EPT PDPTE, and EPT PD are the same, but EPT PTE has some minor differences.
 
 An EPT entry is something like this :
 
 ![EPT Entries](../../assets/images/EPT-entries.png)
 
-Ok, Now we should implement tables and the first table is PML4. The following table shows the format of an EPT PML4 Entry (PML4E).
+Ok, Now we should implement tables; the first table is PML4. The following table shows the format of an EPT PML4 Entry (PML4E).
 
 ![EPT PML4E](../../assets/images/EPT-PML4E.png)
 
@@ -225,7 +225,7 @@ typedef union _EPT_PML4E {
 }EPT_PML4E, *PEPT_PML4E;
 ```
 
-As long as we want to have a 4-level paging, the second table is EPT Page-Directory-Pointer-Table (PDTP), the following picture illustrates the format of PDPTE :
+As long as we use 4-level paging, the second table is EPT Page-Directory-Pointer-Table (PDTP). The following picture illustrates the format of PDPTE :
 
 ![EPT PDPTE](../../assets/images/EPT-PDPTE.png)
 
@@ -251,7 +251,7 @@ typedef union _EPT_PDPTE {
 }EPT_PDPTE, *PEPT_PDPTE;
 ```
 
-For the third table of paging we should implement an EPT Page-Directory Entry (PDE) as described below:
+For the third table of paging, we should implement an EPT Page-Directory Entry (PDE) as described below:
 
 ![EPT PDE](../../assets/images/EPT-PDE.png)
 
@@ -283,7 +283,7 @@ The last page is EPT which is described below.
 
 PTE will be :
 
-Note that you have, EPTMemoryType, IgnorePAT, DirtyFlag and SuppressVE in addition to the above pages.
+Note that you have EPTMemoryType, IgnorePAT, DirtyFlag, and SuppressVE in addition to the above pages.
 
 ```
 // See Table 28-6
@@ -308,15 +308,15 @@ typedef union _EPT_PTE {
 }EPT_PTE, *PEPT_PTE;
 ```
 
-There are other types of implementing page walks ( 2 or 3 level paging) and if you set the 7th bit of PDPTE (Maps 1 GB) or the 7th bit of PDE (Maps 2 MB) so instead of implementing 4 level paging (like what we want to do for the rest of the topic) you set those bits but keep in mind that the corresponding tables are different. These tables described in (Table 28-4. Format of an EPT Page-Directory Entry (PDE) that Maps a 2-MByte Page) and (Table 28-2. Format of an EPT Page-Directory-Pointer-Table Entry (PDPTE) that Maps a 1-GByte Page). Alex Ionescu's [SimpleVisor](https://github.com/ionescu007/SimpleVisor) is an example of implementing in this way.
+There are other types of implementing page walks (2 or 3 level paging), and if you set the 7th bit of PDPTE (Maps 1 GB) or the 7th bit of PDE (Maps 2 MB) so instead of implementing 4-level paging (like what we want to do for the rest of the topic) you set those bits but keep in mind that the corresponding tables are different. These tables are described in (Table 28-4. Format of an EPT Page-Directory Entry (PDE) that Maps a 2-MByte Page) and (Table 28-2. Format of an EPT Page-Directory-Pointer-Table Entry (PDPTE) that Maps a 1-GByte Page). Alex Ionescu's [SimpleVisor](https://github.com/ionescu007/SimpleVisor) is an example of implementing this way.
 
-An important note is almost all the above structures have a 36-bit Physical Address which means our hypervisor supports only 4-level paging. It is because every page table (and every EPT Page Table) consist of 512 entries which means you need 9 bits to select an entry and as long as we have 4 level tables, we can't use more than 36 (4 \* 9) bits. Another method with wider address range is not implemented in all major OS like Windows or Linux. I'll describe EPT PML5E briefly later in this topic but we don't implement it in our hypervisor as it's not popular yet!
+An important note is almost all the above structures have a 36-bit Physical Address which means our hypervisor supports only 4-level paging. It is because every page table (and every EPT Page Table) consists of 512 entries which means you need 9 bits to select an entry, and as long as we have 4 level tables, we can't use more than 36 (4 \* 9) bits. Another method with a wider address range is not implemented in all major OS like Windows or Linux. I'll describe EPT PML5E briefly later in this topic, but we don't implement it in our hypervisor as it's not widespread yet!
 
 By the way, N is the physical-address width supported by the processor. CPUID with 80000008H in EAX gives you the supported width in EAX bits 7:0.
 
-Let's see the rest of the code, the following code is the **Initialize\_EPTP** function which is responsible for allocating and mapping EPTP.
+Let's see the rest of the code. The following code is the **Initialize\_EPTP** function which is responsible for allocating and mapping EPTP.
 
-Note that the **PAGED\_CODE()** macro ensures that the calling thread is running at an IRQL that is low enough to permit paging.
+Note that the **PAGED\_CODE()** macro ensures that the calling thread runs at an IRQL low enough to permit paging.
 
 ```
 UINT64 Initialize_EPTP()
@@ -325,7 +325,7 @@ UINT64 Initialize_EPTP()
         ...
 ```
 
-First of all, allocating EPTP and put zeros on it.
+First of all, allocate EPTP and put zeros on it.
 
 ```
 	// Allocate EPTP
@@ -362,7 +362,7 @@ And another empty page for PDPT.
 	RtlZeroMemory(EPT_PDPT, PAGE_SIZE);
 ```
 
-Of course its true about Page Directory Table.
+Of course, it's true about Page Directory Table.
 
 ```
 	//	Allocate EPT Page-Directory
@@ -393,17 +393,17 @@ The last table is a blank page for EPT Page Table.
 	RtlZeroMemory(EPT_PT, PAGE_SIZE);
 ```
 
-Now that we have all of our pages available, let's allocate two page (2\*4096) continuously because we need one of the pages for our RIP to start and one page for our Stack (RSP). After that, we need two EPT Page Table Entries (PTEs) with permission to **execute**, **read**, **write**. The physical address should be divided by 4096 (PAGE\_SIZE) because if we dived a hex number by 4096 (0x1000) 12 digits from the right (which are zeros) will disappear and these 12 digits are for choosing between 4096 bytes.
+Now that we have all of our pages available, let's allocate two pages (2\*4096) continuously because we need one of the pages for our RIP to start and one page for our Stack (RSP). After that, we need two EPT Page Table Entries (PTEs) with permission to **execute**, **read**, and **write**. The physical address should be divided by 4096 (PAGE\_SIZE) because if we dived a hex number by 4096 (0x1000), 12 digits from the right (which are zeros) would disappear, and these 12 digits are for choosing between 4096 bytes.
 
-By the way, we let stack be executable too and that's because, in a regular VM, we should put RWX to all pages because its the responsibility of internal page tables to set or clear NX bit. We need to change them from EPT Tables for special purposes (e.g intercepting instruction fetch for a special page). Changing from EPT tables will lead to EPT-Violation, in this way we can intercept these events.
+By the way, we let stack be executable. That's because, in a regular VM, we should put RWX on all pages. After all, it's the responsibility of internal page tables to set or clear NX bit. We need to change them from EPT Tables for special purposes (e.g., intercepting instruction fetch for a special page). Changing from EPT tables will lead to EPT-Violation; this way, we can intercept these events.
 
-The actual need is two page but we need to build page tables inside our guest software thus we allocate up to 10 page.
+The actual need is two pages, but we need to build page tables inside our guest software; thus, we allocate up to 10 pages.
 
-I'll explain about intercepting pages from EPT, later in these series.
+I'll explain about intercepting pages from EPT later in this series.
 
 ```
 	// Setup PT by allocating two pages Continuously
-	// We allocate two pages because we need 1 page for our RIP to start and 1 page for RSP 1 + 1 and other paages for paging
+	// We allocate two pages because we need 1 page for our RIP to start and 1 page for RSP 1 + 1, and other pages for paging
 
 	const int PagesToAllocate = 10;
 	UINT64 Guest_Memory = ExAllocatePoolWithTag(NonPagedPool, PagesToAllocate * PAGE_SIZE, POOLTAG);
@@ -425,9 +425,9 @@ I'll explain about intercepting pages from EPT, later in these series.
 	}
 ```
 
-Note: **EPTMemoryType** can be either 0 (for uncached memory) or 6 (write-back) memory and as we want our memory to be cacheable so put 6 on it.
+Note: **EPTMemoryType** can be either 0 (for uncached memory) or 6 (write-back) memory, and as we want our memory to be cacheable, so put 6 on it.
 
-The next table is PDE. PDE should point to PTE base address so we just put the address of the first entry from the EPT PTE as the physical address for Page Directory Entry.
+The next table is PDE. PDE should point to the PTE base address, so we just put the address of the first entry from the EPT PTE as the physical address for Page Directory Entry.
 
 ```
 // Setting up PDE
@@ -444,7 +444,7 @@ The next table is PDE. PDE should point to PTE base address so we just put the a
 	EPT_PD->Fields.Write = 1;
 ```
 
-Next step is mapping PDPT. PDPT Entry should point to the first entry of Page-Directory.
+The next step is mapping PDPT. PDPT Entry should point to the first entry of Page-Directory.
 
 ```
 	// Setting up PDPTE
@@ -461,7 +461,7 @@ Next step is mapping PDPT. PDPT Entry should point to the first entry of Page-Di
 	EPT_PDPT->Fields.Write = 1;
 ```
 
-The last step is configuring PML4E which points to the first entry of the PTPT.
+The last step is configuring PML4E, which points to the first entry of the PTPT.
 
 ```
 	// Setting up PML4E
@@ -478,9 +478,9 @@ The last step is configuring PML4E which points to the first entry of the PTPT.
 	EPT_PML4->Fields.Write = 1;
 ```
 
-We've almost done! Just set up the EPTP for our VMCS by putting 0x6 as the memory type (which is write-back) and we walk 4 times so the page walk length is 4-1=3 and PML4 address is the physical address of the first entry in the PML4 table.
+We've almost done! Just set up the EPTP for our VMCS by putting 0x6 as the memory type (which is write-back), and we walk four times, so the page walk length is 4-1=3, and the PML4 address is the physical address of the first entry in the PML4 table.
 
-I'll explain about DirtyAndAcessEnabled field later in this topic.
+I'll explain the **DirtyAndAcessEnabled** field later in this topic.
 
 ```
 	// Setting up EPTP
@@ -492,16 +492,16 @@ I'll explain about DirtyAndAcessEnabled field later in this topic.
 	EPTPointer->Fields.Reserved2 = 0;
 ```
 
-and the last step.
+And the last step.
 
 ```
 	DbgPrint("[*] Extended Page Table Pointer allocated at %llx",EPTPointer);
 	return EPTPointer;
 ```
 
-All the above page tables should be aligned to 4KByte boundaries but as long as we allocate >= PAGE\_SIZE (One PFN record) so it's automatically 4kb-aligned.
+All the above page tables should be aligned to 4KByte boundaries, but as long as we allocate >= PAGE\_SIZE (One PFN record) so it's automatically 4kb-aligned.
 
-Our implementation consist of 4 tables, therefore, the full layout is like this:
+Our implementation consists of 4 tables; therefore, the full layout is like this:
 
 ![EPT Layout](../../assets/images/EPT-layout.png)
 
@@ -519,10 +519,10 @@ These flags are "sticky," meaning that, once set, the processor does not clear t
 
 ## **5-Level EPT Translation**
 
-Intel suggests a new table in translation hierarchy, called PML5 which extends the EPT into a 5-layer table and guest operating systems can use up to 57 bit for the virtual-addresses while the classic 4-level EPT is limited to translating 48-bit guest-physical  
+Intel suggests a new table in translation hierarchy, called PML5 which extends the EPT into a 5-layer table, and guest operating systems can use up to 57 bits for the virtual addresses, while the classic 4-level EPT is limited to translating 48-bit guest-physical  
 addresses. None of the modern OSs use this feature yet.
 
-PML5 is also applying to both EPT and regular paging mechanism.
+PML5 is also applied to both EPT and regular paging mechanisms.
 
 ![](../../assets/images/PML5E-structure.png)
 
@@ -536,11 +536,11 @@ Translation begins by identifying a 4-KByte naturally aligned EPT PML5 table. It
 
 The only difference is you should put PML5 physical address instead of the PML4 address in EPTP.
 
-For more information about 5-layer paging take a look at [this Intel documentation](https://software.intel.com/sites/default/files/managed/2b/80/5-level_paging_white_paper.pdf).
+For more information about 5-layer paging, take a look at [this Intel documentation](https://software.intel.com/sites/default/files/managed/2b/80/5-level_paging_white_paper.pdf).
 
 ## **Conclusion**
 
-In this part, we see how to initialize the Extended Page Table and map guest physical address to host physical address then we build the EPTP based on the allocated addresses.
+In this part, we see how to initialize the Extended Page Table and map the guest's physical address to the host's physical address; then, we build the EPTP based on the allocated addresses.
 
 The future part would be about building the VMCS and implementing other VMX instructions. Don't forget to check the blog for future posts.
 
