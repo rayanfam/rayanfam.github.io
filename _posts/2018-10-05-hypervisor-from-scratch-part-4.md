@@ -88,7 +88,7 @@ By the way, using Shadow Page Table is not recommended today as it always leads 
 
 ## **Hardware-assisted paging (Extended Page Table)**
 
-![Nothing Special :)](../../assets/images/anime-girl-designing.jpg)
+![](../../assets/images/anime-girl-designing.jpg)
 
 To reduce the complexity of Shadow Page Tables, avoid the excessive vm-exits, and reduce the number of TLB flushes, EPT implemented a hardware-assisted paging strategy to increase the performance.
 
@@ -319,78 +319,94 @@ Let's see the rest of the code. The following code is the **Initialize\_EPTP** f
 Note that the **PAGED\_CODE()** macro ensures that the calling thread runs at an IRQL low enough to permit paging.
 
 ```
-UINT64 Initialize_EPTP()
+UINT64
+InitializeEptp()
 {
-	PAGED_CODE();
+    PAGED_CODE();
         ...
 ```
 
 First of all, allocate EPTP and put zeros on it.
 
 ```
-	// Allocate EPTP
-	PEPTP EPTPointer = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    //
+    // Allocate EPTP
+    //
+    PEPTP EPTPointer = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
-	if (!EPTPointer) {
-		return NULL;
-	}
-	RtlZeroMemory(EPTPointer, PAGE_SIZE);
+    if (!EPTPointer)
+    {
+        return NULL;
+    }
+    RtlZeroMemory(EPTPointer, PAGE_SIZE);
 ```
 
 Now, we need a blank page for our EPT PML4 Table.
 
 ```
-	//	Allocate EPT PML4
-	PEPT_PML4E EPT_PML4 = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
-	if (!EPT_PML4) {
-		ExFreePoolWithTag(EPTPointer, POOLTAG);
-		return NULL;
-	}
-	RtlZeroMemory(EPT_PML4, PAGE_SIZE);
+    //
+    //	Allocate EPT PML4
+    //
+    PEPT_PML4E EptPml4 = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    if (!EptPml4)
+    {
+        ExFreePoolWithTag(EPTPointer, POOLTAG);
+        return NULL;
+    }
+    RtlZeroMemory(EptPml4, PAGE_SIZE);
 ```
 
 And another empty page for PDPT.
 
 ```
-//	Allocate EPT Page-Directory-Pointer-Table
-	PEPT_PDPTE EPT_PDPT = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
-	if (!EPT_PDPT) {
-		ExFreePoolWithTag(EPT_PML4, POOLTAG);
-		ExFreePoolWithTag(EPTPointer, POOLTAG);
-		return NULL;
-	}
-	RtlZeroMemory(EPT_PDPT, PAGE_SIZE);
+    //
+    //	Allocate EPT Page-Directory-Pointer-Table
+    //
+    PEPT_PDPTE EptPdpt = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    if (!EptPdpt)
+    {
+        ExFreePoolWithTag(EptPml4, POOLTAG);
+        ExFreePoolWithTag(EPTPointer, POOLTAG);
+        return NULL;
+    }
+    RtlZeroMemory(EptPdpt, PAGE_SIZE);
 ```
 
 Of course, it's true about Page Directory Table.
 
 ```
-	//	Allocate EPT Page-Directory
-	PEPT_PDE EPT_PD = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    //
+    //	Allocate EPT Page-Directory
+    //
+    PEPT_PDE EptPd = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
-	if (!EPT_PD) {
-		ExFreePoolWithTag(EPT_PDPT, POOLTAG);
-		ExFreePoolWithTag(EPT_PML4, POOLTAG);
-		ExFreePoolWithTag(EPTPointer, POOLTAG);
-		return NULL;
-	}
-	RtlZeroMemory(EPT_PD, PAGE_SIZE);
+    if (!EptPd)
+    {
+        ExFreePoolWithTag(EptPdpt, POOLTAG);
+        ExFreePoolWithTag(EptPml4, POOLTAG);
+        ExFreePoolWithTag(EPTPointer, POOLTAG);
+        return NULL;
+    }
+    RtlZeroMemory(EptPd, PAGE_SIZE);
 ```
 
 The last table is a blank page for EPT Page Table.
 
 ```
-	//	Allocate EPT Page-Table
-	PEPT_PTE EPT_PT = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
+    //
+    //	Allocate EPT Page-Table
+    //
+    PEPT_PTE EptPt = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);
 
-	if (!EPT_PT) {
-		ExFreePoolWithTag(EPT_PD, POOLTAG);
-		ExFreePoolWithTag(EPT_PDPT, POOLTAG);
-		ExFreePoolWithTag(EPT_PML4, POOLTAG);
-		ExFreePoolWithTag(EPTPointer, POOLTAG);
-		return NULL;
-	}
-	RtlZeroMemory(EPT_PT, PAGE_SIZE);
+    if (!EptPt)
+    {
+        ExFreePoolWithTag(EptPd, POOLTAG);
+        ExFreePoolWithTag(EptPdpt, POOLTAG);
+        ExFreePoolWithTag(EptPml4, POOLTAG);
+        ExFreePoolWithTag(EPTPointer, POOLTAG);
+        return NULL;
+    }
+    RtlZeroMemory(EptPt, PAGE_SIZE);
 ```
 
 Now that we have all of our pages available, let's allocate two pages (2\*4096) continuously because we need one of the pages for our RIP to start and one page for our Stack (RSP). After that, we need two EPT Page Table Entries (PTEs) with permission to **execute**, **read**, and **write**. The physical address should be divided by 4096 (PAGE\_SIZE) because if we dived a hex number by 4096 (0x1000), 12 digits from the right (which are zeros) would disappear, and these 12 digits are for choosing between 4096 bytes.
@@ -402,27 +418,27 @@ The actual need is two pages, but we need to build page tables inside our guest 
 I'll explain about intercepting pages from EPT later in this series.
 
 ```
-	// Setup PT by allocating two pages Continuously
-	// We allocate two pages because we need 1 page for our RIP to start and 1 page for RSP 1 + 1, and other pages for paging
+    //
+    // Setup PT by allocating two pages Continuously
+    // We allocate two pages because we need 1 page for our RIP to start and 1 page for RSP 1 + 1 = 2
+    //
+    const int PagesToAllocate = 10;
+    UINT64    GuestMemory     = ExAllocatePoolWithTag(NonPagedPool, PagesToAllocate * PAGE_SIZE, POOLTAG);
+    RtlZeroMemory(GuestMemory, PagesToAllocate * PAGE_SIZE);
 
-	const int PagesToAllocate = 10;
-	UINT64 Guest_Memory = ExAllocatePoolWithTag(NonPagedPool, PagesToAllocate * PAGE_SIZE, POOLTAG);
-	RtlZeroMemory(Guest_Memory, PagesToAllocate * PAGE_SIZE);
-
-	for (size_t i = 0; i < PagesToAllocate; i++)
-	{
-		EPT_PT[i].Fields.AccessedFlag = 0;
-		EPT_PT[i].Fields.DirtyFlag = 0;
-		EPT_PT[i].Fields.EPTMemoryType = 6;
-		EPT_PT[i].Fields.Execute = 1;
-		EPT_PT[i].Fields.ExecuteForUserMode = 0;
-		EPT_PT[i].Fields.IgnorePAT = 0;
-		EPT_PT[i].Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress( Guest_Memory + ( i * PAGE_SIZE ))/ PAGE_SIZE );
-		EPT_PT[i].Fields.Read = 1;
-		EPT_PT[i].Fields.SuppressVE = 0;
-		EPT_PT[i].Fields.Write = 1;
-
-	}
+    for (size_t i = 0; i < PagesToAllocate; i++)
+    {
+        EptPt[i].Fields.AccessedFlag       = 0;
+        EptPt[i].Fields.DirtyFlag          = 0;
+        EptPt[i].Fields.EPTMemoryType      = 6;
+        EptPt[i].Fields.Execute            = 1;
+        EptPt[i].Fields.ExecuteForUserMode = 0;
+        EptPt[i].Fields.IgnorePAT          = 0;
+        EptPt[i].Fields.PhysicalAddress    = (VirtualToPhysicalAddress(GuestMemory + (i * PAGE_SIZE)) / PAGE_SIZE);
+        EptPt[i].Fields.Read               = 1;
+        EptPt[i].Fields.SuppressVE         = 0;
+        EptPt[i].Fields.Write              = 1;
+    }
 ```
 
 Note: **EPTMemoryType** can be either 0 (for uncached memory) or 6 (write-back) memory, and as we want our memory to be cacheable, so put 6 on it.
@@ -430,52 +446,58 @@ Note: **EPTMemoryType** can be either 0 (for uncached memory) or 6 (write-back
 The next table is PDE. PDE should point to the PTE base address, so we just put the address of the first entry from the EPT PTE as the physical address for Page Directory Entry.
 
 ```
-// Setting up PDE
-	EPT_PD->Fields.Accessed = 0;
-	EPT_PD->Fields.Execute = 1;
-	EPT_PD->Fields.ExecuteForUserMode = 0;
-	EPT_PD->Fields.Ignored1 = 0;
-	EPT_PD->Fields.Ignored2 = 0;
-	EPT_PD->Fields.Ignored3 = 0;
-	EPT_PD->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PT) / PAGE_SIZE);
-	EPT_PD->Fields.Read = 1;
-	EPT_PD->Fields.Reserved1 = 0;
-	EPT_PD->Fields.Reserved2 = 0;
-	EPT_PD->Fields.Write = 1;
+    //
+    // Setting up PDE
+    //
+    EptPd->Fields.Accessed           = 0;
+    EptPd->Fields.Execute            = 1;
+    EptPd->Fields.ExecuteForUserMode = 0;
+    EptPd->Fields.Ignored1           = 0;
+    EptPd->Fields.Ignored2           = 0;
+    EptPd->Fields.Ignored3           = 0;
+    EptPd->Fields.PhysicalAddress    = (VirtualToPhysicalAddress(EptPt) / PAGE_SIZE);
+    EptPd->Fields.Read               = 1;
+    EptPd->Fields.Reserved1          = 0;
+    EptPd->Fields.Reserved2          = 0;
+    EptPd->Fields.Write              = 1;
 ```
 
 The next step is mapping PDPT. PDPT Entry should point to the first entry of Page-Directory.
 
 ```
-	// Setting up PDPTE
-	EPT_PDPT->Fields.Accessed = 0;
-	EPT_PDPT->Fields.Execute = 1;
-	EPT_PDPT->Fields.ExecuteForUserMode = 0;
-	EPT_PDPT->Fields.Ignored1 = 0;
-	EPT_PDPT->Fields.Ignored2 = 0;
-	EPT_PDPT->Fields.Ignored3 = 0;
-	EPT_PDPT->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PD) / PAGE_SIZE);
-	EPT_PDPT->Fields.Read = 1;
-	EPT_PDPT->Fields.Reserved1 = 0;
-	EPT_PDPT->Fields.Reserved2 = 0;
-	EPT_PDPT->Fields.Write = 1;
+    //
+    // Setting up PDPTE
+    //
+    EptPdpt->Fields.Accessed           = 0;
+    EptPdpt->Fields.Execute            = 1;
+    EptPdpt->Fields.ExecuteForUserMode = 0;
+    EptPdpt->Fields.Ignored1           = 0;
+    EptPdpt->Fields.Ignored2           = 0;
+    EptPdpt->Fields.Ignored3           = 0;
+    EptPdpt->Fields.PhysicalAddress    = (VirtualToPhysicalAddress(EptPd) / PAGE_SIZE);
+    EptPdpt->Fields.Read               = 1;
+    EptPdpt->Fields.Reserved1          = 0;
+    EptPdpt->Fields.Reserved2          = 0;
+    EptPdpt->Fields.Write              = 1;
 ```
 
 The last step is configuring PML4E, which points to the first entry of the PTPT.
 
 ```
-	// Setting up PML4E
-	EPT_PML4->Fields.Accessed = 0;
-	EPT_PML4->Fields.Execute = 1;
-	EPT_PML4->Fields.ExecuteForUserMode = 0;
-	EPT_PML4->Fields.Ignored1 = 0;
-	EPT_PML4->Fields.Ignored2 = 0;
-	EPT_PML4->Fields.Ignored3 = 0;
-	EPT_PML4->Fields.PhysicalAddress = (VirtualAddress_to_PhysicalAddress(EPT_PDPT) / PAGE_SIZE);
-	EPT_PML4->Fields.Read = 1;
-	EPT_PML4->Fields.Reserved1 = 0;
-	EPT_PML4->Fields.Reserved2 = 0;
-	EPT_PML4->Fields.Write = 1;
+    //
+    // Setting up PML4E
+    //
+    EptPml4->Fields.Accessed           = 0;
+    EptPml4->Fields.Execute            = 1;
+    EptPml4->Fields.ExecuteForUserMode = 0;
+    EptPml4->Fields.Ignored1           = 0;
+    EptPml4->Fields.Ignored2           = 0;
+    EptPml4->Fields.Ignored3           = 0;
+    EptPml4->Fields.PhysicalAddress    = (VirtualToPhysicalAddress(EptPdpt) / PAGE_SIZE);
+    EptPml4->Fields.Read               = 1;
+    EptPml4->Fields.Reserved1          = 0;
+    EptPml4->Fields.Reserved2          = 0;
+    EptPml4->Fields.Write              = 1;
 ```
 
 We've almost done! Just set up the EPTP for our VMCS by putting 0x6 as the memory type (which is write-back), and we walk four times, so the page walk length is 4-1=3, and the PML4 address is the physical address of the first entry in the PML4 table.
@@ -483,20 +505,22 @@ We've almost done! Just set up the EPTP for our VMCS by putting 0x6 as the memor
 I'll explain the **DirtyAndAcessEnabled** field later in this topic.
 
 ```
-	// Setting up EPTP
-	EPTPointer->Fields.DirtyAndAceessEnabled = 1;
-	EPTPointer->Fields.MemoryType = 6; // 6 = Write-back (WB)
-	EPTPointer->Fields.PageWalkLength = 3;  // 4 (tables walked) - 1 = 3 
-	EPTPointer->Fields.PML4Address = (VirtualAddress_to_PhysicalAddress(EPT_PML4) / PAGE_SIZE);
-	EPTPointer->Fields.Reserved1 = 0;
-	EPTPointer->Fields.Reserved2 = 0;
+    //
+    // Setting up EPTP
+    //
+    EPTPointer->Fields.DirtyAndAceessEnabled = 1;
+    EPTPointer->Fields.MemoryType            = 6; // 6 = Write-back (WB)
+    EPTPointer->Fields.PageWalkLength        = 3; // 4 (tables walked) - 1 = 3
+    EPTPointer->Fields.PML4Address           = (VirtualToPhysicalAddress(EptPml4) / PAGE_SIZE);
+    EPTPointer->Fields.Reserved1             = 0;
+    EPTPointer->Fields.Reserved2             = 0;
 ```
 
 And the last step.
 
 ```
-	DbgPrint("[*] Extended Page Table Pointer allocated at %llx",EPTPointer);
-	return EPTPointer;
+    DbgPrint("[*] Extended Page Table Pointer allocated at %llx", EPTPointer);
+    return EPTPointer;
 ```
 
 All the above page tables should be aligned to 4KByte boundaries, but as long as we allocate >= PAGE\_SIZE (One PFN record) so it's automatically 4kb-aligned.
@@ -548,7 +572,7 @@ The fifth part is also available [here](https://rayanfam.com/topics/hypervisor-f
 
 Have a good time!
 
-![Animeeeeeeee](../../assets/images/anime-girl-playing.jpg)
+![](../../assets/images/anime-girl-playing.jpg)
 
 ## **References**
 
