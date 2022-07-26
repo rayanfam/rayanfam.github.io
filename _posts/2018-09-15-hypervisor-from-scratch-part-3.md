@@ -750,13 +750,13 @@ Let's create a test case for our code, first a function for initiating VMXON and
 VIRTUAL_MACHINE_STATE * g_GuestState;
 int                     ProcessorCounts;
 
-VIRTUAL_MACHINE_STATE *
+BOOLEAN
 InitializeVmx()
 {
     if (!IsVmxSupported())
     {
         DbgPrint("[*] VMX is not supported in this machine !");
-        return NULL;
+        return FALSE;
     }
 
     ProcessorCounts = KeQueryActiveProcessorCount(0);
@@ -790,6 +790,8 @@ InitializeVmx()
 
         DbgPrint("\n=====================================================\n");
     }
+
+    return TRUE;
 }
 ```
 
