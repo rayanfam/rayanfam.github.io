@@ -348,25 +348,25 @@ main()
 
     CpuId = GetCpuID();
 
-    cout << "[*] The CPU Vendor is : " << CpuId << endl;
+    printf("[*] The CPU Vendor is : %s \n", CpuID.c_str());
 
     if (CpuId == "GenuineIntel")
     {
-        cout << "[*] The Processor virtualization technology is VT-x. \n";
+        printf("[*] The Processor virtualization technology is VT-x. \n");
     }
     else
     {
-        cout << "[*] This program is not designed to run in a non-VT-x environment !\n";
+        printf("[*] This program is not designed to run in a non-VT-x environment !\n");
         return 1;
     }
 
     if (DetectVmxSupport())
     {
-        cout << "[*] VMX Operation is supported by your processor .\n";
+        printf("[*] VMX Operation is supported by your processor .\n");
     }
     else
     {
-        cout << "[*] VMX Operation is not supported by your processor .\n";
+        printf("[*] VMX Operation is not supported by your processor .\n");
         return 1;
     }
 
