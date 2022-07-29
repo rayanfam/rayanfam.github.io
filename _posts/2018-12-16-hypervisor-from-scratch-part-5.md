@@ -26,22 +26,15 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-part-5-cover.png)
 
-## Introduction
+## **Introduction**
 
-Hello and welcome to the fifth part of the "Hypervisor From Scratch" tutorial series. Today we will be configuring our previously allocated Virtual Machine Control Structure (VMCS), and at last, we execute VMLAUNCH and enter our hardware-virtualized world! Before reading the rest of this part, you have to read the [previous parts](https://rayanfam.com/tutorials/) as they are dependent.
+Hello and welcome to the fifth part of the "Hypervisor From Scratch" tutorial series. Today we will be configuring the previously allocated Virtual Machine Control Structure (VMCS), implementing different VMX instructions, creating a restore point, setting different VMCS control structures, and at last, we execute VMLAUNCH and enter the hardware virtualization world! 
 
-The full source code of this tutorial is available on GitHub :
-
-\[[https://github.com/SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)\]
-
-**Note**: Remember that hypervisors change over time because new features are added to the operating systems or using new technologies. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors, so if you want to use Hypervisor From Scratch in your projects, research, or whatever, you have to use the driver from the latest parts of these tutorial series as this tutorial is actively updated and changes are applied to the newer parts (earlier parts keep untouched) so you might encounter errors and instability problems in the earlier parts thus make sure to use the latest parts in real-world projects.
-
-Most of this topic is derived from **Chapter 24 – (VIRTUAL MACHINE CONTROL STRUCTURES) & Chapter 26** – (**VM ENTRIES**) available at Intel 64 and IA-32 architectures software developer's manual combined volumes 3. Of course, you can also read the manual for more information.
-
-## Table of contents
+## **Table of contents**
 
 - **Introduction**
 - **Table of contents**
+- **Overview**
 - **VMX Instructions**  
     - VMPTRST
     - VMCLEAR
@@ -59,9 +52,9 @@ Most of this topic is derived from **Chapter 24 – (VIRTUAL MACHINE CONTROL STR
     - PIN-Based Execution Control
     - Interruptibility State
 - **Configuring VMCS**
-    - Gathering Machine state for VMCS
+    - Gathering machine state for VMCS
     - Setting up VMCS
-    - Checking VMCS Layout
+    - Checking VMCS layout
 - **VM-Exit Handler**
     - Resume to next instruction
 - **VMRESUME**
@@ -69,15 +62,27 @@ Most of this topic is derived from **Chapter 24 – (VIRTUAL MACHINE CONTROL STR
 - **Conclusion**
 - **References**
 
+## **Overview**
+
+Most of this topic is derived from **Chapter 24 – (VIRTUAL MACHINE CONTROL STRUCTURES) & Chapter 26** – (**VM ENTRIES**) available at Intel 64 and IA-32 architectures software developer's manual combined volumes 3. Of course, you can also read the manual for more information.
+
 This part is highly inspired by [Hypervisor For Beginner](https://github.com/rohaaan/hypervisor-for-beginners).
+
+Before reading the rest of this part, make sure to read the [previous parts](https://rayanfam.com/tutorials/) as it gives you the necessary knowledge to understand the rest of this topic thoroughly.
+
+The full source code of this tutorial is available on GitHub :
+
+\[[https://github.com/SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)\]
+
+**Note**: Remember that hypervisors change over time because new features are added to the operating systems or using new technologies. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors, so if you want to use Hypervisor From Scratch in your projects, research, or whatever, you have to use the driver from the latest parts of these tutorial series as this tutorial is actively updated and changes are applied to the newer parts (earlier parts keep untouched) so you might encounter errors and instability problems in the earlier parts thus make sure to use the latest parts in real-world projects.
 
 ![](../../assets/images/anime-girl-in-city.png)
 
-## VMX Instructions
+## **VMX Instructions**
 
 In [part 3](https://rayanfam.com/topics/hypervisor-from-scratch-part-3/), we implemented VMXOFF function now let's implement other VMX instructions function. I also make some changes in calling VMXON and VMPTRLD functions to make it more modular.
 
-### VMPTRST
+### **VMPTRST**
 
 VMPTRST stores the current-VMCS pointer into a specified memory address. The operand of this instruction is always 64 bits, and it's always a location in memory.
 
@@ -96,7 +101,7 @@ UINT64 VMPTRST()
 }
 ```
 
-### VMCLEAR
+### **VMCLEAR**
 
 This instruction applies to the VMCS, where the VMCS region resides at the physical address contained in the instruction operand. The instruction ensures that VMCS data for that VMCS (some of these data may be currently maintained on the processor) are copied to the VMCS region in memory. It also initializes some parts of the VMCS region (for example, it sets the launch state of that VMCS to clear).
 
@@ -118,7 +123,7 @@ BOOLEAN Clear_VMCS_State(IN PVirtualMachineState vmState) {
 }
 ```
 
-### VMPTRLD
+### **VMPTRLD**
 
 It marks the current-VMCS pointer valid and loads it with the physical address in the instruction operand. The instruction fails if its operand is not properly aligned, sets unsupported physical-address bits, or is equal to the VMXON pointer. In addition, the instruction fails if the 32 bits in memory referenced by the operand do not match the VMCS revision identifier supported by this processor.
 
@@ -137,7 +142,7 @@ BOOLEAN Load_VMCS(IN PVirtualMachineState vmState) {
 
 In order to implement **VMRESUME**, you need to know about some VMCS fields, so the implementation of VMRESUME is after we implement VMLAUNCH. (Later in this topic)
 
-## Enhancing VM State Structure
+## **Enhancing VM State Structure**
 
 As I told you earlier, we need a structure to save the state of our virtual machine in each core separately. The following structure is used in the newest version of our hypervisor. We will describe each field in the rest of this topic.
 
@@ -155,7 +160,7 @@ typedef struct _VirtualMachineState
 
 Note that it's not the final **\_VirtualMachineState** structure, and we'll enhance it in future parts.
 
-## Preparing to launch VM
+## **Preparing to launch VM**
 
 In this part, we're just trying to test our hypervisor in our driver. In the future parts, we will add some user-mode interactions with our driver so let's start with modifying our **DriverEntry** as it's the first function that executes when our driver is loaded.
 
@@ -258,7 +263,7 @@ The last step is to execute the VMLAUNCH, but we shouldn't forget about saving t
     Save_VMXOFF_State();
 ```
 
-## Saving a return point
+## **Saving a return point**
 
 For **Save\_VMXOFF\_State()** , I declared two global variables called **g\_StackPointerForReturning**, **g\_BasePointerForReturning**. There is no need to save RIP as the stack's return address is always available. Just EXTERN it in the assembly file :
 
@@ -279,7 +284,7 @@ ret
 Save_VMXOFF_State ENDP 
 ```
 
-## Returning to the previous state
+## **Returning to the previous state**
 
 As we saved the current state, we must restore **RSP** and **RBP** registers and clear the stack position if we want to return to the previous state. Eventually, a RET instruction. (I also added a VMXOFF because it should be executed before return.)
 
@@ -316,7 +321,7 @@ The "return section" is defined like this because I saw the return section of **
 
 LaunchVM Return Frame
 
-## VMLAUNCH
+## **VMLAUNCH**
 
 Now it's time to execute the VMLAUNCH.
 
@@ -342,9 +347,11 @@ Remember we're still in **LaunchVM** function and **\_\_vmx\_vmlaunch()** is the
 
 Now it's time to read some theories before configuring VMCS.
 
-## VMX Controls
+## **VMX Controls**
 
-### VM-Execution Controls
+Now, let's talk about different controls in VMCS that govern the guest's behavior.
+
+### **VM-Execution Controls**
 
 In order to control our guest features, we have to set some fields in our VMCS. The following tables represent the Primary Processor-Based VM-Execution Controls and Secondary Processor-Based VM-Execution Controls.
 
@@ -390,7 +397,7 @@ The definition of the above table is this (we ignore some bits, you can define t
 #define CPU_BASED_CTL2_ENABLE_VMFUNC        0x2000
 ```
 
-### VM-entry Control Bits
+### **VM-entry Control Bits**
 
 The VM-entry controls constitute a 32-bit vector that governs the basic operation of VM entries.
 
@@ -404,7 +411,7 @@ The VM-entry controls constitute a 32-bit vector that governs the basic operatio
 #define VM_ENTRY_LOAD_GUEST_PAT         0x00004000
 ```
 
-### VM-exit Control Bits
+### **VM-exit Control Bits**
 
 The VM-exit controls constitute a 32-bit vector that governs the essential operation of VM exits.
 
@@ -419,7 +426,7 @@ The VM-exit controls constitute a 32-bit vector that governs the essential opera
 ```
 
 
-### PIN-Based Execution Control
+### **PIN-Based Execution Control**
 
 The pin-based VM-execution controls constitute a 32-bit vector that governs the handling of asynchronous events (for example, interrupts). We'll use it in the future parts, but for now, let's define it in our Hypervisor.
 
@@ -433,7 +440,7 @@ The pin-based VM-execution controls constitute a 32-bit vector that governs the 
 #define PIN_BASED_VM_EXECUTION_CONTROLS_PROCESS_POSTED_INTERRUPTS 0x00000080
 ```
 
-### Interruptibility State
+### **Interruptibility State**
 
 The guest-state area includes the following fields that characterize guest state but which do not correspond to processor registers:  
 THE Activity state (32 bits) field identifies the logical processor's activity state. When a logical processor is executing instructions normally, it is in an active state. Execution of certain instructions and the occurrence of certain events may cause a logical processor to transition to an inactive state in which it ceases to execute instructions.  
@@ -448,9 +455,11 @@ The following activity states are defined:
 
 ![Interruptibility-State](../../assets/images/VMCS-interruptibility-state.png)
 
-## Configuring VMCS
+## **Configuring VMCS**
 
-### Gathering Machine state for VMCS
+Now, it's time to configure the VMCS structure fully to make our virtualized guest ready.
+
+### **Gathering machine state for VMCS**
 
 In order to configure our Guest-State & Host-State, we need to have details about the current system state, e.g., Global Descriptor Table Address, Interrupt Descriptor Table Address and Read all the Segment Registers.
 
@@ -585,7 +594,7 @@ Get_RFLAGS PROC
 Get_RFLAGS ENDP
 ```
 
-### Setting up VMCS
+### **Setting up VMCS**
 
 Let's get down to business (We have a long way to go).
 
@@ -1000,7 +1009,7 @@ Setting these fields to a Host Address will not cause a problem as long as we ha
 
 Done! Our VMCS is almost ready.
 
-### Checking VMCS Layout
+### **Checking VMCS Layout**
 
 Unfortunately, checking VMCS Layout is not as straight as the other parts. You have to control all the checklists described in **\[CHAPTER 26\] VM ENTRIES** from **Intel's 64 and IA-32 Architectures Software Developer's Manual**, including the following sections:
 
@@ -1030,7 +1039,7 @@ The source code and executable files are available on GitHub :
 
 Further description available [here](https://rayanfam.com/topics/vmcsauditor-a-bochs-based-hypervisor-layout-checker/).
 
-## VM-Exit Handler
+## **VM-Exit Handler**
 
 When our guest software exits and gives the handle back to the host, the following VM-exit reasons might happen.
 
@@ -1267,7 +1276,7 @@ VOID MainVMExitHandler(PGUEST_REGS GuestRegs)
 }
 ```
 
-### Resume to next instruction
+### **Resume to next instruction**
 
 If a VM-Exit occurs (e.g., the guest executed a CPUID instruction), the guest RIP remains constant, and it's up to you to change the Guest RIP or not, so if you don't have a certain function for managing this situation, then you execute a VMRESUME, and it's like an infinite loop of executing CPUID and VMRESUME because you didn't change the RIP.
 
@@ -1291,7 +1300,7 @@ VOID ResumeToNextInstruction(VOID)
 }
 ```
 
-## VMRESUME
+## **VMRESUME**
 
 VMRESUME is like VMLAUNCH, but it's used in order to resume the guest.
 
@@ -1321,7 +1330,7 @@ VOID VM_Resumer(VOID)
 }
 ```
 
-## Let's Test it!
+## **Let's Test it!**
 
 Well, we have done with the configuration, and now it's time to run our driver using OSR Driver Loader. As always, we should first disable driver signature enforcement and run our driver.
 
@@ -1339,13 +1348,13 @@ That's it! Wasn't it easy ?!
 
 ![:)](../../assets/images/anime-girls-drinking-tea.jpg)
 
-## Conclusion
+## **Conclusion**
 
 In this part, we get familiar with configuring the Virtual Machine Control Structure and finally run our guest code. The future parts would be an enhancement to this configuration like entering **protected-mode,** **interrupt injection**, **page modification logging,** **virtualizing the current machine**, and so on; thus, make sure to visit the blog more frequently for future parts and if you have any question or problem you can use the comments section below.
 
 Thanks for reading!
 
-## References
+## **References**
 
 \[1\] Vol 3C - Chapter 24 – (VIRTUAL MACHINE CONTROL STRUCTURES ([https://software.intel.com/en-us/articles/intel-sdm](https://software.intel.com/en-us/articles/intel-sdm))
 
