@@ -89,7 +89,8 @@ VMPTRST stores the current-VMCS pointer into a specified memory address. The ope
 The following function is the implementation of VMPTRST:
 
 ```
-UINT64 VMPTRST()
+UINT64
+VmptrstInstruction()
 {
     PHYSICAL_ADDRESS vmcspa;
     vmcspa.QuadPart = 0;
@@ -106,10 +107,11 @@ UINT64 VMPTRST()
 This instruction applies to the VMCS, where the VMCS region resides at the physical address contained in the instruction operand. The instruction ensures that VMCS data for that VMCS (some of these data may be currently maintained on the processor) are copied to the VMCS region in memory. It also initializes some parts of the VMCS region (for example, it sets the launch state of that VMCS to clear).
 
 ```
-BOOLEAN Clear_VMCS_State(IN PVirtualMachineState vmState) {
-
+BOOLEAN
+ClearVmcsState(VIRTUAL_MACHINE_STATE * GuestState)
+{
     // Clear the state of the VMCS to inactive
-    int status = __vmx_vmclear(&vmState->VMCS_REGION);
+    int status = __vmx_vmclear(&GuestState->VmcsRegion);
 
     DbgPrint("[*] VMCS VMCLAEAR Status is : %d\n", status);
     if (status)
@@ -128,9 +130,10 @@ BOOLEAN Clear_VMCS_State(IN PVirtualMachineState vmState) {
 It marks the current-VMCS pointer valid and loads it with the physical address in the instruction operand. The instruction fails if its operand is not properly aligned, sets unsupported physical-address bits, or is equal to the VMXON pointer. In addition, the instruction fails if the 32 bits in memory referenced by the operand do not match the VMCS revision identifier supported by this processor.
 
 ```
-BOOLEAN Load_VMCS(IN PVirtualMachineState vmState) {
-
-    int status = __vmx_vmptrld(&vmState->VMCS_REGION);
+BOOLEAN
+LoadVmcs(VIRTUAL_MACHINE_STATE * GuestState)
+{
+    int status = __vmx_vmptrld(&GuestState->VmcsRegion);
     if (status)
     {
         DbgPrint("[*] VMCS failed with status %d\n", status);
@@ -147,15 +150,16 @@ In order to implement **VMRESUME**, you need to know about some VMCS fields, so 
 As I told you earlier, we need a structure to save the state of our virtual machine in each core separately. The following structure is used in the newest version of our hypervisor. We will describe each field in the rest of this topic.
 
 ```
-typedef struct _VirtualMachineState
+typedef struct _VIRTUAL_MACHINE_STATE
 {
-    UINT64 VMXON_REGION;                    // VMXON region
-    UINT64 VMCS_REGION;                     // VMCS region
-    UINT64 EPTP;                            // Extended-Page-Table Pointer
-    UINT64 VMM_Stack;                       // Stack for VMM in VM-Exit State
-    UINT64 MSRBitMap;                       // MSRBitMap Virtual Address
-    UINT64 MSRBitMapPhysical;               // MSRBitMap Physical Address
-} VirtualMachineState, *PVirtualMachineState;
+    UINT64 VmxoRegion;        // VMXON region
+    UINT64 VmcsRegion;        // VMCS region
+    UINT64 Eptp;              // Extended-Page-Table Pointer
+    UINT64 VmmStack;          // Stack for VMM in VM-Exit State
+    UINT64 MsrBitmap;         // MSR Bitmap Virtual Address
+    UINT64 MsrBitmapPhysical; // MSR Bitmap Physical Address
+
+} VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 ```
 
 Note that it's not the final **\_VirtualMachineState** structure, and we'll enhance it in future parts.
@@ -167,9 +171,12 @@ In this part, we're just trying to test our hypervisor in our driver. In the fut
 Below all the preparation from [Part 2](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/), we add the following lines to use our [Part 4](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/) (EPT) structures :
 
 ```
+        //
         // Initiating EPTP and VMX
-        PEPTP EPTP = Initialize_EPTP();
-        Initiate_VMX();
+        //
+        PEPTP EPTP = InitializeEptp();
+
+        InitiateVmx();
 ```
 
 I added an export to a global variable called "VirtualGuestMemoryAddress" that holds the address of where our guest code starts.
@@ -179,7 +186,8 @@ Now let's fill our allocated pages with **\\xf4**, which stands for **HLT** inst
 Let's create a function responsible for running our virtual machine on a specific core.
 
 ```
-void LaunchVM(int ProcessorID , PEPTP EPTP);
+VOID
+LaunchVm(int ProcessorID, PEPTP EPTP);
 ```
 
 I set the **ProcessorID** to 0, so we're in the 0th logical processor.
@@ -189,13 +197,13 @@ Keep in mind that every logical core has its own VMCS, and if you want your gues
 Now we should set the affinity to the specific logical processor using the Windows **KeSetSystemAffinityThread** function and choose the specific core's **vmState** as each core has its own separate VMXON and VMCS region.
 
 ```
-    KAFFINITY kAffinityMask;
-        kAffinityMask = ipow(2, ProcessorID);
-        KeSetSystemAffinityThread(kAffinityMask);
+    KAFFINITY AffinityMask;
+    AffinityMask = MathPower(2, ProcessorID);
+    KeSetSystemAffinityThread(AffinityMask);
 
-        DbgPrint("[*]\t\tCurrent thread is executing in %d th logical processor.\n", ProcessorID);
+    DbgPrint("[*]\t\tCurrent thread is executing in %d th logical processor.\n", ProcessorID);
 
-        PAGED_CODE();
+    PAGED_CODE();
 ```
 
 Now, we should allocate a specific stack so that whenever a VM-Exit occurs, we can save the registers and call other Host functions.
@@ -205,31 +213,34 @@ I prefer to allocate a separate location for the stack instead of using the curr
 The following lines are for allocating and zeroing the stack of our VM-Exit handler.
 
 ```
-    // Allocate stack for the VM Exit Handler.
-    UINT64 VMM_STACK_VA = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
-    vmState[ProcessorID].VMM_Stack = VMM_STACK_VA;
+    //
+    // Allocate stack for the VM Exit Handler
+    //
+    UINT64 VMM_STACK_VA                = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+    g_GuestState[ProcessorID].VmmStack = VMM_STACK_VA;
 
-    if (vmState[ProcessorID].VMM_Stack == NULL)
+    if (g_GuestState[ProcessorID].VmmStack == NULL)
     {
         DbgPrint("[*] Error in allocating VMM Stack.\n");
         return;
     }
-    RtlZeroMemory(vmState[ProcessorID].VMM_Stack, VMM_STACK_SIZE);
+    RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
 ```
 
 Same as above, allocating a page for MSR Bitmap and adding it to **vmState**, I'll describe them later in this topic.
 
 ```
+    //
     // Allocate memory for MSRBitMap
-    vmState[ProcessorID].MSRBitMap = MmAllocateNonCachedMemory(PAGE_SIZE);  // should be aligned
-    if (vmState[ProcessorID].MSRBitMap == NULL)
+    //
+    g_GuestState[ProcessorID].MsrBitmap = MmAllocateNonCachedMemory(PAGE_SIZE); // should be aligned
+    if (g_GuestState[ProcessorID].MsrBitmap == NULL)
     {
         DbgPrint("[*] Error in allocating MSRBitMap.\n");
         return;
     }
-    RtlZeroMemory(vmState[ProcessorID].MSRBitMap, PAGE_SIZE);
-    
-vmState[ProcessorID].MSRBitMapPhysical = VirtualAddress_to_PhysicalAddress(vmState[ProcessorID].MSRBitMap);
+    RtlZeroMemory(g_GuestState[ProcessorID].MsrBitmap, PAGE_SIZE);
+    g_GuestState[ProcessorID].MsrBitmapPhysical = VirtualToPhysicalAddress(g_GuestState[ProcessorID].MsrBitmap);
 ```
 
 Now it's time to clear our VMCS state and load it as the current VMCS in the specific processor (in our case, the 0th logical processor).
@@ -237,14 +248,18 @@ Now it's time to clear our VMCS state and load it as the current VMCS in the spe
 The **Clear\_VMCS\_State** and **Load\_VMCS** are described above :
 
 ```
-
+    //
     // Clear the VMCS State
-    if (!Clear_VMCS_State(&vmState[ProcessorID])) {
+    //
+    if (!ClearVmcsState(&g_GuestState[ProcessorID]))
+    {
         goto ErrorReturn;
     }
 
+    //
     // Load VMCS (Set the Current VMCS)
-    if (!Load_VMCS(&vmState[ProcessorID]))
+    //
+    if (!LoadVmcs(&g_GuestState[ProcessorID]))
     {
         goto ErrorReturn;
     }
@@ -254,13 +269,13 @@ Now it's time to set up VMCS. A detailed explanation of the VMCS setup is availa
 
 ```
     DbgPrint("[*] Setting up VMCS.\n");
-    Setup_VMCS(&vmState[ProcessorID], EPTP);
+    SetupVmcs(&g_GuestState[ProcessorID], EPTP);
 ```
 
 The last step is to execute the VMLAUNCH, but we shouldn't forget about saving the current state of the stack (RSP & RBP) because during the execution of the guest code and after returning from VM-Exit, we have to know the current state and return from it. If you leave the driver with the wrong **RSP** & **RBP** registers, you see a BSOD.
 
 ```
-    Save_VMXOFF_State();
+AsmSaveStateForVmxoff();
 ```
 
 ## **Saving a return point**
@@ -268,7 +283,6 @@ The last step is to execute the VMLAUNCH, but we shouldn't forget about saving t
 For **Save\_VMXOFF\_State()** , I declared two global variables called **g\_StackPointerForReturning**, **g\_BasePointerForReturning**. There is no need to save RIP as the stack's return address is always available. Just EXTERN it in the assembly file :
 
 ```
-
 EXTERN g_StackPointerForReturning:QWORD
 EXTERN g_BasePointerForReturning:QWORD
 ```
@@ -276,12 +290,14 @@ EXTERN g_BasePointerForReturning:QWORD
 The implementation of **Save\_VMXOFF\_State** :
 
 ```
-Save_VMXOFF_State PROC PUBLIC
-MOV g_StackPointerForReturning,rsp
-MOV g_BasePointerForReturning,rbp
-ret
+AsmSaveStateForVmxoff PROC PUBLIC
 
-Save_VMXOFF_State ENDP 
+	MOV g_StackPointerForReturning, RSP
+	MOV g_BasePointerForReturning, RBP
+
+	RET
+
+AsmSaveStateForVmxoff ENDP 
 ```
 
 ## **Returning to the previous state**
@@ -289,30 +305,31 @@ Save_VMXOFF_State ENDP
 As we saved the current state, we must restore **RSP** and **RBP** registers and clear the stack position if we want to return to the previous state. Eventually, a RET instruction. (I also added a VMXOFF because it should be executed before return.)
 
 ```
-Restore_To_VMXOFF_State PROC PUBLIC
+AsmVmxoffAndRestoreState PROC PUBLIC
 
-VMXOFF  ; turn it off before existing
+	VMXOFF  ; turn it off before existing
+	
+	MOV RSP, g_StackPointerForReturning
+	MOV RBP, g_BasePointerForReturning
+	
+	; make rsp point to a correct return point
+	ADD RSP, 8
+	
+	; return True
 
-MOV rsp, g_StackPointerForReturning
-MOV rbp, g_BasePointerForReturning
-
-; make rsp point to a correct return point
-ADD rsp,8
-
-; return True
-xor rax, rax
-mov rax,1
-
-; return section
-
-mov     rbx, [rsp+28h+8h]
-mov     rsi, [rsp+28h+10h]
-add     rsp, 020h
-pop     rdi
-
-ret
-
-Restore_To_VMXOFF_State ENDP 
+	XOR RAX, RAX
+	MOV RAX, 1
+	
+	; return section
+	
+	MOV     RBX, [RSP+28h+8h]
+	MOV     RSI, [RSP+28h+10h]
+	ADD     RSP, 020h
+	POP     RDI
+	
+	RET
+	
+AsmVmxoffAndRestoreState ENDP 
 ```
 
 The "return section" is defined like this because I saw the return section of **LaunchVM** in IDA Pro.
@@ -326,10 +343,11 @@ LaunchVM Return Frame
 Now it's time to execute the VMLAUNCH.
 
 ```
-
     __vmx_vmlaunch();
 
+    //
     // if VMLAUNCH succeeds will never be here!
+    //
     ULONG64 ErrorCode = 0;
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
@@ -468,20 +486,25 @@ These functions describe how all of these data can be gathered.
 GDT Base :
 
 ```
-Get_GDT_Base PROC
-    LOCAL   gdtr[10]:BYTE
-    sgdt    gdtr
-    mov     rax, QWORD PTR gdtr[2]
-    ret
-Get_GDT_Base ENDP
+GetGdtBase PROC
+
+	LOCAL	GDTR[10]:BYTE
+	SGDT	GDTR
+	MOV		RAX, QWORD PTR GDTR[2]
+
+	RET
+
+GetGdtBase ENDP
 ```
 
 CS segment register:
 
 ```
 GetCs PROC
-    mov     rax, cs
-    ret
+
+	MOV		RAX, CS
+	RET
+
 GetCs ENDP
 ```
 
@@ -489,8 +512,10 @@ DS segment register:
 
 ```
 GetDs PROC
-    mov     rax, ds
-    ret
+
+	MOV		RAX, DS
+	RET
+
 GetDs ENDP
 ```
 
@@ -498,17 +523,20 @@ ES segment register:
 
 ```
 GetEs PROC
-    mov     rax, es
-    ret
+
+	MOV		RAX, ES
+	RET
+
 GetEs ENDP
 ```
-
 SS segment register:
 
 ```
 GetSs PROC
-    mov     rax, ss
-    ret
+
+	MOV		RAX, SS
+	RET
+
 GetSs ENDP
 ```
 
@@ -516,8 +544,10 @@ FS segment register:
 
 ```
 GetFs PROC
-    mov     rax, fs
-    ret
+
+	MOV		RAX, FS
+	RET
+
 GetFs ENDP
 ```
 
@@ -525,8 +555,10 @@ GS segment register:
 
 ```
 GetGs PROC
-    mov     rax, gs
-    ret
+
+	MOV		RAX, GS
+	RET
+
 GetGs ENDP
 ```
 
@@ -534,8 +566,10 @@ LDT:
 
 ```
 GetLdtr PROC
-    sldt    rax
-    ret
+
+	SLDT	RAX
+	RET
+
 GetLdtr ENDP
 ```
 
@@ -543,55 +577,67 @@ TR (task register):
 
 ```
 GetTr PROC
-    str rax
-    ret
+
+	STR		RAX
+	RET
+
 GetTr ENDP
 ```
 
 Interrupt Descriptor Table:
 
 ```
-Get_IDT_Base PROC
-    LOCAL   idtr[10]:BYTE
+GetIdtBase PROC
 
-    sidt    idtr
-    mov     rax, QWORD PTR idtr[2]
-    ret
-Get_IDT_Base ENDP
+	LOCAL	IDTR[10]:BYTE
+	
+	SIDT	IDTR
+	MOV		RAX, QWORD PTR IDTR[2]
+	RET
+
+GetIdtBase ENDP
 ```
 
 GDT Limit:
 
 ```
-Get_GDT_Limit PROC
-    LOCAL   gdtr[10]:BYTE
+GetGdtLimit PROC
 
-    sgdt    gdtr
-    mov     ax, WORD PTR gdtr[0]
-    ret
-Get_GDT_Limit ENDP
+	LOCAL	GDTR[10]:BYTE
+
+	SGDT	GDTR
+	MOV		AX, WORD PTR GDTR[0]
+
+	RET
+
+GetGdtLimit ENDP
 ```
 
 IDT Limit:
 
 ```
-Get_IDT_Limit PROC
-    LOCAL   idtr[10]:BYTE
+GetIdtLimit PROC
 
-    sidt    idtr
-    mov     ax, WORD PTR idtr[0]
-    ret
-Get_IDT_Limit ENDP
+	LOCAL	IDTR[10]:BYTE
+	
+	SIDT	IDTR
+	MOV		AX, WORD PTR IDTR[0]
+
+	RET
+
+GetIdtLimit ENDP
 ```
 
 RFLAGS:
 
 ```
-Get_RFLAGS PROC
-    pushfq
-    pop     rax
-    ret
-Get_RFLAGS ENDP
+GetRflags PROC
+
+	PUSHFQ
+	POP		RAX
+	RET
+
+GetRflags ENDP
 ```
 
 ### **Setting up VMCS**
@@ -601,7 +647,8 @@ Let's get down to business (We have a long way to go).
 This section starts with defining a function called **Setup\_VMCS**.
 
 ```
-BOOLEAN Setup_VMCS(IN PVirtualMachineState vmState, IN PEPTP EPTP);
+BOOLEAN
+SetupVmcs(VIRTUAL_MACHINE_STATE * GuestState, PEPTP EPTP);
 ```
 
 This function is responsible for configuring all of the options related to VMCS and, of course, the Guest & Host state.
@@ -772,7 +819,9 @@ The purpose of **& 0xF8** is that Intel mentioned that the three less significan
 VMCS\_LINK\_POINTER should be 0xffffffffffffffff.
 
 ```
-    // Setting the link pointer to the required value for 4KB VMCS.
+    //
+    // Setting the link pointer to the required value for 4KB VMCS
+    //
     __vmx_vmwrite(VMCS_LINK_POINTER, ~0ULL);
 ```
 
@@ -787,7 +836,6 @@ In short: LBR is a mechanism that provides the processor with some recording of 
 We don't use them but let's configure them to the current machine's MSR\_IA32\_DEBUGCTL, and you can see that **\_\_readmsr** is the intrinsic function for RDMSR.
 
 ```
-
     __vmx_vmwrite(GUEST_IA32_DEBUGCTL, __readmsr(MSR_IA32_DEBUGCTL) & 0xFFFFFFFF);
     __vmx_vmwrite(GUEST_IA32_DEBUGCTL_HIGH, __readmsr(MSR_IA32_DEBUGCTL) >> 32);
 ```
@@ -814,7 +862,7 @@ Note that values we put Zero on them can be ignored; if you don't modify them, i
 This time, we'll configure Segment Registers and other GDT for our Host (When VM-Exit occurs).
 
 ```
-    GdtBase = Get_GDT_Base();
+    GdtBase = GetGdtBase();
 
     FillGuestSelectorData((PVOID)GdtBase, ES, GetEs());
     FillGuestSelectorData((PVOID)GdtBase, CS, GetCs());
@@ -831,59 +879,63 @@ This time, we'll configure Segment Registers and other GDT for our Host (When VM
 **FillGuestSelectorData** is responsible for setting the GUEST selector, attributes, limit, and base for VMCS. It is implemented as below :
 
 ```
-void FillGuestSelectorData(
-    __in PVOID GdtBase,
-    __in ULONG Segreg,
-    __in USHORT Selector
-)
+VOID
+FillGuestSelectorData(
+    PVOID  GdtBase,
+    ULONG  Segreg,
+    USHORT Selector)
 {
-    SEGMENT_SELECTOR SegmentSelector = { 0 };
-    ULONG            uAccessRights;
+    SEGMENT_SELECTOR SegmentSelector = {0};
+    ULONG            AccessRights;
 
     GetSegmentDescriptor(&SegmentSelector, Selector, GdtBase);
-    uAccessRights = ((PUCHAR)& SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)& SegmentSelector.ATTRIBUTES)[1] << 12);
+    AccessRights = ((PUCHAR)&SegmentSelector.ATTRIBUTES)[0] + (((PUCHAR)&SegmentSelector.ATTRIBUTES)[1] << 12);
 
     if (!Selector)
-        uAccessRights |= 0x10000;
+        AccessRights |= 0x10000;
 
     __vmx_vmwrite(GUEST_ES_SELECTOR + Segreg * 2, Selector);
     __vmx_vmwrite(GUEST_ES_LIMIT + Segreg * 2, SegmentSelector.LIMIT);
-    __vmx_vmwrite(GUEST_ES_AR_BYTES + Segreg * 2, uAccessRights);
+    __vmx_vmwrite(GUEST_ES_AR_BYTES + Segreg * 2, AccessRights);
     __vmx_vmwrite(GUEST_ES_BASE + Segreg * 2, SegmentSelector.BASE);
-
 }
 ```
 
 The function body for **GetSegmentDescriptor** :
 
 ```
-
-BOOLEAN GetSegmentDescriptor(IN PSEGMENT_SELECTOR SegmentSelector, IN USHORT Selector, IN PUCHAR GdtBase)
+BOOLEAN
+GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector,
+                     USHORT            Selector,
+                     PUCHAR            GdtBase)
 {
     PSEGMENT_DESCRIPTOR SegDesc;
 
     if (!SegmentSelector)
         return FALSE;
 
-    if (Selector & 0x4) {
+    if (Selector & 0x4)
+    {
         return FALSE;
     }
 
     SegDesc = (PSEGMENT_DESCRIPTOR)((PUCHAR)GdtBase + (Selector & ~0x7));
 
-    SegmentSelector->SEL = Selector;
-    SegmentSelector->BASE = SegDesc->BASE0 | SegDesc->BASE1 << 16 | SegDesc->BASE2 << 24;
-    SegmentSelector->LIMIT = SegDesc->LIMIT0 | (SegDesc->LIMIT1ATTR1 & 0xf) << 16;
+    SegmentSelector->SEL               = Selector;
+    SegmentSelector->BASE              = SegDesc->BASE0 | SegDesc->BASE1 << 16 | SegDesc->BASE2 << 24;
+    SegmentSelector->LIMIT             = SegDesc->LIMIT0 | (SegDesc->LIMIT1ATTR1 & 0xf) << 16;
     SegmentSelector->ATTRIBUTES.UCHARs = SegDesc->ATTR0 | (SegDesc->LIMIT1ATTR1 & 0xf0) << 4;
 
-    if (!(SegDesc->ATTR0 & 0x10)) { // LA_ACCESSED
-        ULONG64 tmp;
+    if (!(SegDesc->ATTR0 & 0x10))
+    { // LA_ACCESSED
+        ULONG64 Tmp;
         // this is a TSS or callgate etc, save the base high part
-        tmp = (*(PULONG64)((PUCHAR)SegDesc + 8));
-        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (tmp << 32);
+        Tmp                   = (*(PULONG64)((PUCHAR)SegDesc + 8));
+        SegmentSelector->BASE = (SegmentSelector->BASE & 0xffffffff) | (Tmp << 32);
     }
 
-    if (SegmentSelector->ATTRIBUTES.Fields.G) {
+    if (SegmentSelector->ATTRIBUTES.Fields.G)
+    {
         // 4096-bit granularity is enabled for this segment, scale the limit
         SegmentSelector->LIMIT = (SegmentSelector->LIMIT << 12) + 0xfff;
     }
@@ -929,13 +981,14 @@ The description of **PIN\_BASED\_VM\_EXEC\_CONTROL**, **VM\_EXIT\_CONTROLS**, an
 Also, the `AdjustControls` is defined like this:
 
 ```
-ULONG AdjustControls(IN ULONG Ctl, IN ULONG Msr)
+ULONG
+AdjustControls(ULONG Ctl, ULONG Msr)
 {
-    MSR MsrValue = { 0 };
+    MSR MsrValue = {0};
 
     MsrValue.Content = __readmsr(Msr);
-    Ctl &= MsrValue.High;     /* bit == 0 in high word ==> must be zero */
-    Ctl |= MsrValue.Low;      /* bit == 1 in low word  ==> must be one  */
+    Ctl &= MsrValue.High; /* bit == 0 in high word ==> must be zero */
+    Ctl |= MsrValue.Low;  /* bit == 1 in low word  ==> must be one  */
     return Ctl;
 }
 ```
@@ -957,16 +1010,16 @@ The next step is setting Control Register for the guest and the host. We set the
 The next part is setting up IDT and GDT's **Base** and **Limit** for our guest.
 
 ```
-    __vmx_vmwrite(GUEST_GDTR_BASE, Get_GDT_Base());
-    __vmx_vmwrite(GUEST_IDTR_BASE, Get_IDT_Base());
-    __vmx_vmwrite(GUEST_GDTR_LIMIT, Get_GDT_Limit());
-    __vmx_vmwrite(GUEST_IDTR_LIMIT, Get_IDT_Limit());
+    __vmx_vmwrite(GUEST_GDTR_BASE, GetGdtBase());
+    __vmx_vmwrite(GUEST_IDTR_BASE, GetIdtBase());
+    __vmx_vmwrite(GUEST_GDTR_LIMIT, GetGdtLimit());
+    __vmx_vmwrite(GUEST_IDTR_LIMIT, GetIdtLimit());
 ```
 
 Set the RFLAGS.
 
 ```
-    __vmx_vmwrite(GUEST_RFLAGS, Get_RFLAGS());
+    __vmx_vmwrite(GUEST_RFLAGS, GetRflags());
 ```
 
 If you want to use SYSENTER in your guest, you should configure the following MSRs. It's not important to set these values in x64 Windows because Windows doesn't support SYSENTER in x64 versions of Windows. It uses SYSCALL instead and for 32-bit processes; first, change the current execution mode to long-mode (using [Heaven's Gate technique](http://rce.co/knockin-on-heavens-gate-dynamic-processor-mode-switching/)), but in 32-bit processors these fields are mandatory.
@@ -983,24 +1036,28 @@ If you want to use SYSENTER in your guest, you should configure the following MS
 Don't forget to configure **HOST\_FS\_BASE**, **HOST\_GS\_BASE**, **HOST\_GDTR\_BASE**, **HOST\_IDTR\_BASE**, **HOST\_TR\_BASE**.
 
 ```
-    GetSegmentDescriptor(&SegmentSelector, GetTr(), (PUCHAR)Get_GDT_Base());
+    GetSegmentDescriptor(&SegmentSelector, GetTr(), (PUCHAR)GetGdtBase());
     __vmx_vmwrite(HOST_TR_BASE, SegmentSelector.BASE);
 
     __vmx_vmwrite(HOST_FS_BASE, __readmsr(MSR_FS_BASE));
     __vmx_vmwrite(HOST_GS_BASE, __readmsr(MSR_GS_BASE));
 
-    __vmx_vmwrite(HOST_GDTR_BASE, Get_GDT_Base());
-    __vmx_vmwrite(HOST_IDTR_BASE, Get_IDT_Base());
+    __vmx_vmwrite(HOST_GDTR_BASE, GetGdtBase());
+    __vmx_vmwrite(HOST_IDTR_BASE, GetIdtBase());
+
 ```
 
 The next important part is to set the **RIP** and **RSP** registers of the guest when a VMLAUNCH executes. It starts with the **RIP** you configured in this part and **RIP** and **RSP** of the host when a VM-Exit occurs. It's pretty clear that host **RIP** should point to a function responsible for managing VMX Events based on return code and decide to execute a VMRESUME or turn off the hypervisor using VMXOFF.
 
 ```
+    //
     // left here just for test
-    __vmx_vmwrite(0, (ULONG64)VirtualGuestMemoryAddress);     //setup guest sp
-    __vmx_vmwrite(GUEST_RIP, (ULONG64)VirtualGuestMemoryAddress);     //setup guest ip
-    __vmx_vmwrite(HOST_RSP, ((ULONG64)vmState->VMM_Stack + VMM_STACK_SIZE - 1));
-    __vmx_vmwrite(HOST_RIP, (ULONG64)VMExitHandler);
+    //
+    __vmx_vmwrite(GUEST_RSP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest sp
+    __vmx_vmwrite(GUEST_RIP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest ip
+
+    __vmx_vmwrite(HOST_RSP, ((ULONG64)GuestState->VmmStack + VMM_STACK_SIZE - 1));
+    __vmx_vmwrite(HOST_RIP, (ULONG64)AsmVmexitHandler);
 ```
 
 **HOST\_RSP** points to **VMM\_Stack** that we allocated above, and HOST\_RIP points to **VMExitHandler** (an assembly written function described below). **GUEST\_RIP** points to **VirtualGuestMemoryAddress** (the global variable we configured during EPT initialization) and **GUEST\_RSP** to zero because we don't put any instruction that uses the stack, so for a real-world example, it should point to a different writeable address.
@@ -1111,67 +1168,62 @@ VMX Exit handler should be a pure assembly function because calling a compiled f
 I create a sample function for saving the registers and returning the state, but in this function, we call another C function.
 
 ```
-PUBLIC VMExitHandler
+PUBLIC AsmVmexitHandler
 
-
-EXTERN MainVMExitHandler:PROC
-EXTERN VM_Resumer:PROC
+EXTERN MainVmexitHandler:PROC
+EXTERN VmResumeInstruction:PROC
 
 .code _text
 
-VMExitHandler PROC
+AsmVmexitHandler PROC
 
-    push r15
-    push r14
-    push r13
-    push r12
-    push r11
-    push r10
-    push r9
-    push r8        
-    push rdi
-    push rsi
-    push rbp
-    push rbp    ; rsp
-    push rbx
-    push rdx
-    push rcx
-    push rax    
+    PUSH R15
+    PUSH R14
+    PUSH R13
+    PUSH R12
+    PUSH R11
+    PUSH R10
+    PUSH R9
+    PUSH R8        
+    PUSH RDI
+    PUSH RSI
+    PUSH RBP
+    PUSH RBP	; RSP
+    PUSH RBX
+    PUSH RDX
+    PUSH RCX
+    PUSH RAX	
 
+	MOV RCX, RSP		; GuestRegs
+	SUB	RSP, 28h
 
-    mov rcx, rsp        ;GuestRegs
-    sub rsp, 28h
+	CALL	MainVmexitHandler
+	ADD	RSP, 28h	
 
-    ;rdtsc
-    call    MainVMExitHandler
-    add rsp, 28h    
+	POP RAX
+    POP RCX
+    POP RDX
+    POP RBX
+    POP RBP		; RSP
+    POP RBP
+    POP RSI
+    POP RDI 
+    POP R8
+    POP R9
+    POP R10
+    POP R11
+    POP R12
+    POP R13
+    POP R14
+    POP R15
 
+	SUB RSP, 0100h ; to avoid error in future functions
+	
+    JMP VmResumeInstruction
+	
+AsmVmexitHandler ENDP
 
-    pop rax
-    pop rcx
-    pop rdx
-    pop rbx
-    pop rbp     ; rsp
-    pop rbp
-    pop rsi
-    pop rdi 
-    pop r8
-    pop r9
-    pop r10
-    pop r11
-    pop r12
-    pop r13
-    pop r14
-    pop r15
-
-
-    sub rsp, 0100h ; to avoid error in future functions
-    JMP VM_Resumer
-    
-
-VMExitHandler ENDP
-
-end
+END
 ```
 
 The main VM-Exit handler is a switch-case function with different decisions over the VMCS **VM\_EXIT\_REASON** and **EXIT\_QUALIFICATION**.
@@ -1181,25 +1233,24 @@ In this part, we're just performing an action over **EXIT\_REASON\_HLT** and jus
 From the following code, you can see what event cause the VM-exit. Just keep in mind that some reasons only lead to VM-Exit if the VMCS's control execution fields (described above) allow for it. For instance, the execution of HLT in guest software will cause VM-Exit if the 7th bit of the Primary Processor-Based VM-Execution Controls allows it.
 
 ```
-VOID MainVMExitHandler(PGUEST_REGS GuestRegs)
+VOID
+MainVmexitHandler(PGUEST_REGS GuestRegs)
 {
     ULONG ExitReason = 0;
     __vmx_vmread(VM_EXIT_REASON, &ExitReason);
-
 
     ULONG ExitQualification = 0;
     __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
 
     DbgPrint("\nVM_EXIT_REASION 0x%x\n", ExitReason & 0xffff);
-    DbgPrint("\nEXIT_QUALIFICATION 0x%x\n", ExitQualification);
-
+    DbgPrint("\EXIT_QUALIFICATION 0x%x\n", ExitQualification);
 
     switch (ExitReason)
     {
         //
         // 25.1.2  Instructions That Cause VM Exits Unconditionally
         // The following instructions cause VM exits when they are executed in VMX non-root operation: CPUID, GETSEC,
-        // INVD, and XSETBV. This is also true of instructions introduced with VMX, which include: INVEPT, INVVPID, 
+        // INVD, and XSETBV. This is also true of instructions introduced with VMX, which include: INVEPT, INVVPID,
         // VMCALL, VMCLEAR, VMLAUNCH, VMPTRLD, VMPTRST, VMRESUME, VMXOFF, and VMXON.
         //
 
@@ -1219,10 +1270,10 @@ VOID MainVMExitHandler(PGUEST_REGS GuestRegs)
     {
         DbgPrint("[*] Execution of HLT detected... \n");
 
-        // DbgBreakPoint();
-
-        //that's enough for now ;)
-        Restore_To_VMXOFF_State();
+        //
+        // that's enough for now ;)
+        //
+        AsmVmxoffAndRestoreState();
 
         break;
     }
@@ -1270,7 +1321,6 @@ VOID MainVMExitHandler(PGUEST_REGS GuestRegs)
     {
         // DbgBreakPoint();
         break;
-
     }
     }
 }
@@ -1285,10 +1335,11 @@ In order to solve this problem, you have to read a VMCS field called **VM\_EXIT\
 The following function is for this purpose.
 
 ```
-VOID ResumeToNextInstruction(VOID)
+VOID
+ResumeToNextInstruction()
 {
-    PVOID ResumeRIP = NULL;
-    PVOID CurrentRIP = NULL;
+    PVOID ResumeRIP             = NULL;
+    PVOID CurrentRIP            = NULL;
     ULONG ExitInstructionLength = 0;
 
     __vmx_vmread(GUEST_RIP, &CurrentRIP);
@@ -1312,9 +1363,9 @@ So it's clear that if you executed VMLAUNCH before, you can't use it anymore to 
 The following code is the implementation of VMRESUME.
 
 ```
-VOID VM_Resumer(VOID)
+VOID
+VmResumeInstruction()
 {
-
     __vmx_vmresume();
 
     // if VMRESUME succeeds will never be here !
@@ -1324,8 +1375,10 @@ VOID VM_Resumer(VOID)
     __vmx_off();
     DbgPrint("[*] VMRESUME Error : 0x%llx\n", ErrorCode);
 
-    //It's such a bad error because we don't where to go !
+    //
+    // It's such a bad error because we don't where to go!
     // prefer to break
+    //
     DbgBreakPoint();
 }
 ```
