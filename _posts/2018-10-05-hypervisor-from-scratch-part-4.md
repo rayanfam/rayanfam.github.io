@@ -33,7 +33,7 @@ author:
 
 ## **Introduction**
 
-Welcome to the 4th part of the "Hypervisor From Scratch". This part primarily involves translating guest addresses through **Extended Page Table (EPT)** and its implementation. We also see how shadow tables work and basic concepts about EPT.
+Welcome to the 4th part of the "**Hypervisor From Scratch**". This part primarily involves translating guest addresses through **Extended Page Table (EPT)** and its implementation. We also see how shadow tables work and basic concepts about EPT.
 
 ## **Table of Contents**
 
