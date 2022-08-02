@@ -28,7 +28,7 @@ author:
 
 ## **Introduction**
 
-Hello and welcome to the fifth part of the "Hypervisor From Scratch" tutorial series. Today we will be configuring the previously allocated Virtual Machine Control Structure (VMCS), implementing different VMX instructions, creating a restore point, setting different VMCS control structures, and at last, we execute VMLAUNCH and enter the hardware virtualization world! 
+Hello and welcome to the fifth part of the "**Hypervisor From Scratch**" tutorial series. Today we will spend our time studying different parts of Virtual Machine Control Structure (VMCS), implementing additional VMX instructions, creating a restore point, setting different VMCS control structures, and at last, we execute **VMLAUNCH** and enter the hardware virtualization world! 
 
 ## **Table of contents**
 
@@ -44,7 +44,7 @@ Hello and welcome to the fifth part of the "Hypervisor From Scratch" tutorial se
 - **VMX Configurations**
 - **Saving a return point**
 - **Returning to the previous state**
-- **VMLAUNCH**
+- **VMLAUNCH Instruction**
 - **VMX Controls**
     - VM-Execution Controls
     - VM-entry Control Bits
@@ -57,18 +57,18 @@ Hello and welcome to the fifth part of the "Hypervisor From Scratch" tutorial se
     - Checking VMCS layout
 - **VM-Exit Handler**
     - Resume to next instruction
-- **VMRESUME**
+- **VMRESUME Instruction**
 - **Let's Test it!**
 - **Conclusion**
 - **References**
 
 ## **Overview**
 
-Most of this topic is derived from **Chapter 24 – (VIRTUAL MACHINE CONTROL STRUCTURES) & Chapter 26** – (**VM ENTRIES**) available at Intel 64 and IA-32 architectures software developer's manual combined volumes 3. Of course, you can also read the manual for more information.
+Most of this topic is derived from **Chapter 24 – (VIRTUAL MACHINE CONTROL STRUCTURES) & Chapter 26** – (**VM ENTRIES**) available at Intel 64 and IA-32 architectures software developer's manual (Intel SDM) combined volumes 3.
 
 This part is highly inspired by [Hypervisor For Beginner](https://github.com/rohaaan/hypervisor-for-beginners).
 
-Before reading the rest of this part, make sure to read the [previous parts](https://rayanfam.com/tutorials/) as it gives you the necessary knowledge to understand the rest of this topic thoroughly.
+Before reading the rest of this part, make sure to read the [previous parts](https://rayanfam.com/tutorials) as it gives you the necessary knowledge to understand the rest of this topic thoroughly.
 
 The full source code of this tutorial is available on GitHub :
 
@@ -80,13 +80,13 @@ The full source code of this tutorial is available on GitHub :
 
 ## **VMX Instructions**
 
-In [part 3](https://rayanfam.com/topics/hypervisor-from-scratch-part-3/), we implemented VMXOFF function now let's implement other VMX instructions function. I also make some changes in calling VMXON and VMPTRLD functions to make it more modular.
+In [part 3](https://rayanfam.com/topics/hypervisor-from-scratch-part-3), we implemented **VMXOFF** function now let's implement other VMX instructions function. I also make some changes in calling **VMXON** and **VMPTRLD** functions to make it more modular.
 
 ### **VMPTRST**
 
-VMPTRST stores the current-VMCS pointer into a specified memory address. The operand of this instruction is always 64 bits, and it's always a location in memory.
+**VMPTRST** instruction stores the current-VMCS pointer into a specified memory address. The operand of this instruction is always 64 bits, and it's always a location in memory.
 
-The following function is the implementation of VMPTRST:
+The following function is the implementation of **VMPTRST**:
 
 ```
 UINT64
@@ -127,7 +127,7 @@ ClearVmcsState(VIRTUAL_MACHINE_STATE * GuestState)
 
 ### **VMPTRLD**
 
-It marks the current-VMCS pointer valid and loads it with the physical address in the instruction operand. The instruction fails if its operand is not properly aligned, sets unsupported physical-address bits, or is equal to the VMXON pointer. In addition, the instruction fails if the 32 bits in memory referenced by the operand do not match the VMCS revision identifier supported by this processor.
+This instruction marks the current-VMCS pointer valid and loads it with the physical address in the instruction operand. The instruction fails if its operand is not properly aligned, sets unsupported physical-address bits, or is equal to the **VMXON** pointer. In addition, this instruction fails if the 32 bits in memory referenced by the operand do not match the VMCS revision identifier supported by the processor.
 
 ```
 BOOLEAN
@@ -143,7 +143,7 @@ LoadVmcs(VIRTUAL_MACHINE_STATE * GuestState)
 }
 ```
 
-In order to implement **VMRESUME**, you need to know about some VMCS fields, so the implementation of VMRESUME is after we implement VMLAUNCH. (Later in this topic)
+In order to implement **VMRESUME**, you need to know about some VMCS fields, so the explanation of the **VMRESUME** instruction is left after we implement **VMLAUNCH**. (Later in this topic)
 
 ## **Enhancing VM State Structure**
 
@@ -162,13 +162,13 @@ typedef struct _VIRTUAL_MACHINE_STATE
 } VIRTUAL_MACHINE_STATE, *PVIRTUAL_MACHINE_STATE;
 ```
 
-Note that it's not the final **\_VirtualMachineState** structure, and we'll enhance it in future parts.
+Note that it's not the final **VIRTUAL\_MACHINE\_STATE** structure; we'll enhance it in the future.
 
 ## **Preparing to launch VM**
 
-In this part, we're just trying to test our hypervisor in our driver. In the future parts, we will add some user-mode interactions with our driver so let's start with modifying our **DriverEntry** as it's the first function that executes when our driver is loaded.
+In this part, we're just trying to enhance our hypervisor driver. In the future parts, we will add some user-mode interactions with our driver but for now, let's start with modifying our **DriverEntry** as it's the first function that executes when our driver is loaded.
 
-Below all the preparation from [Part 2](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/), we add the following lines to use our [Part 4](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/) (EPT) structures :
+Besides all the preparation from [part 2](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/), we added the following lines to use our [part 4](https://rayanfam.com/topics/hypervisor-from-scratch-part-2/) (EPT) structures:
 
 ```
         //
@@ -179,24 +179,24 @@ Below all the preparation from [Part 2](https://rayanfam.com/topics/hypervisor-f
         InitiateVmx();
 ```
 
-I added an export to a global variable called "VirtualGuestMemoryAddress" that holds the address of where our guest code starts.
+We also added an export to a global variable called "**g_VirtualGuestMemoryAddress**" that holds the address of where our guest code starts.
 
-Now let's fill our allocated pages with **\\xf4**, which stands for **HLT** instruction. I choose **HLT** because, with some special configuration (described below), it'll cause VM-Exit and return the code to the Host handler.
+Now let's fill our allocated pages with **\\xf4**, which is the hex representation of the **HLT** instruction. I choose **HLT** because, with some special configuration (described below), it'll cause VM-exit and return the code to the host handler; so, it would be an excellent example for this part.
 
-Let's create a function responsible for running our virtual machine on a specific core.
+After that, we start creating a function called `LaunchVm`, which is responsible for running our virtual machine on a specific core. We will only test our hypervisor in the **0th** logical processor in this part. In the future part, we'll extend our hypervisor to virtualize the entire system.
+
+Keep in mind that every logical core has its own VMCS, and if we want our guest code to run in other logical processors, we should configure each of them separately.
+
+To run our codes in a certain logical core, we should set the affinity by using the Windows **KeSetSystemAffinityThread** function and choose the specific core's **VIRTUAL\_MACHINE\_STATE** as each core has its own separate VMXON and VMCS regions.
+
+The following code describes how we can run our code in different logical cores.
 
 ```
 VOID
-LaunchVm(int ProcessorID, PEPTP EPTP);
-```
+LaunchVm(int ProcessorID, PEPTP EPTP)
+{
+    DbgPrint("\n======================== Launching VM =============================\n");
 
-I set the **ProcessorID** to 0, so we're in the 0th logical processor.
-
-Keep in mind that every logical core has its own VMCS, and if you want your guest code to run in other logical processors, you should configure them separately.
-
-Now we should set the affinity to the specific logical processor using the Windows **KeSetSystemAffinityThread** function and choose the specific core's **vmState** as each core has its own separate VMXON and VMCS region.
-
-```
     KAFFINITY AffinityMask;
     AffinityMask = MathPower(2, ProcessorID);
     KeSetSystemAffinityThread(AffinityMask);
@@ -204,13 +204,17 @@ Now we should set the affinity to the specific logical processor using the Windo
     DbgPrint("[*]\t\tCurrent thread is executing in %d th logical processor.\n", ProcessorID);
 
     PAGED_CODE();
+
+...
 ```
 
-Now, we should allocate a specific stack so that whenever a VM-Exit occurs, we can save the registers and call other Host functions.
+Now that we can specify a core number and execute codes in the target core, it's time should allocate a specific **stack** so that whenever a VM-exit occurs, we can save the registers and call other host functions in vmx-root mode.
 
-I prefer to allocate a separate location for the stack instead of using the current RSP of the driver, but you can use the current stack (RSP) too.
+A quick reminder, whenever a vm-exit occurs, the host handler is called in vmx-root mode. When we run the **VMRESUME** instruction, the processor switches to the VMX non-root; thus, every kernel-mode driver and user-mode application are running in **VMX non-root** mode. Only the portion of our driver responsible for handling the host is executed in the VMX root-mode.
 
-The following lines are for allocating and zeroing the stack of our VM-Exit handler.
+Here we need a stack for host routines. We have two options, the first option is using the current **RSP**, and the second one is using a separated stack. We used a separate location for the stack instead of using the current **RSP** of the driver, but you can use the current stack (RSP) too.
+
+The following lines are written for allocating and zeroing the stack of our VM-exit handler.
 
 ```
     //
@@ -227,7 +231,7 @@ The following lines are for allocating and zeroing the stack of our VM-Exit hand
     RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
 ```
 
-Same as above, allocating a page for MSR Bitmap and adding it to **vmState**, I'll describe them later in this topic.
+Same as above, we'll allocate a page for the MSR Bitmap and add it to **GuestState**. I'll describe them later in this topic.
 
 ```
     //
@@ -243,9 +247,9 @@ Same as above, allocating a page for MSR Bitmap and adding it to **vmState**, I'
     g_GuestState[ProcessorID].MsrBitmapPhysical = VirtualToPhysicalAddress(g_GuestState[ProcessorID].MsrBitmap);
 ```
 
-Now it's time to clear our VMCS state and load it as the current VMCS in the specific processor (in our case, the 0th logical processor).
+The next step is clearing the VMCS state and loading it as the current VMCS in the specific processor (in our case, the 0th logical processor).
 
-The **Clear\_VMCS\_State** and **Load\_VMCS** are described above :
+The `ClearVmcsState` and `LoadVmcs` functions are used as described above:
 
 ```
     //
@@ -265,29 +269,25 @@ The **Clear\_VMCS\_State** and **Load\_VMCS** are described above :
     }
 ```
 
-Now it's time to set up VMCS. A detailed explanation of the VMCS setup is available later in this topic.
+Now it's time to set up VMCS. We will thoroughly discuss how to configure the VMCS later in this topic, but for now, assume that there is a function called `SetupVmcs`, which configures the VMCS structure.
 
 ```
     DbgPrint("[*] Setting up VMCS.\n");
     SetupVmcs(&g_GuestState[ProcessorID], EPTP);
 ```
 
-The last step is to execute the VMLAUNCH, but we shouldn't forget about saving the current state of the stack (RSP & RBP) because during the execution of the guest code and after returning from VM-Exit, we have to know the current state and return from it. If you leave the driver with the wrong **RSP** & **RBP** registers, you see a BSOD.
-
-```
-AsmSaveStateForVmxoff();
-```
+The last step is to execute the **VMLAUNCH** instruction. Yet we shouldn't forget to save the current state of the stack (**RSP** & **RBP** registers). It's because after executing the **VMLAUNCH** instruction, the **RIP** register is changed to the **GUEST_RIP**; thus, we need to save the previous system state so we can return to the normal system routines after returning from VM functions. If we leave the driver with the wrong **RSP** & **RBP** registers, we'll see a BSOD. For this purpose, the `AsmSaveStateForVmxoff` function is used.
 
 ## **Saving a return point**
 
-For **Save\_VMXOFF\_State()** , I declared two global variables called **g\_StackPointerForReturning**, **g\_BasePointerForReturning**. There is no need to save RIP as the stack's return address is always available. Just EXTERN it in the assembly file :
+For `AsmSaveStateForVmxoff`, we declare two global variables called **g\_StackPointerForReturning**, and **g\_BasePointerForReturning**. There is no need to save the **RIP** register as the stack's return address is always available. Just EXTERN it in the assembly file :
 
 ```
 EXTERN g_StackPointerForReturning:QWORD
 EXTERN g_BasePointerForReturning:QWORD
 ```
 
-The implementation of **Save\_VMXOFF\_State** :
+The implementation of `AsmSaveStateForVmxoff` :
 
 ```
 AsmSaveStateForVmxoff PROC PUBLIC
@@ -302,7 +302,13 @@ AsmSaveStateForVmxoff ENDP
 
 ## **Returning to the previous state**
 
-As we saved the current state, we must restore **RSP** and **RBP** registers and clear the stack position if we want to return to the previous state. Eventually, a RET instruction. (I also added a VMXOFF because it should be executed before return.)
+That last step in our hypervisor is returning to the previous system state and turning off the hypervisor. 
+
+We previously saved the system state. Now, we can restore it (**RSP**and **RBP** registers) and clear the stack position.
+
+Before that, the **VMXOFF** instruction is executed to turn off the hypervisor.
+
+Take a look at the following code.
 
 ```
 AsmVmxoffAndRestoreState PROC PUBLIC
@@ -332,15 +338,14 @@ AsmVmxoffAndRestoreState PROC PUBLIC
 AsmVmxoffAndRestoreState ENDP 
 ```
 
-The "return section" is defined like this because I saw the return section of **LaunchVM** in IDA Pro.
+At last, we need to precisely clear the stack. Previously we called the `LaunchVm` function and ended up in a new **RIP**.
+To continue the execution normally, we need to clear the stack and return to the location where we called the `LaunchVm` function. Therefore, in the last part of the above assembly code, which is the "return section", I used IDA Pro to see the disassembly of the `LaunchVm`, so we can see how this function clears the stack, and we perform the same so we can return the previous system state gracefully. Hence, the "return section" is copied from the disassemblies of the **LaunchVm** in IDA Pro.
 
-![](../../assets/images/launch-vm-return.png)
+![LaunchVm Return Frame](../../assets/images/launch-vm-return.png)
 
-LaunchVM Return Frame
+## **VMLAUNCH Instruction**
 
-## **VMLAUNCH**
-
-Now it's time to execute the VMLAUNCH.
+Now it's time to execute the **VMLAUNCH** instruction.
 
 ```
     __vmx_vmlaunch();
@@ -355,7 +360,7 @@ Now it's time to execute the VMLAUNCH.
     DbgBreakPoint();
 ```
 
-As the comment describes, if VMLAUNCH succeeds, we'll never execute the other lines. If there is an error in the state of VMCS (which is a common problem), then we have to run VMREAD and read the error code from the **VM\_INSTRUCTION\_ERROR** field of VMCS, also VMXOFF and print the error. **DbgBreakPoint** is just a debug breakpoint (int 3), and it can be useful only if you're working with a remote kernel Windbg Debugger. It's clear that you can't test it in your system because executing a **cc** in the kernel will freeze your system as long as there is no debugger to catch it, so it's highly recommended to create a remote Kernel Debugging machine and test your codes.
+As the comment describes, if **VMLAUNCH** succeeds, we'll never execute the other lines. If there is an error in the state of VMCS (which is a common problem), then we have to run **VMREAD **and read the error code from the **VM\_INSTRUCTION\_ERROR** field of VMCS, also VMXOFF and print the error. **DbgBreakPoint** is just a debug breakpoint (int 3), and it can be useful only if you're working with a remote kernel Windbg Debugger. It's clear that you can't test it in your system because executing a **cc** in the kernel will freeze your system as long as there is no debugger to catch it, so it's highly recommended to create a remote Kernel Debugging machine and test your codes.
 
 Also, we can't test it on remote VMWare debugging (and other virtual machine debugging tools) because nested VMX is not supported in current Intel processors. By not supporting nested virtualization, I mean Intel doesn't have such a thing as "nested-virtualization" but provides some hardware facilities so vendors can support and implement nested virtualization on their own. For example, you can test your driver on VMWare with nested virtualization (I also explained how to debug your hypervisor driver on VMWare in the first part.) However, supporting Hyper-V nested virtualization needs extra things to be considered in implementing a hypervisor, so you can't test your driver on Hyper-V nested virtualization, at least for this part. I'll explain Hyper-V support in the 8th part.
 
@@ -655,7 +660,7 @@ This function is responsible for configuring all of the options related to VMCS 
 
 This task needs a special instruction called **"VMWRITE"**.
 
-VMWRITE writes the contents of a primary source operand (register or memory) to a specified field in a VMCS. In VMX root operation, the instruction writes to the current VMCS. If executed in VMX non-root operation, the instruction writes to the VMCS referenced by the VMCS link pointer field in the current VMCS.
+VMWRITE writes the contents of a primary source operand (register or memory) to a specified field in a VMCS. In VMX-root operation, the instruction writes to the current VMCS. If executed in VMX non-root operation, the instruction writes to the VMCS referenced by the VMCS link pointer field in the current VMCS.
 
 The VMCS field is specified by the VMCS-field encoding contained in the register secondary source operand. 
 
@@ -1351,7 +1356,7 @@ ResumeToNextInstruction()
 }
 ```
 
-## **VMRESUME**
+## **VMRESUME Instruction**
 
 VMRESUME is like VMLAUNCH, but it's used in order to resume the guest.
 
