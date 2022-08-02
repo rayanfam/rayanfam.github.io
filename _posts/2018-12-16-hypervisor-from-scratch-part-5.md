@@ -41,7 +41,6 @@ Hello and welcome to the fifth part of the "**Hypervisor From Scratch**" tutoria
     - VMPTRLD
 - **Enhancing VM State Structure**
 - **Preparing to launch VM**
-- **VMX Configurations**
 - **Saving a return point**
 - **Returning to the previous state**
 - **VMLAUNCH Instruction**
@@ -50,7 +49,6 @@ Hello and welcome to the fifth part of the "**Hypervisor From Scratch**" tutoria
     - VM-entry Control Bits
     - VM-exit Control Bits
     - PIN-Based Execution Control
-    - Interruptibility State
 - **Configuring VMCS**
     - Gathering machine state for VMCS
     - Setting up VMCS
@@ -345,7 +343,9 @@ To continue the execution normally, we need to clear the stack and return to the
 
 ## **VMLAUNCH Instruction**
 
-Now it's time to execute the **VMLAUNCH** instruction.
+It's time to talk about the **VMLAUNCH** instruction.
+
+Take a look at the following code.
 
 ```
     __vmx_vmlaunch();
@@ -360,23 +360,25 @@ Now it's time to execute the **VMLAUNCH** instruction.
     DbgBreakPoint();
 ```
 
-As the comment describes, if **VMLAUNCH** succeeds, we'll never execute the other lines. If there is an error in the state of VMCS (which is a common problem), then we have to run **VMREAD **and read the error code from the **VM\_INSTRUCTION\_ERROR** field of VMCS, also VMXOFF and print the error. **DbgBreakPoint** is just a debug breakpoint (int 3), and it can be useful only if you're working with a remote kernel Windbg Debugger. It's clear that you can't test it in your system because executing a **cc** in the kernel will freeze your system as long as there is no debugger to catch it, so it's highly recommended to create a remote Kernel Debugging machine and test your codes.
+The `__vmx_vmlaunch()` is the intrinsic function for the **VMLAUNCH** instruction and `__vmx_vmread` is for the **VMREAD** instruction.
 
-Also, we can't test it on remote VMWare debugging (and other virtual machine debugging tools) because nested VMX is not supported in current Intel processors. By not supporting nested virtualization, I mean Intel doesn't have such a thing as "nested-virtualization" but provides some hardware facilities so vendors can support and implement nested virtualization on their own. For example, you can test your driver on VMWare with nested virtualization (I also explained how to debug your hypervisor driver on VMWare in the first part.) However, supporting Hyper-V nested virtualization needs extra things to be considered in implementing a hypervisor, so you can't test your driver on Hyper-V nested virtualization, at least for this part. I'll explain Hyper-V support in the 8th part.
+As the comment describes, if **VMLAUNCH** succeeds, we'll never execute the other lines. If there is an error in the state of VMCS (which is a common problem), we have to run **VMREAD ** and read the error code from the **VM\_INSTRUCTION\_ERROR** field of VMCS. It's also necessary to run VMXOFF to turn off the hypervisor in the case of an error, and finally, we can print the error code. 
 
-The drivers are tested on both physical machines and VMWare's nested virtualization.
+**DbgBreakPoint** is just a debug breakpoint (int 3), and it can be helpful only if we're working on a remote kernel WinDbg Debugger. It's clear that you can't test it in your local debugging system because executing an **int 3** in the kernel will freeze your system as long as there is no debugger to catch it, so it's highly recommended to create a remote Kernel Debugging machine and test your codes for possible errors.
 
-Remember we're still in **LaunchVM** function and **\_\_vmx\_vmlaunch()** is the intrinsic function for VMLAUNCH & **\_\_vmx\_vmread** is for VMREAD instruction.
+You can also use VMware Workstation's nested-virtualization to create a remote kernel debugging connection. Intel doesn't have such a thing as "nested-virtualization" but provides some hardware facilities so vendors can support and implement nested virtualization on their own. For example, you can test your driver on VMware Workstation with nested-virtualization support (I also explained how to debug your hypervisor driver on VMware in the first part.) However, supporting Hyper-V nested virtualization needs extra things to be considered in implementing a hypervisor, so we can't test our driver on Hyper-V nested virtualization, at least for this part. I'll explain Hyper-V support in the 8th part.
 
-Now it's time to read some theories before configuring VMCS.
+The drivers are tested on both physical machines and VMware Workstation's nested-virtualization.
+
+Now it's time to read some theories before digging into the configuration of the VMCS.
 
 ## **VMX Controls**
 
-Now, let's talk about different controls in VMCS that govern the guest's behavior.
+Let's talk about different controls in VMCS that govern the guest's behavior. We will use some of these bits in this part, and some will be used in future parts. So, don't worry about it. Just take a look at the descriptions of these bits and be aware of them.
 
 ### **VM-Execution Controls**
 
-In order to control our guest features, we have to set some fields in our VMCS. The following tables represent the Primary Processor-Based VM-Execution Controls and Secondary Processor-Based VM-Execution Controls.
+In order to control our guest features, we have to set some fields in our VMCS. The following tables represent the Primary Processor-Based VM-Execution Controls and the Secondary Processor-Based VM-Execution Controls.
 
 ![Primary-Processor-Based-VM-Execution-Controls](../../assets/images/primary-processor-based-vm-execution-controls-fields.png)
 
@@ -406,7 +408,7 @@ We define the above table like this:
 #define CPU_BASED_ACTIVATE_SECONDARY_CONTROLS 0x80000000
 ```
 
-In the earlier versions of VMX, there was nothing like Secondary Processor-Based VM-Execution Controls. Now, if you want to use the secondary table, you have to set the 31st bit of the first table; otherwise, it's like the secondary table field with zeros.
+In the earlier versions of VMX, there was nothing like Secondary Processor-Based VM-Execution Controls. Now, if we want to use the secondary table, we have to set the 31st bit of the first table; otherwise, it's like the secondary table field with zeros.
 
 ![Secondary-Processor-Based-VM-Execution-Controls](../../assets/images/secondary-processor-based-vm-execution-controls-fields.png)
 
@@ -436,7 +438,7 @@ The VM-entry controls constitute a 32-bit vector that governs the basic operatio
 
 ### **VM-exit Control Bits**
 
-The VM-exit controls constitute a 32-bit vector that governs the essential operation of VM exits.
+The VM-exit controls constitute a 32-bit vector that governs the essential operation of VM-exits.
 
 ![VM-Exit-Controls](../../assets/images/vm-exit-controls-fields.png)
 
@@ -448,10 +450,9 @@ The VM-exit controls constitute a 32-bit vector that governs the essential opera
 #define VM_EXIT_LOAD_HOST_PAT           0x00080000
 ```
 
-
 ### **PIN-Based Execution Control**
 
-The pin-based VM-execution controls constitute a 32-bit vector that governs the handling of asynchronous events (for example, interrupts). We'll use it in the future parts, but for now, let's define it in our Hypervisor.
+The pin-based VM-execution controls constitute a 32-bit vector that governs the handling of asynchronous events (for example, interrupts). We'll use it in the future parts, but for now, let's define it in our hypervisor.
 
 ![Pin-Based-VM-Execution-Controls](../../assets/images/pin-based-vm-execution-controls-fields.png)
 
@@ -463,30 +464,15 @@ The pin-based VM-execution controls constitute a 32-bit vector that governs the 
 #define PIN_BASED_VM_EXECUTION_CONTROLS_PROCESS_POSTED_INTERRUPTS 0x00000080
 ```
 
-### **Interruptibility State**
-
-The guest-state area includes the following fields that characterize guest state but which do not correspond to processor registers:  
-THE Activity state (32 bits) field identifies the logical processor's activity state. When a logical processor is executing instructions normally, it is in an active state. Execution of certain instructions and the occurrence of certain events may cause a logical processor to transition to an inactive state in which it ceases to execute instructions.  
-The following activity states are defined:  
-— 0: Active. The logical processor is executing instructions normally.
-
-— 1: HLT. The logical processor is inactive because it executed the HLT instruction.  
-— 2: Shutdown. The logical processor is inactive because it incurred a triple fault1 or some other serious error.  
-— 3: Wait-for-SIPI. The logical processor is inactive because it is waiting for a startup-IPI (SIPI).  
-
-• Interruptibility state (32 bits). The IA-32 architecture includes features that permit certain events to be blocked for a period of time. This field contains information about such blocking. Details and the format of this field are given in the Table below.
-
-![Interruptibility-State](../../assets/images/VMCS-interruptibility-state.png)
-
 ## **Configuring VMCS**
 
-Now, it's time to configure the VMCS structure fully to make our virtualized guest ready.
+Now that we have a basic idea about some of the VMCS fields and controls, it's time to configure the VMCS structure fully to make our virtualized guest ready.
 
 ### **Gathering machine state for VMCS**
 
-In order to configure our Guest-State & Host-State, we need to have details about the current system state, e.g., Global Descriptor Table Address, Interrupt Descriptor Table Address and Read all the Segment Registers.
+In order to configure our **Guest-State** and **Host-State**, we need to have details about the current system state, e.g., **G**lobal **D**escriptor **T**able Address (GDT), **I**nterrupt **D**escriptor **T**able (IDT) Address and read all the Segment Registers.
 
-These functions describe how all of these data can be gathered.
+These functions describe how all of these registers and segments can be gathered.
 
 GDT Base :
 
@@ -647,9 +633,9 @@ GetRflags ENDP
 
 ### **Setting up VMCS**
 
-Let's get down to business (We have a long way to go).
+Let's get down to business (we have a long way to go).
 
-This section starts with defining a function called **Setup\_VMCS**.
+This section starts with defining a function called `SetupVmcs`.
 
 ```
 BOOLEAN
@@ -658,13 +644,13 @@ SetupVmcs(VIRTUAL_MACHINE_STATE * GuestState, PEPTP EPTP);
 
 This function is responsible for configuring all of the options related to VMCS and, of course, the Guest & Host state.
 
-This task needs a special instruction called **"VMWRITE"**.
+Configuring and modifying VMCS is done by using a special instruction called "**VMWRITE**".
 
-VMWRITE writes the contents of a primary source operand (register or memory) to a specified field in a VMCS. In VMX-root operation, the instruction writes to the current VMCS. If executed in VMX non-root operation, the instruction writes to the VMCS referenced by the VMCS link pointer field in the current VMCS.
+**VMWRITE** writes the contents of a primary source operand (register or memory) to a specified field in a VMCS. In VMX-root operation, the instruction writes to the current VMCS. If executed in VMX non-root operation, the instruction writes to the VMCS referenced by the VMCS link pointer field in the current VMCS.
 
 The VMCS field is specified by the VMCS-field encoding contained in the register secondary source operand. 
 
-The following **enum** contains most of the VMCS field need for **VMWRITE** & **VMREAD** instructions. (newer processors add newer fields.)
+The following **enum** contains most of the VMCS fields needed for **VMWRITE** & **VMREAD** instructions. (newer processors add newer fields.)
 
 ```
 enum VMCS_FIELDS {
@@ -805,7 +791,7 @@ enum VMCS_FIELDS {
 
 Ok, let's continue with our configuration.
 
-The next step is configuring host Segment Registers.
+The next step is configuring **host** Segment Registers.
 
 ```
     __vmx_vmwrite(HOST_ES_SELECTOR, GetEs() & 0xF8);
@@ -817,11 +803,11 @@ The next step is configuring host Segment Registers.
     __vmx_vmwrite(HOST_TR_SELECTOR, GetTr() & 0xF8);
 ```
 
-Keep in mind that those fields that start with **HOST\_** are related to the state in which the hypervisor sets whenever a VM-Exit occurs, and those which begin with **GUEST\_** are related to the state in which the hypervisor sets for guest when a VMLAUNCH executed.
+Keep in mind that those fields that start with **HOST\_** are related to the state in which the hypervisor sets whenever a VM-exit occurs, and those which begin with **GUEST\_** are related to the state in which the hypervisor sets for guest when a **VMLAUNCH** executed.
 
-The purpose of **& 0xF8** is that Intel mentioned that the three less significant bits must be cleared; otherwise, it leads to an error when you execute VMLAUNCH with an Invalid Host State error.
+The purpose of `& 0xF8` is that Intel mentioned that the three less significant bits must be cleared; otherwise, it leads to an error as the **VMLAUNCH** is executed with an _Invalid Host State_ error.
 
-VMCS\_LINK\_POINTER should be 0xffffffffffffffff.
+Next, we set the `VMCS_LINK_POINTER`, which should be '0xffffffffffffffff'. As we don't have an additional VMCS. This field is mainly used for hypervisors that want to implement a nested-virtualization behavior (like VMware Nested Virtualization or KVM's nVMX).
 
 ```
     //
@@ -830,24 +816,20 @@ VMCS\_LINK\_POINTER should be 0xffffffffffffffff.
     __vmx_vmwrite(VMCS_LINK_POINTER, ~0ULL);
 ```
 
-The rest of this topic intends to perform the VMX instructions in the machine's current state, so the guest and host configurations must be the same. In the future parts, we'll configure them to a different guest layout.
+The rest of this topic intends to virtualize the machine's current state, so the guest and host configurations must be the same. 
 
-Let's configure GUEST\_IA32\_DEBUGCTL.
+Let's configure **GUEST\_IA32\_DEBUGCTL**. This field works the same as the **IA32\_DEBUGCTL** MSR in a physical machine, and we can use it if we want to use separate **IA32\_DEBUGCTL** for each guest. It provides bit field controls to enable debug trace interrupts, debug trace stores, trace messages enable, single stepping on branches, last branch record recording, and control freezing of LBR stack.
 
-The **IA32\_DEBUGCTL** MSR provides bit field controls to enable debug trace interrupts, debug trace stores, trace messages enable, single stepping on branches, last branch record recording, and control freezing of LBR stack.
-
-In short: LBR is a mechanism that provides the processor with some recording of registers.
-
-We don't use them but let's configure them to the current machine's MSR\_IA32\_DEBUGCTL, and you can see that **\_\_readmsr** is the intrinsic function for RDMSR.
+We don't use it in our hypervisor, but we should configure it to the current machine's **MSR\_IA32\_DEBUGCTL**. We use `__readmsr()` intrinsic to read this MSR (RDMSR) and put the value of the physical machine to the guest's `GUEST_IA32_DEBUGCTL`.
 
 ```
     __vmx_vmwrite(GUEST_IA32_DEBUGCTL, __readmsr(MSR_IA32_DEBUGCTL) & 0xFFFFFFFF);
     __vmx_vmwrite(GUEST_IA32_DEBUGCTL_HIGH, __readmsr(MSR_IA32_DEBUGCTL) >> 32);
 ```
 
-For configuring TSC, you should modify the following values. I don't have a precise explanation about it, so let them be zeros.
+Note that values we put zero on them can be ignored; if you don't modify them, it's like you put zero on them.
 
-Note that values we put Zero on them can be ignored; if you don't modify them, it's like you put zero on them.
+For example, configuring TSC is not important for our hypervisor in the current state, so we put zero on it.
 
 ```
     /* Time-stamp counter offset */
@@ -864,7 +846,7 @@ Note that values we put Zero on them can be ignored; if you don't modify them, i
     __vmx_vmwrite(VM_ENTRY_INTR_INFO_FIELD, 0);
 ```
 
-This time, we'll configure Segment Registers and other GDT for our Host (When VM-Exit occurs).
+This time, we'll configure Segment Registers based on the GDT base address for our Host (When VM-Exit occurs).
 
 ```
     GdtBase = GetGdtBase();
@@ -879,9 +861,9 @@ This time, we'll configure Segment Registers and other GDT for our Host (When VM
     FillGuestSelectorData((PVOID)GdtBase, TR, GetTr());
 ```
 
-**Get\_GDT\_Base** is defined above in the process of gathering information for our VMCS.
+`GetGdtBase` is defined above in the process of gathering information for our VMCS.
 
-**FillGuestSelectorData** is responsible for setting the GUEST selector, attributes, limit, and base for VMCS. It is implemented as below :
+`FillGuestSelectorData` is responsible for setting the GUEST selector, attributes, limit, and base for VMCS. It is implemented as below:
 
 ```
 VOID
@@ -949,33 +931,38 @@ GetSegmentDescriptor(PSEGMENT_SELECTOR SegmentSelector,
 }
 ```
 
-Also, there is another MSR called _**IA32\_KERNEL\_GS\_BASE**_ that is used to set the kernel GS base. Whenever you run instructions like SYSCALL and enter ring 0, you need to change the current GS register, which can be done using [**SWAPGS**](https://www.felixcloutier.com/x86/SWAPGS.html). This instruction copies the content of **IA32\_KERNEL\_GS\_BASE** into the IA32**\_GS\_BASE and** now it's used in the kernel when you want to re-enter user-mode, you should change the user-mode GS Base. MSR\_FS\_BASE on the other hand, doesn't have a kernel base because it is used in 32-Bit mode while you have a 64-bit (long mode) kernel.
+Another MSR called `IA32_KERNEL_GS_BASE` is used to set the kernel GS base. Whenever instructions like **SYSCALL** are executed, and the processor enters ring 0, we need to change the current GS register, which can be done using [**SWAPGS**](https://www.felixcloutier.com/x86/SWAPGS.html) instruction. This instruction copies the content of **IA32\_KERNEL\_GS\_BASE** into the **IA32\_GS\_BASE**, and now it's used in the kernel when it wants to re-enter the user-mode.
 
-The GUEST\_INTERRUPTIBILITY\_INFO & GUEST\_ACTIVITY\_STATE.
+**MSR\_FS\_BASE** on the other hand, doesn't have a kernel base because it is used in 32-Bit mode while we have a 64-bit (long mode) kernel.
+
+Like the above MSR, we'll configure the **IA32\_GS\_BASE** and **IA32\_FS\_BASE** MSRs based on the current system's MSRs.
+
+```
+    __vmx_vmwrite(GUEST_FS_BASE, __readmsr(MSR_FS_BASE));
+    __vmx_vmwrite(GUEST_GS_BASE, __readmsr(MSR_GS_BASE));
+```
+
+The **GUEST\_INTERRUPTIBILITY\_INFO** and **GUEST\_ACTIVITY\_STATE** are set to zero (we'll describe them in the future parts).
 
 ```
     __vmx_vmwrite(GUEST_INTERRUPTIBILITY_INFO, 0);
     __vmx_vmwrite(GUEST_ACTIVITY_STATE, 0);   //Active state 
 ```
 
-Now we reach an essential part of our VMCS, and it's the configuration of CPU\_BASED\_VM\_EXEC\_CONTROL and SECONDARY\_VM\_EXEC\_CONTROL.
+Now we reach an essential part of the VMCS, and it's the configuration of **CPU\_BASED\_VM\_EXEC\_CONTROL** and **SECONDARY\_VM\_EXEC\_CONTROL** controls.
 
-These fields enable and disable some essential features of the guest, e.g., you can configure VMCS to cause a VM-Exit whenever execution of **HLT** instruction is detected (in guest). Please check the **VM-Execution Controls** parts above for a detailed description.
+These fields enable and disable some essential features of the guest, e.g., we can configure VMCS to cause a VM-Exit whenever execution of **HLT** instruction is detected (in guest). You can read the description of each bit in the **VM-Execution Controls** section on this topic.
 
 ```
     __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_HLT_EXITING | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS, MSR_IA32_VMX_PROCBASED_CTLS));
     __vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_CTL2_RDTSCP /* | CPU_BASED_CTL2_ENABLE_EPT*/, MSR_IA32_VMX_PROCBASED_CTLS2));
 ```
 
-As you can see, we set **CPU\_BASED\_HLT\_EXITING** that will cause the VM-Exit on **HLT** and activate secondary controls using:
+As you can see, we set `CPU_BASED_HLT_EXITING` that will cause the VM-Exit on **HLT** and activate secondary controls using the `CPU_BASED_ACTIVATE_SECONDARY_CONTROLS` bit.
 
-```
-CPU_BASED_ACTIVATE_SECONDARY_CONTROLS
-```
+In the secondary controls, we used `CPU_BASED_CTL2_RDTSCP`, and for now, comment `CPU_BASED_CTL2_ENABLE_EPT` because we don't need to deal with EPT in this part. In the 7th part, I thoroughly describe about EPT.
 
-In the secondary controls, we used **CPU\_BASED\_CTL2\_RDTSCP**, and for now, comment **CPU\_BASED\_CTL2\_ENABLE\_EPT** because we don't need to deal with EPT in this part. In the future parts, I describe using EPT or Extended Page Table that we configured in the [4th part](https://rayanfam.com/topics/hypervisor-from-scratch-part-4/).
-
-The description of **PIN\_BASED\_VM\_EXEC\_CONTROL**, **VM\_EXIT\_CONTROLS**, and **VM\_ENTRY\_CONTROLS** is available above, but for now, let zero them.
+The description of `PIN_BASED_VM_EXEC_CONTROL`, `VM_EXIT_CONTROLS`*, and `VM_ENTRY_CONTROLS` is available above. We don't have any special configuration for these controls in this part; hence, let us put zero on them.
 
 ```
     __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, AdjustControls(0, MSR_IA32_VMX_PINBASED_CTLS));
@@ -983,7 +970,7 @@ The description of **PIN\_BASED\_VM\_EXEC\_CONTROL**, **VM\_EXIT\_CONTROLS**, an
     __vmx_vmwrite(VM_ENTRY_CONTROLS, AdjustControls(VM_ENTRY_IA32E_MODE, MSR_IA32_VMX_ENTRY_CTLS));
 ```
 
-Also, the `AdjustControls` is defined like this:
+Also, the `AdjustControls` is a function for configuring the 0-settings and 1-settings of these fields (we will describe them in the future parts) but for now; it's defined like this:
 
 ```
 ULONG
@@ -998,21 +985,19 @@ AdjustControls(ULONG Ctl, ULONG Msr)
 }
 ```
 
-The next step is setting Control Register for the guest and the host. We set them to the same value using intrinsic functions.
+The next step is setting Control Registers and Debug Registers (DR7) for the guest and the host. We set them to the same values as the current machine's state using intrinsic functions.
 
 ```
     __vmx_vmwrite(GUEST_CR0, __readcr0());
     __vmx_vmwrite(GUEST_CR3, __readcr3());
     __vmx_vmwrite(GUEST_CR4, __readcr4());
 
-    __vmx_vmwrite(GUEST_DR7, 0x400);
-
     __vmx_vmwrite(HOST_CR0, __readcr0());
     __vmx_vmwrite(HOST_CR3, __readcr3());
     __vmx_vmwrite(HOST_CR4, __readcr4());
 ```
 
-The next part is setting up IDT and GDT's **Base** and **Limit** for our guest.
+The next part is setting up IDT and GDT's **Base** and **Limit** for our guest. Generally, it's [not a good idea](https://github.com/SinaKarvandi/Misc/tree/master/HypervisorBypassWithNMI) to use the same IDT (and GDT) for the guest and host, but in order to keep our hypervisor simple, we'll configure them to the same value.
 
 ```
     __vmx_vmwrite(GUEST_GDTR_BASE, GetGdtBase());
@@ -1021,13 +1006,15 @@ The next part is setting up IDT and GDT's **Base** and **Limit** for our guest.
     __vmx_vmwrite(GUEST_IDTR_LIMIT, GetIdtLimit());
 ```
 
-Set the RFLAGS.
+Next, set the RFLAGS.
 
 ```
     __vmx_vmwrite(GUEST_RFLAGS, GetRflags());
 ```
 
-If you want to use SYSENTER in your guest, you should configure the following MSRs. It's not important to set these values in x64 Windows because Windows doesn't support SYSENTER in x64 versions of Windows. It uses SYSCALL instead and for 32-bit processes; first, change the current execution mode to long-mode (using [Heaven's Gate technique](http://rce.co/knockin-on-heavens-gate-dynamic-processor-mode-switching/)), but in 32-bit processors these fields are mandatory.
+If you want to use SYSENTER in your guest, you should configure the following MSRs. It's not important to set these values in x64 Windows because Windows doesn't support SYSENTER in x64 versions of Windows; instead, it uses SYSCALL. 
+
+The same instruction works for 32-bit processes too. In 32-bit processes, Windows first changes the execution mode to long-mode (using [Heaven's Gate technique](http://rce.co/knockin-on-heavens-gate-dynamic-processor-mode-switching/)), and then executes the SYSCALL instruction.
 
 ```
     __vmx_vmwrite(GUEST_SYSENTER_CS, __readmsr(MSR_IA32_SYSENTER_CS));
@@ -1038,7 +1025,7 @@ If you want to use SYSENTER in your guest, you should configure the following MS
     __vmx_vmwrite(HOST_IA32_SYSENTER_ESP, __readmsr(MSR_IA32_SYSENTER_ESP));
 ```
 
-Don't forget to configure **HOST\_FS\_BASE**, **HOST\_GS\_BASE**, **HOST\_GDTR\_BASE**, **HOST\_IDTR\_BASE**, **HOST\_TR\_BASE**.
+Don't forget to configure **HOST\_FS\_BASE**, **HOST\_GS\_BASE**, **HOST\_GDTR\_BASE**, **HOST\_IDTR\_BASE**, **HOST\_TR\_BASE** for the host in the VMCS.
 
 ```
     GetSegmentDescriptor(&SegmentSelector, GetTr(), (PUCHAR)GetGdtBase());
@@ -1049,15 +1036,11 @@ Don't forget to configure **HOST\_FS\_BASE**, **HOST\_GS\_BASE**, **HOST\_GDTR\_
 
     __vmx_vmwrite(HOST_GDTR_BASE, GetGdtBase());
     __vmx_vmwrite(HOST_IDTR_BASE, GetIdtBase());
-
 ```
 
-The next important part is to set the **RIP** and **RSP** registers of the guest when a VMLAUNCH executes. It starts with the **RIP** you configured in this part and **RIP** and **RSP** of the host when a VM-Exit occurs. It's pretty clear that host **RIP** should point to a function responsible for managing VMX Events based on return code and decide to execute a VMRESUME or turn off the hypervisor using VMXOFF.
+The next important part is to set the **RIP** and **RSP** registers of the guest when a **VMLAUNCH** is executed. It starts with the **RIP** you configured in this part and **RIP** and **RSP** of the host when a VM-exit occurs. It's pretty clear that host **RIP** should point to a function responsible for managing VMX events based on the VM-exit code and whether decide to execute a **VMRESUME** or turn off the hypervisor using **VMXOFF**.
 
 ```
-    //
-    // left here just for test
-    //
     __vmx_vmwrite(GUEST_RSP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest sp
     __vmx_vmwrite(GUEST_RIP, (ULONG64)g_VirtualGuestMemoryAddress); // setup guest ip
 
@@ -1065,15 +1048,13 @@ The next important part is to set the **RIP** and **RSP** registers of the guest
     __vmx_vmwrite(HOST_RIP, (ULONG64)AsmVmexitHandler);
 ```
 
-**HOST\_RSP** points to **VMM\_Stack** that we allocated above, and HOST\_RIP points to **VMExitHandler** (an assembly written function described below). **GUEST\_RIP** points to **VirtualGuestMemoryAddress** (the global variable we configured during EPT initialization) and **GUEST\_RSP** to zero because we don't put any instruction that uses the stack, so for a real-world example, it should point to a different writeable address.
-
-Setting these fields to a Host Address will not cause a problem as long as we have the same CR3 in our guest state, so all the addresses are mapped exactly the same as the host.
+**HOST\_RSP** points to **VmmStack** that we allocated before, and **HOST\_RIP** points to **AsmVmexitHandler** (an assembly written function described below). **GUEST\_RIP** points to **g_VirtualGuestMemoryAddress** (the global variable we configured during EPT initialization) and **GUEST\_RSP** to the same address (**g_VirtualGuestMemoryAddress**) because we don't put any instruction that uses the stack, so for a real-world example, it should point to a different writeable address.
 
 Done! Our VMCS is almost ready.
 
 ### **Checking VMCS Layout**
 
-Unfortunately, checking VMCS Layout is not as straight as the other parts. You have to control all the checklists described in **\[CHAPTER 26\] VM ENTRIES** from **Intel's 64 and IA-32 Architectures Software Developer's Manual**, including the following sections:
+Unfortunately, checking VMCS Layout is not as straight as the other parts. We have to control all the checklists described in **\[CHAPTER 26\] VM ENTRIES** from **Intel's 64 and IA-32 Architectures Software Developer's Manual**, including the following sections:
 
 - **26.2 CHECKS ON VMX CONTROLS AND HOST-STATE AREA**
 - **26.3 CHECKING AND LOADING GUEST STATE** 
@@ -1083,23 +1064,25 @@ Unfortunately, checking VMCS Layout is not as straight as the other parts. You h
 - **26.7 VM-ENTRY FAILURES DURING OR AFTER LOADING GUEST STATE**
 - **26.8 MACHINE-CHECK EVENTS DURING VM ENTRY**
 
-The hardest part of this process is when you have no idea about the incorrect part of your VMCS layout or, on the other hand, when you miss something that eventually causes the failure.
+The hardest part of this process is when we have no idea about the incorrect part of your VMCS layout or, on the other hand, when you miss something that eventually causes the failure.
 
-This is because Intel just gives an error number without any further details about what's exactly wrong in your VMCS Layout.
+This is because Intel just gives an error number without any further details about what's exactly wrong in n our VMCS Layout.
 
 The errors are shown below.
 
 ![VM Errors](../../assets/images/vm-error.png)
 
-To solve this problem, I created a user-mode application called **VmcsAuditor**. As its name describes, it can be a choice if you have any error and don't have any idea about solving the problem.
+To solve this problem, I created a user-mode application called **VmcsAuditor**. As its name describes, it can be a choice if you have any error and don't have any idea about solving the problem. 
 
-Remember that [VmcsAuditor](https://rayanfam.com/topics/vmcsauditor-a-bochs-based-hypervisor-layout-checker/) is a tool based on Bochs emulator support for VMX, so all the checks come from Bochs, and it's not a 100% reliable tool that solves all the problem as we don't know what exactly happens inside the processor. Still, it can be handy and a time saver.
+Remember that [VmcsAuditor](https://rayanfam.com/topics/vmcsauditor-a-bochs-based-hypervisor-layout-checker) is a tool based on Bochs emulator support for VMX, so all the checks come from Bochs, and it's not a 100% reliable tool that solves all the problem as we don't know what exactly happens inside the processor. Still, it can be handy and a time saver.
 
 The source code and executable files are available on GitHub :
 
-\[[https://github.com/SinaKarvandi/VMCS-Auditor](https://github.com/SinaKarvandi/VMCS-Auditor)\]  
+\[[https://github.com/SinaKarvandi/VMCS-Auditor](https://github.com/SinaKarvandi/VMCS-Auditor)\] 
 
 Further description available [here](https://rayanfam.com/topics/vmcsauditor-a-bochs-based-hypervisor-layout-checker/).
+
+As a better alternative, you can use [Satoshi Tanda](https://github.com/tandasat)'s **[code](https://github.com/SinaKarvandi/Hypervisor-From-Scratch/tree/master/Part%205%20-%20Setting%20up%20VMCS%20%26%20Running%20Guest%20Code/VMCS-Checks)** for checking the guest state.
 
 ## **VM-Exit Handler**
 
@@ -1168,9 +1151,9 @@ When our guest software exits and gives the handle back to the host, the followi
 #define EXIT_REASON_PCOMMIT             65
 ```
 
-VMX Exit handler should be a pure assembly function because calling a compiled function needs some preparation and some register modification. The necessary thing in VMX Handler is saving the registers' state so you can continue other times.
+VMX-exit handler should be an assembly function because calling a compiled function needs some preparation and some register modification. The necessary thing in the VM-exit handler is saving the registers' state so we can continue the guest later.
 
-I create a sample function for saving the registers and returning the state, but in this function, we call another C function.
+I create a sample function for saving and restoring registers. In this function, we call another C function to extend the vm-exit handler.
 
 ```
 PUBLIC AsmVmexitHandler
@@ -1231,11 +1214,11 @@ AsmVmexitHandler ENDP
 END
 ```
 
-The main VM-Exit handler is a switch-case function with different decisions over the VMCS **VM\_EXIT\_REASON** and **EXIT\_QUALIFICATION**.
+The main VM-exit handler is a switch-case function with different decisions over the VMCS **VM\_EXIT\_REASON** and **EXIT\_QUALIFICATION**.
 
-In this part, we're just performing an action over **EXIT\_REASON\_HLT** and just print the result and restore the previous state.
+In this part, we're just performing an action over **EXIT\_REASON\_HLT** and just print the result and restore the guest state normally.
 
-From the following code, you can see what event cause the VM-exit. Just keep in mind that some reasons only lead to VM-Exit if the VMCS's control execution fields (described above) allow for it. For instance, the execution of HLT in guest software will cause VM-Exit if the 7th bit of the Primary Processor-Based VM-Execution Controls allows it.
+From the following code, you can see what event cause the VM-exit. Just keep in mind that some reasons only lead to Vm-exit if the VMCS's control execution fields (described above) configure it. For instance, the execution of **HLT** instruction in guest will cause VM-exit if the **7**th bit of the Primary Processor-Based VM-Execution Controls allows it.
 
 ```
 VOID
@@ -1333,9 +1316,11 @@ MainVmexitHandler(PGUEST_REGS GuestRegs)
 
 ### **Resume to next instruction**
 
-If a VM-Exit occurs (e.g., the guest executed a CPUID instruction), the guest RIP remains constant, and it's up to you to change the Guest RIP or not, so if you don't have a certain function for managing this situation, then you execute a VMRESUME, and it's like an infinite loop of executing CPUID and VMRESUME because you didn't change the RIP.
+If a VM-exit occurs (e.g., the guest executed a **CPUID** instruction), the guest **RIP** remains constant, and it's up to VMM to change the Guest's **RIP** or not, so if we don't have a certain function for managing this situation, then the processor executes an infinite loop of **CPUID** instructions because we didn't increment the **RIP**.
 
-In order to solve this problem, you have to read a VMCS field called **VM\_EXIT\_INSTRUCTION\_LEN** that stores the length of the instruction that caused the VM-Exit, so we have first read the GUEST current RIP, second the **VM\_EXIT\_INSTRUCTION\_LEN** and third add it to GUEST RIP. Now our GUEST RIP points to the next instruction, and we're good to go.
+In order to solve this problem, we have to read a VMCS field called **VM\_EXIT\_INSTRUCTION\_LEN** that stores the length of the instruction that caused the VM-exit.
+
+First, we have to read the guest's current **RIP** from the **GUEST_RIP**. Second, read the **VM\_EXIT\_INSTRUCTION\_LEN** using **VMREAD**, and third the length of the instruction to the guest's **RIP**. Now the guest will continue its execution from the next instruction, and we're good to go.
 
 The following function is for this purpose.
 
@@ -1358,14 +1343,19 @@ ResumeToNextInstruction()
 
 ## **VMRESUME Instruction**
 
-VMRESUME is like VMLAUNCH, but it's used in order to resume the guest.
+Now that we handled the VM-exit, it's time to continue the guest. We could continue the execution by using the **VMRESUME** instruction.
+
+**VMRESUME** is like **VMLAUNCH**, but it's used in order to resume the guest.
+
+To compare these instructions,
 
 - VMLAUNCH fails if the launch state of the current VMCS is not "clear". If the instruction is successful, it sets the launch state to "launched."
+
 - VMRESUME fails if the launch state of the current VMCS is not "launched."
 
-So it's clear that if you executed VMLAUNCH before, you can't use it anymore to resume the guest code, and in this condition, VMRESUME is used.
+So it's clear that if we executed the **VMLAUNCH** instruction before, we can't use it anymore to resume the guest code, and in this condition, **VMRESUME** is used.
 
-The following code is the implementation of VMRESUME.
+The following code is the implementation of **VMRESUME**.
 
 ```
 VOID
@@ -1390,27 +1380,29 @@ VmResumeInstruction()
 
 ## **Let's Test it!**
 
-Well, we have done with the configuration, and now it's time to run our driver using OSR Driver Loader. As always, we should first disable driver signature enforcement and run our driver.
+Well, we have done with the configuration, and now it's time to run our driver using **OSR Driver Loader**. As always, we should disable the driver signature enforcement and run our driver.
 
 ![](../../assets/images/hlt-execution.png)
 
-As you can see from the above picture (in the launching VM area), first, we set the current logical processor to 0. Next, we clear our VMCS status using VMCLEAR instruction, set up our VMCS layout and execute a VMLAUNCH instruction.
+As you can see from the above picture (in the launching VM area), first, we set the current logical processor to 0. Next, we clear our VMCS status using the **VMCLEAR** instruction, set up our VMCS layout and execute the **VMLAUNCH** instruction.
 
-Now, our guest code is executed, and as we configured our VMCS to exit on the execution of **HLT** **(CPU\_BASED\_HLT\_EXITING)**, so it's successfully executed, and our VM-EXIT handler function is called, then it calls the main VM-Exit handler, and as the VMCS exit reason is **0xc (EXIT\_REASON\_HLT)**, our VM-Exit handler detects the execution of **HLT** in guest, and now it captures the execution.
+Now, our guest code is executed, and as we configured our VMCS to cause a VM-exit in the case of the execution of the **HLT** **(CPU\_BASED\_HLT\_EXITING)** instruction.
 
-After that, our machine state saving mechanism is executed, and we successfully turn off the hypervisor using VMXOFF and return to the first caller with a successful (RAX = 1) status.
+After running the guest, the VM-exit handler is called, then it calls the main VM-exit handler, and as the VMCS exit reason is **0xc (EXIT\_REASON\_HLT)**, we successfully detected the execution of **HLT** in the guest.
 
-The sixth part is also available [here](https://rayanfam.com/topics/hypervisor-from-scratch-part-6/).
+After that, our machine state saving mechanism is executed, and we successfully turn off the hypervisor using the **VMXOFF** instruction and return to the first caller with a successful **(RAX = 1) status.
 
-That's it! Wasn't it easy ?!
+That's it! Wasn't it easy? 
 
 ![:)](../../assets/images/anime-girls-drinking-tea.jpg)
 
 ## **Conclusion**
 
-In this part, we get familiar with configuring the Virtual Machine Control Structure and finally run our guest code. The future parts would be an enhancement to this configuration like entering **protected-mode,** **interrupt injection**, **page modification logging,** **virtualizing the current machine**, and so on; thus, make sure to visit the blog more frequently for future parts and if you have any question or problem you can use the comments section below.
+In this part, we got familiar with configuring the Virtual Machine Control Structure and finally ran our guest code. The future parts would be an enhancement to this configuration like entering **protected-mode,** **interrupt injection**, **page modification logging,** **virtualizing the current machine**, and so on. You can use the comments section below if you have any questions or problems.
 
-Thanks for reading!
+See you in the next part.
+
+The sixth part is also available [here](https://rayanfam.com/topics/hypervisor-from-scratch-part-6).
 
 ## **References**
 
