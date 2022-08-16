@@ -77,13 +77,14 @@ Please make sure to have your own lab to test your hypervisor. I tested my hyper
 In the previous parts, we implemented a function called **AdjustControl**. This is an essential part of each hypervisor as you might want to run your hypervisor on many different processors with different microarchitectures. You should be aware of your processor capabilities to avoid undefined behaviors and VM-Entry errors.
 
 ```
-ULONG AdjustControls(IN ULONG Ctl, IN ULONG Msr)
+ULONG
+AdjustControls(ULONG Ctl, ULONG Msr)
 {
-    MSR MsrValue = { 0 };
+    MSR MsrValue = {0};
 
     MsrValue.Content = __readmsr(Msr);
-    Ctl &= MsrValue.High;     /* bit == 0 in high word ==> must be zero */
-    Ctl |= MsrValue.Low;      /* bit == 1 in low word  ==> must be one  */
+    Ctl &= MsrValue.High; /* bit == 0 in high word ==> must be zero */
+    Ctl |= MsrValue.Low;  /* bit == 1 in low word  ==> must be one  */
     return Ctl;
 }
 ```
@@ -91,10 +92,11 @@ ULONG AdjustControls(IN ULONG Ctl, IN ULONG Msr)
 If you remember from the previous part, we used the above function in 4 situations.
 
 ```
-    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_HLT_EXITING | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS, MSR_IA32_VMX_PROCBASED_CTLS));
-    __vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_CTL2_RDTSCP, MSR_IA32_VMX_PROCBASED_CTLS2));
+    __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_ACTIVATE_MSR_BITMAP | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS, MSR_IA32_VMX_PROCBASED_CTLS));
+    __vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS, MSR_IA32_VMX_PROCBASED_CTLS2));
+
     __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, AdjustControls(0, MSR_IA32_VMX_PINBASED_CTLS));
-    __vmx_vmwrite(VM_EXIT_CONTROLS, AdjustControls(VM_EXIT_IA32E_MODE | VM_EXIT_ACK_INTR_ON_EXIT, MSR_IA32_VMX_EXIT_CTLS));
+    __vmx_vmwrite(VM_EXIT_CONTROLS, AdjustControls(VM_EXIT_IA32E_MODE /* | VM_EXIT_ACK_INTR_ON_EXIT */, MSR_IA32_VMX_EXIT_CTLS));
     __vmx_vmwrite(VM_ENTRY_CONTROLS, AdjustControls(VM_ENTRY_IA32E_MODE, MSR_IA32_VMX_ENTRY_CTLS));
 ```
 
@@ -133,16 +135,20 @@ In the 5th part, we saw how to configure different VMCS fields and finally execu
 The first thing you need to know is that you have to create different stacks for each core as we're going to virtualize all the cores simultaneously. These stacks will be used whenever a VM-Exit occurs.
 
 ```
-    // Allocate stack for the VM Exit Handler.
-    UINT64 VMM_STACK_VA = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
-    vmState[ProcessorID].VMM_Stack = VMM_STACK_VA;
+    //
+    // Allocate stack for the VM Exit Handler
+    //
+    UINT64 VmmStackVa                  = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+    g_GuestState[ProcessorID].VmmStack = VmmStackVa;
 
-    if (vmState[ProcessorID].VMM_Stack == NULL)
+    if (g_GuestState[ProcessorID].VmmStack == NULL)
     {
-        DbgPrint("[*] Error in allocating VMM Stack.\n");
-        return;
+        DbgPrint("[*] Error in allocating VMM Stack\n");
+        return FALSE;
     }
-    RtlZeroMemory(vmState[ProcessorID].VMM_Stack, VMM_STACK_SIZE);
+    RtlZeroMemory(g_GuestState[ProcessorID].VmmStack, VMM_STACK_SIZE);
+
+    DbgPrint("[*] VMM Stack for logical processor %d : %llx\n", ProcessorID, g_GuestState[ProcessorID].VmmStack);
 ```
 
 As you can see from the above code, we use VMM\_Stack for each core separately (defined in **\_VirtualMachineState** structure).
@@ -150,53 +156,41 @@ As you can see from the above code, we use VMM\_Stack for each core separately (
 All the other things like Clearing VMCS State, loading VMCS, and executing VMLAUNCH are exactly the same as the previous part, so I don't want to describe them again but see the function responsible for preparing our current core to be virtualized.
 
 ```
+VOID
+VirtualizeCurrentSystem(int ProcessorID, PEPTP EPTP, PVOID GuestStack)
+{
+    DbgPrint("\n======================== Virtualizing Current System (Logical Core 0x%x) =============================\n", ProcessorID);
 
-void VirtualizeCurrentSystem(int ProcessorID, PEPTP EPTP, PVOID GuestStack) {
-
-    DbgPrint("\n======================== Virtualizing Current System =============================\n");
-
-    PAGED_CODE();
-
-    // Allocate stack for the VM Exit Handler.
-    UINT64 VMM_STACK_VA = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
-    vmState[ProcessorID].VMM_Stack = VMM_STACK_VA;
-
-    if (vmState[ProcessorID].VMM_Stack == NULL)
-    {
-        DbgPrint("[*] Error in allocating VMM Stack.\n");
-        return;
-    }
-    RtlZeroMemory(vmState[ProcessorID].VMM_Stack, VMM_STACK_SIZE);
-
-    // Allocate memory for MSRBitMap
-    vmState[ProcessorID].MSRBitMap = MmAllocateNonCachedMemory(PAGE_SIZE);  // should be aligned
-    if (vmState[ProcessorID].MSRBitMap == NULL)
-    {
-        DbgPrint("[*] Error in allocating MSRBitMap.\n");
-        return;
-    }
-    RtlZeroMemory(vmState[ProcessorID].MSRBitMap, PAGE_SIZE);
-    vmState[ProcessorID].MSRBitMapPhysical = VirtualAddress_to_PhysicalAddress(vmState[ProcessorID].MSRBitMap);
-
-
+    //
     // Clear the VMCS State
-    if (!Clear_VMCS_State(&vmState[ProcessorID])) {
+    //
+    if (!ClearVmcsState(&g_GuestState[ProcessorID]))
+    {
         goto ErrorReturn;
     }
 
+    //
     // Load VMCS (Set the Current VMCS)
-    if (!Load_VMCS(&vmState[ProcessorID]))
+    //
+    if (!LoadVmcs(&g_GuestState[ProcessorID]))
     {
         goto ErrorReturn;
     }
 
     DbgPrint("[*] Setting up VMCS for current system.\n");
-    Setup_VMCS_Virtualizing_Current_Machine(&vmState[ProcessorID], EPTP, GuestStack);
+    SetupVmcsAndVirtualizeMachine(&g_GuestState[ProcessorID], EPTP, GuestStack);
+
+    //
+    // Change this hook (detect modification of MSRs using RDMSR & WRMSR)
+    //
+    // DbgPrint("[*] Setting up MSR bitmaps.\n");
 
     DbgPrint("[*] Executing VMLAUNCH.\n");
     __vmx_vmlaunch();
 
-    // if VMLAUNCH succeeds will never be here !
+    //
+    // if VMLAUNCH succeeds will never be here!
+    //
     ULONG64 ErrorCode = 0;
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
@@ -206,13 +200,18 @@ void VirtualizeCurrentSystem(int ProcessorID, PEPTP EPTP, PVOID GuestStack) {
     DbgPrint("\n===================================================================\n");
 
 ReturnWithoutError:
+
     __vmx_off();
-    DbgPrint("[*] VMXOFF Executed Successfully. !\n");
+    DbgPrint("[*] VMXOFF Executed Successfully!\n");
 
     return TRUE;
+
+    //
     // Return With Error
+    //
 ErrorReturn:
-    DbgPrint("[*] Fail to setup VMCS !\n");
+    DbgPrint("[*] Fail to setup VMCS!\n");
+
     return FALSE;
 }
 ```
@@ -254,29 +253,39 @@ OK, now the problem is from where we can start our hypervisor. I mean, how to sa
 For this purpose, I've changed the `DrvCreate` routine, so you must change `CreateFile` from the user-mode application (I will discuss it later). In fact, `DrvCreate` is the function responsible for putting all the cores in the VMX state.
 
 ```
-NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS
+DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
-
     DbgPrint("[*] DrvCreate Called !\n");
 
-    // Start Virtualizing Current System
+    //
+    // *** Start Virtualizing Current System ***
+    //
 
-        // Initiating EPTP and VMX
-    PEPTP EPTP = Initialize_EPTP();
-    Initiate_VMX();
+    //
+    // Initiating EPTP and VMX
+    //
+    PEPTP EPTP = InitializeEptp();
+    InitializeVmx();
 
     int LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
-
 
     for (size_t i = 0; i < LogicalProcessorsCount; i++)
     {
         // Launching VM for Test (in the all logical processor)
         int ProcessorID = i;
-        RunOnProcessor(i, EPTP, VMXSaveState);
 
+        // Allocating VMM Stack
+        AllocateVmmStack(ProcessorID);
+
+        // Allocating MSR Bit
+        AllocateMsrBitmap(ProcessorID);
+
+        RunOnProcessor(i, EPTP, VmxSaveState);
+        DbgPrint("\n======================================================================================================\n", ProcessorID);
     }
 
-    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
@@ -297,7 +306,8 @@ You can edit this line to virtualize a certain number of cores or just a specifi
 There is a function called **RunOnProcessor**. This function takes processor ID as its first parameter, initialized EPTP pointer (explained in the 4th part) as the second parameter, and a particular routine called **VMXSaveState** as the third. **RunOnProcessor** set the processor affinity to a special core, then it raises the IRQL to Dispatch Level so the Windows Scheduler can't kick in to change the context; thus, it runs our routine, and when it returns from **VMXSaveState**, the currently running core is virtualized so it can lower the IRQL to what it was before. Now Windows can continue its normal execution while under the hypervisor's governance. IRQL stands for **I**nterrupt **R**e**q**uest **L**evel, a Windows-specific mechanism to manage interrupts or give priority by their level, so raising IRQL means your routine will execute with higher priority than normal Windows codes (PASSIVE LEVEL & APC LEVEL ). For more information, you can visit [here](https://blogs.msdn.microsoft.com/doronh/2010/02/02/what-is-irql/).
 
 ```
-BOOLEAN RunOnProcessor(ULONG ProcessorNumber, PEPTP EPTP, PFUNC Routine)
+BOOLEAN
+RunOnProcessor(ULONG ProcessorNumber, PEPTP EPTP, PFUNC Routine)
 {
     KIRQL OldIrql;
 
@@ -326,41 +336,38 @@ EXTERN VirtualizeCurrentSystem:PROC
 **VMXSaveState** implemented like this :
 
 ```
+VmxSaveState PROC
 
-VMXSaveState PROC
+	PUSH RAX
+	PUSH RCX
+	PUSH RDX
+	PUSH RBX
+	PUSH RBP
+	PUSH RSI
+	PUSH RDI
+	PUSH R8
+	PUSH R9
+	PUSH R10
+	PUSH R11
+	PUSH R12
+	PUSH R13
+	PUSH R14
+	PUSH R15
 
-    push rax
-    push rcx
-    push rdx
-    push rbx
-    push rbp
-    push rsi
-    push rdi
-    push r8
-    push r9
-    push r10
-    push r11
-    push r12
-    push r13
-    push r14
-    push r15
+	SUB RSP, 28h
 
-    sub rsp, 28h
+	; It a x64 FastCall function but as long as the definition of SaveState is the same
+	; as VirtualizeCurrentSystem, so we RCX & RDX both have a correct value
+	; But VirtualizeCurrentSystem also has a stack, so it's the third argument
+	; and according to FastCall, it should be in R8
 
+	MOV R8, RSP
 
-    ; It is an x64 FastCall function, but as long as the definition of SaveState is the same
-    ; as VirtualizeCurrentSystem so we RCX & RDX both have a correct value
-    ; But VirtualizeCurrentSystem also has a stack, so it's the third argument
-    ; and according to FastCall, it should be in R8
+	CALL VirtualizeCurrentSystem
 
-    mov r8, rsp
+	RET
 
-
-    call VirtualizeCurrentSystem
-
-    ret
-        
-VMXSaveState ENDP
+VmxSaveState ENDP
 ```
 
 It first saves a backup from all the registers, subtracts the stack because of Shadow Space for fast call functions, and then puts RSP to r8 and calls the **VirtualizeCurrentSystem**. RSP should be moved into the R8 (as I told you for **GuestStack** ) because the x64 fastcall parameter should be passed in this order: RCX, RDX, R8, R9 + Stack. This means that our third argument to this function is current RSP, and this value will be used as GUEST\_RSP in our VMCS fields.
@@ -370,28 +377,28 @@ If the above function runs without error, we should never reach to "**ret**" ins
 As you can see in the **VirtualizeCurrentSystem** which eventually calls **Setup\_VMCS\_Virtualizing\_Current\_Machine**, the **GUEST\_RIP** is pointing to **VMXRestoreState** so the first function (routine) that executes in current core is **VMXRestoreState**. This function is defined like this :
 
 ```
-VMXRestoreState PROC
+VmxRestoreState PROC
 
-    add rsp, 28h
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop r11
-    pop r10
-    pop r9
-    pop r8
-    pop rdi
-    pop rsi
-    pop rbp
-    pop rbx
-    pop rdx
-    pop rcx
-    pop rax
-    
-    ret
-    
-VMXRestoreState ENDP
+	ADD RSP, 28h
+	POP R15
+	POP R14
+	POP R13
+	POP R12
+	POP R11
+	POP R10
+	POP R9
+	POP R8
+	POP RDI
+	POP RSI
+	POP RBP
+	POP RBX
+	POP RDX
+	POP RCX
+	POP RAX
+	
+	RET
+	
+VmxRestoreState ENDP
 ```
 
 In the above function, first, we remove the Shadow Space and restore the registers state. When we return to **RunOnProcessor**, it's time to lower the IRQL.
@@ -407,22 +414,21 @@ Based on the above assumptions, we have to make some trivial changes to our user
 After some checks for the vendor and presence of hypervisor, now we have to call **DrvCreate**, and it's through the **CreateFile** user-mode function.
 
 ```
-    HANDLE handle = CreateFile("\\\\.\\MyHypervisorDevice",
-        GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ |
-        FILE_SHARE_WRITE,
-        NULL, /// lpSecurityAttirbutes
-        OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL |
-        FILE_FLAG_OVERLAPPED,
-        NULL); /// lpTemplateFile 
+    HANDLE Handle = CreateFile("\\\\.\\MyHypervisorDevice",
+                               GENERIC_READ | GENERIC_WRITE,
+                               FILE_SHARE_READ |
+                                   FILE_SHARE_WRITE,
+                               NULL, /// lpSecurityAttirbutes
+                               OPEN_EXISTING,
+                               FILE_ATTRIBUTE_NORMAL |
+                                   FILE_FLAG_OVERLAPPED,
+                               NULL); /// lpTemplateFile
 
-    if (handle == INVALID_HANDLE_VALUE)
+    if (Handle == INVALID_HANDLE_VALUE)
     {
-        DWORD errNum = GetLastError();
-        printf("[*] CreateFile failed : %d\n", errNum);
+        DWORD ErrNum = GetLastError();
+        printf("[*] CreateFile failed : %d\n", ErrNum);
         return 1;
-
     }
 ```
 
@@ -449,11 +455,17 @@ Intel defines CR3-Target Controls as "An execution of MOV to CR3 in VMX non-root
 Future processors might extend the Cr3-Target counts; the implementation of using this feature is like this :
 
 ```
-// Index starts from 0 , not 1
-BOOLEAN SetTargetControls(UINT64 CR3, UINT64 Index) {
+BOOLEAN
+SetTargetControls(UINT64 CR3, UINT64 Index)
+{
+    //
+    // Index starts from 0 , not 1
+    //
     if (Index >= 4)
     {
+        //
         // Not supported for more than 4 , at least for now :(
+        //
         return FALSE;
     }
 
@@ -461,14 +473,16 @@ BOOLEAN SetTargetControls(UINT64 CR3, UINT64 Index) {
 
     if (CR3 == 0)
     {
-        if (gCR3_Target_Count <= 0)
+        if (g_Cr3TargetCount <= 0)
         {
-            // Invalid command as gCR3_Target_Count cannot be less than zero
+            //
+            // Invalid command as g_Cr3TargetCount cannot be less than zero
+            // s
             return FALSE;
         }
         else
         {
-            gCR3_Target_Count -= 1;
+            g_Cr3TargetCount -= 1;
             if (Index == 0)
             {
                 __vmx_vmwrite(CR3_TARGET_VALUE0, 0);
@@ -505,10 +519,10 @@ BOOLEAN SetTargetControls(UINT64 CR3, UINT64 Index) {
         {
             __vmx_vmwrite(CR3_TARGET_VALUE3, CR3);
         }
-        gCR3_Target_Count += 1;
+        g_Cr3TargetCount += 1;
     }
 
-    __vmx_vmwrite(CR3_TARGET_COUNT, gCR3_Target_Count);
+    __vmx_vmwrite(CR3_TARGET_COUNT, g_Cr3TargetCount);
     return TRUE;
 }
 ```
@@ -526,7 +540,7 @@ Let's implement our handler,
 The default behavior for handling every VM-Exit (caused by execution of CPUID in VMX non-root) is to get the original result by using **\_cpuidex**, which is the intrinsic function for CPUID.
 
 ```
-__cpuidex(cpu_info, (INT32)state->rax, (INT32)state->rcx);
+    __cpuidex(CpuInfo, (INT32)state->rax, (INT32)state->rcx);
 ```
 
 So you can see that VMX non-root by itself isn't able to execute a CPUID, and we can execute CPUID in VMX Root Mode and give back the results to the VMX Non-root mode.
@@ -536,19 +550,24 @@ We need to check if RAX (CPUID Index) was 1. It's because there is an indicator 
 There is a second check about the hypervisor provider. We set it to '**HVFS**' to show that our hypervisor is \[H\]yper\[V\]isor \[F\]rom \[S\]cratch.
 
 ```
-    // Check if this was CPUID 1h, which is the features request.
+    //
+    // Check if this was CPUID 1h, which is the features request
+    //
     if (state->rax == 1)
     {
-
+        //
         // Set the Hypervisor Present-bit in RCX, which Intel and AMD have both
-        // reserved for this indication.
-        cpu_info[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
+        // reserved for this indication
+        //
+        CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
     }
 
     else if (state->rax == HYPERV_CPUID_INTERFACE)
     {
+        //
         // Return our interface identifier
-        cpu_info[0] = 'HVFS'; // [H]yper[v]isor [F]rom [S]cratch 
+        //
+        CpuInfo[0] = 'HVFS'; // [H]yper[V]isor [F]rom [S]cratch
     }
 ```
 
@@ -563,7 +582,6 @@ Here is the definition of hypervisor-related constants :
 #define HYPERV_CPUID_FEATURES                   0x40000003
 #define HYPERV_CPUID_ENLIGHTMENT_INFO           0x40000004
 #define HYPERV_CPUID_IMPLEMENT_LIMITS           0x40000005
-
 #define HYPERV_HYPERVISOR_PRESENT_BIT           0x80000000
 #define HYPERV_CPUID_MIN                        0x40000005
 #define HYPERV_CPUID_MAX                        0x4000ffff
@@ -572,26 +590,31 @@ Here is the definition of hypervisor-related constants :
 Finally, we put them into registers so that the guest has a proper result every time our routine is executed.
 
 ```
-    state->rax = cpu_info[0];
-    state->rbx = cpu_info[1];
-    state->rcx = cpu_info[2];
-    state->rdx = cpu_info[3];
+    //
+    // Copy the values from the logical processor registers into the VP GPRs
+    //
+    state->rax = CpuInfo[0];
+    state->rbx = CpuInfo[1];
+    state->rcx = CpuInfo[2];
+    state->rdx = CpuInfo[3];
 ```
 
 Putting all the above codes together, we have the following function :
 
 ```
-BOOLEAN HandleCPUID(PGUEST_REGS state)
+BOOLEAN
+HandleCPUID(PGUEST_REGS state)
 {
-    INT32 cpu_info[4];
+    INT32 CpuInfo[4];
+    ULONG Mode = 0;
 
-
+    //
     // Check for the magic CPUID sequence, and check that it is coming from
     // Ring 0. Technically we could also check the RIP and see if this falls
     // in the expected function, but we may want to allow a separate "unload"
-    // driver or code at some point.
+    // driver or code at some point
+    //
 
-    ULONG Mode = 0;
     __vmx_vmread(GUEST_CS_SELECTOR, &Mode);
     Mode = Mode & RPL_MASK;
 
@@ -600,33 +623,41 @@ BOOLEAN HandleCPUID(PGUEST_REGS state)
         return TRUE; // Indicates we have to turn off VMX
     }
 
+    //
     // Otherwise, issue the CPUID to the logical processor based on the indexes
-    // on the VP's GPRs.
-    __cpuidex(cpu_info, (INT32)state->rax, (INT32)state->rcx);
+    // on the VP's GPRs
+    //
+    __cpuidex(CpuInfo, (INT32)state->rax, (INT32)state->rcx);
 
-    // Check if this was CPUID 1h, which is the features request.
+    //
+    // Check if this was CPUID 1h, which is the features request
+    //
     if (state->rax == 1)
     {
-
+        //
         // Set the Hypervisor Present-bit in RCX, which Intel and AMD have both
-        // reserved for this indication.
-        cpu_info[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
+        // reserved for this indication
+        //
+        CpuInfo[2] |= HYPERV_HYPERVISOR_PRESENT_BIT;
     }
 
     else if (state->rax == HYPERV_CPUID_INTERFACE)
     {
+        //
         // Return our interface identifier
-        cpu_info[0] = 'HVFS'; // [H]yper[v]isor [F]rom [S]cratch 
+        //
+        CpuInfo[0] = 'HVFS'; // [H]yper[V]isor [F]rom [S]cratch
     }
 
-    // Copy the values from the logical processor registers into the VP GPRs.
-    state->rax = cpu_info[0];
-    state->rbx = cpu_info[1];
-    state->rcx = cpu_info[2];
-    state->rdx = cpu_info[3];
+    //
+    // Copy the values from the logical processor registers into the VP GPRs
+    //
+    state->rax = CpuInfo[0];
+    state->rbx = CpuInfo[1];
+    state->rcx = CpuInfo[2];
+    state->rdx = CpuInfo[3];
 
     return FALSE; // Indicates we don't have to turn off VMX
-
 }
 ```
 
@@ -685,7 +716,7 @@ Note that **EXIT\_QUALIFCATION** is somehow a general VMCS field that, in some s
 ![](../../assets/images/control-register-access.png)
 
 As you can see from the above picture, let's make some variables to describe the situation based on **EXIT\_QUALIFICATION**.
-
+---------------------------------------------------------
 ```
 movcrControlRegister = (ULONG)(ExitQualification & 0x0000000F);
 movcrAccessType = (ULONG)((ExitQualification & 0x00000030) >> 4);
@@ -694,7 +725,7 @@ movcrGeneralPurposeRegister = (ULONG)((ExitQualification & 0x00000F00) >> 8);
 ```
 
 Whenever a VM-Exit occurs caused by some instructions like **MOV CRx, REG**, we have to manually modify the **CRx** of GUEST VMCS from VMX Root Operation. The following code shows how to change the **GUEST\_CRx** field of VMCS using VMWRITE.
-
+-------------------------------------------
 ```
  if (movcrAccessType == 0)
  {
@@ -728,86 +759,82 @@ Otherwise, we have to read the **CRx** from our guest VMCS (not host Control Reg
 Putting it all together, we have a function like this :
 
 ```
-void HandleControlRegisterAccess(PGUEST_REGS GuestRegs)
+VOID
+HandleControlRegisterAccess(PGUEST_REGS GuestState)
 {
-    ULONG movcrControlRegister = 0;
-    ULONG movcrAccessType = 0;
-    ULONG movcrOperandType = 0;
-    ULONG movcrGeneralPurposeRegister = 0;
+    ULONG ExitQualification = 0;
 
-    ULONG64 ExitQualification = 0;
-    ULONG64 GuestCR0 = 0;
-    ULONG64 GuestCR3 = 0;
-    ULONG64 GuestCR4 = 0;
+    __vmx_vmread(EXIT_QUALIFICATION, &ExitQualification);
 
-    ULONG64 x = 0;
-    
-    __vmx_vmread(EXIT_QUALIFICATION , &ExitQualification);
-    __vmx_vmread(GUEST_CR0 , &GuestCR0);
-    __vmx_vmread(GUEST_CR3 , &GuestCR3);
-    __vmx_vmread(GUEST_CR4,  &GuestCR4);
+    PMOV_CR_QUALIFICATION data = (PMOV_CR_QUALIFICATION)&ExitQualification;
 
-    movcrControlRegister = (ULONG)(ExitQualification & 0x0000000F);
-    movcrAccessType = (ULONG)((ExitQualification & 0x00000030) >> 4);
-    movcrOperandType = (ULONG)((ExitQualification & 0x00000040) >> 6);
-    movcrGeneralPurposeRegister = (ULONG)((ExitQualification & 0x00000F00) >> 8);
+    PULONG64 RegPtr = (PULONG64)&GuestState->rax + data->Fields.Register;
 
-    /* Process the event (only for MOV CRx, REG instructions) */
-    if (movcrOperandType == 0 && (movcrControlRegister == 0 || movcrControlRegister == 3 || movcrControlRegister == 4))
+    //
+    // Because its RSP and as we didn't save RSP correctly (because of pushes)
+    // so we have to make it points to the GUEST_RSP
+    //
+    if (data->Fields.Register == 4)
     {
-        if (movcrAccessType == 0)
-        {
-
-            /* CRx <-- reg32 */
-
-            if (movcrControlRegister == 0)
-                x = GUEST_CR0;
-            else if (movcrControlRegister == 3)
-                x = GUEST_CR3;
-            else
-                x = GUEST_CR4;
-
-            switch (movcrGeneralPurposeRegister)
-            {
-
-            case 0:  __vmx_vmwrite(x, GuestRegs->rax); break;
-            case 1:  __vmx_vmwrite(x, GuestRegs->rcx); break;
-            case 2:  __vmx_vmwrite(x, GuestRegs->rdx); break;
-            case 3:  __vmx_vmwrite(x, GuestRegs->rbx); break;
-            case 4:  __vmx_vmwrite(x, GuestRegs->rsp); break;
-            case 5:  __vmx_vmwrite(x, GuestRegs->rbp); break;
-            case 6:  __vmx_vmwrite(x, GuestRegs->rsi); break;
-            case 7:  __vmx_vmwrite(x, GuestRegs->rdi); break;
-            }
-        }
-        else if (movcrAccessType == 1)
-        {
-            /* reg32 <-- CRx */
-
-            if (movcrControlRegister == 0)
-                x = GuestCR0;
-            else if (movcrControlRegister == 3)
-                x = GuestCR3;
-            else
-                x = GuestCR4;
-
-            switch (movcrGeneralPurposeRegister)
-            {
-            case 0:  GuestRegs->rax = x; break;
-            case 1:  GuestRegs->rcx = x; break;
-            case 2:  GuestRegs->rdx = x; break;
-            case 3:  GuestRegs->rbx = x; break;
-            case 4:  GuestRegs->rsp = x; break;
-            case 5:  GuestRegs->rbp = x; break;
-            case 6:  GuestRegs->rsi = x; break;
-            case 7:  GuestRegs->rdi = x; break;
-            default: break;
-            }
-
-        }
-
+        INT64 RSP = 0;
+        __vmx_vmread(GUEST_RSP, &RSP);
+        *RegPtr = RSP;
     }
 
+    switch (data->Fields.AccessType)
+    {
+    case TYPE_MOV_TO_CR:
+    {
+        switch (data->Fields.ControlRegister)
+        {
+        case 0:
+            __vmx_vmwrite(GUEST_CR0, *RegPtr);
+            __vmx_vmwrite(CR0_READ_SHADOW, *RegPtr);
+            break;
+        case 3:
+
+            __vmx_vmwrite(GUEST_CR3, (*RegPtr & ~(1ULL << 63)));
+            /*
+            if (g_Data->Features.VPID)
+                __invvpid(INV_ALL_CONTEXTS, &ctx);
+                */
+            break;
+        case 4:
+            __vmx_vmwrite(GUEST_CR4, *RegPtr);
+            __vmx_vmwrite(CR4_READ_SHADOW, *RegPtr);
+            break;
+        default:
+            DbgPrint("[*] Unsupported register %d\n", data->Fields.ControlRegister);
+            break;
+        }
+    }
+    break;
+
+    case TYPE_MOV_FROM_CR:
+    {
+        switch (data->Fields.ControlRegister)
+        {
+        case 0:
+            __vmx_vmread(GUEST_CR0, RegPtr);
+            break;
+        case 3:
+            __vmx_vmread(GUEST_CR3, RegPtr);
+            break;
+        case 4:
+            __vmx_vmread(GUEST_CR4, RegPtr);
+            break;
+        default:
+            DbgPrint("[*] Unsupported register %d\n", data->Fields.ControlRegister);
+            break;
+        }
+    }
+    break;
+
+    default:
+        DbgPrint("[*] Unsupported operation %d\n", data->Fields.AccessType);
+        break;
+    }
+}
 ```
 
 The reason why implementing functions like **HandleControlRegisterAccess** is mandatory is because processors (even the recent Intel processor) have 1-settings of some processor-based VM-execution controls like CR3-Load Exiting & CR3-Store Existing, so you have to manage these kinds of VM-Exits by yourself, but if your processor can continue without these settings, it's strongly recommended to reduce the amounts of VM-Exits because modern OSs access control registers a lot; thus, it has a significant performance penalty.
@@ -833,28 +860,32 @@ OK, let's implement the above sentences. If any of the RDMSR or WRMSR caused a V
 #### Handling MSRs Read**
 
 ```
-void HandleMSRRead(PGUEST_REGS GuestRegs)
+VOID
+HandleMSRRead(PGUEST_REGS GuestRegs)
 {
-    MSR msr = { 0 };
+    MSR msr = {0};
 
-
+    //
     // RDMSR. The RDMSR instruction causes a VM exit if any of the following are true:
-    // 
+    //
     // The "use MSR bitmaps" VM-execution control is 0.
     // The value of ECX is not in the ranges 00000000H - 00001FFFH and C0000000H - C0001FFFH
     // The value of ECX is in the range 00000000H - 00001FFFH and bit n in read bitmap for low MSRs is 1,
     //   where n is the value of ECX.
     // The value of ECX is in the range C0000000H - C0001FFFH and bit n in read bitmap for high MSRs is 1,
     //   where n is the value of ECX & 00001FFFH.
+    //
 
-    if (((GuestRegs->rcx <= 0x00001FFF)) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
-    {
-        msr.Content = MSRRead((ULONG)GuestRegs->rcx);
-    }
+    /*if (((GuestRegs->rcx <= 0x00001FFF)) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
+    {*/
+
+    msr.Content = MSRRead((ULONG)GuestRegs->rcx);
+
+    /*}
     else
     {
         msr.Content = 0;
-    }
+    }*/
 
     GuestRegs->rax = msr.Low;
     GuestRegs->rdx = msr.High;
@@ -868,17 +899,22 @@ You can see that it just checks for the sanity of MSR and then executes the RDMS
 There is another function for handling WRMSR VM-Exits :
 
 ```
-void HandleMSRWrite(PGUEST_REGS GuestRegs)
+VOID
+HandleMSRWrite(PGUEST_REGS GuestRegs)
 {
-    MSR msr = { 0 };
+    MSR msr = {0};
 
-    // Check for the sanity of MSR 
-    if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
-    {
-        msr.Low = (ULONG)GuestRegs->rax;
-        msr.High = (ULONG)GuestRegs->rdx;
-        MSRWrite((ULONG)GuestRegs->rcx, msr.Content);
-    }
+    //
+    // Check for the sanity of MSR
+    //
+    /*if ((GuestRegs->rcx <= 0x00001FFF) || ((0xC0000000 <= GuestRegs->rcx) && (GuestRegs->rcx <= 0xC0001FFF)))
+    {*/
+
+    msr.Low  = (ULONG)GuestRegs->rax;
+    msr.High = (ULONG)GuestRegs->rdx;
+    MSRWrite((ULONG)GuestRegs->rcx, msr.Content);
+
+    /*}*/
 }
 ```
 
@@ -892,75 +928,77 @@ This time, you have to pass everything to the above functions and log these VM-E
 OK, let's get back to our MSR Bitmap. We need two functions to Set bits of our MSR Bitmap,
 
 ```
-void SetBit(PVOID Addr, UINT64 bit, BOOLEAN Set) {
-
+VOID
+SetBit(PVOID Addr, UINT64 Bit, BOOLEAN Set)
+{
     PAGED_CODE();
-    UINT64 byte = bit / 8;
-    UINT64 temp = bit % 8;
-    UINT64 n = 7 - temp;
 
-    BYTE* Addr2 = Addr;
+    UINT64 Byte = Bit / 8;
+    UINT64 Temp = Bit % 8;
+    UINT64 N    = 7 - Temp;
+
+    BYTE * Addr2 = Addr;
     if (Set)
     {
-        Addr2[byte] |= (1 << n);
+        Addr2[Byte] |= (1 << N);
     }
     else
     {
-        Addr2[byte] &= ~(1 << n);
-
+        Addr2[Byte] &= ~(1 << N);
     }
-
 }
 ```
 
 The other function is for retrieving a particular bit.
 
 ```
+VOID
+GetBit(PVOID Addr, UINT64 Bit)
+{
+    UINT64 Byte = 0, K = 0;
+    Byte         = Bit / 8;
+    K            = 7 - Bit % 8;
+    BYTE * Addr2 = Addr;
 
-void GetBit(PVOID Addr, UINT64 bit) {
-    UINT64 byte = 0, k = 0;
-    byte = bit / 8;
-    k = 7 - bit % 8;
-    BYTE* Addr2 = Addr;
-
-    return Addr2[byte] & (1 << k);
+    return Addr2[Byte] & (1 << K);
 }
+
 ```
 
 Now it's time to gather everything in one function based on the above descriptions about MSR Bitmaps. The following function first checks for the sanity of MSR; then, it changes the MSR Bitmap of the target logical core (this is why we hold both the Physical Address and the Virtual Address of MSR Bitmap, the physical address for VMCS fields, and the virtual address to ease the modification). If it's a read (**rdmsr**) for low MSRs, then set the corresponding bit in MSRBitmap Virtual Address, if it's a write (**wrmsr**) for the low MSRs then modify the MSRBitmap + 2048 (as noted in Intel manual) and exact the same thing for high MSRs (between 0xC0000000 and 0xC0001FFF) but don't forget the subtraction (0xC0000000) because 0xC000nnnn is not a valid bit :d.
 
 ```
-BOOLEAN SetMSRBitmap(ULONG64 msr, int ProcessID, BOOLEAN ReadDetection, BOOLEAN WriteDetection) {
-
+BOOLEAN
+SetMsrBitmap(ULONG64 Msr, int ProcessID, BOOLEAN ReadDetection, BOOLEAN WriteDetection)
+{
     if (!ReadDetection && !WriteDetection)
     {
+        //
         // Invalid Command
+        //
         return FALSE;
     }
 
-
-    if (msr <= 0x00001FFF)
+    if (Msr <= 0x00001FFF)
     {
         if (ReadDetection)
         {
-            SetBit(vmState[ProcessID].MSRBitMap, msr, TRUE);
+            SetBit(g_GuestState[ProcessID].MsrBitmap, Msr, TRUE);
         }
         if (WriteDetection)
         {
-            SetBit(vmState[ProcessID].MSRBitMap + 2048, msr, TRUE);
+            SetBit(g_GuestState[ProcessID].MsrBitmap + 2048, Msr, TRUE);
         }
     }
-    else if ((0xC0000000 <= msr) && (msr <= 0xC0001FFF))
+    else if ((0xC0000000 <= Msr) && (Msr <= 0xC0001FFF))
     {
-
         if (ReadDetection)
         {
-            SetBit(vmState[ProcessID].MSRBitMap + 1024, msr - 0xC0000000, TRUE);
+            SetBit(g_GuestState[ProcessID].MsrBitmap + 1024, Msr - 0xC0000000, TRUE);
         }
         if (WriteDetection)
         {
-            SetBit(vmState[ProcessID].MSRBitMap + 3072, msr - 0xC0000000, TRUE);
-
+            SetBit(g_GuestState[ProcessID].MsrBitmap + 3072, Msr - 0xC0000000, TRUE);
         }
     }
     else
@@ -996,15 +1034,15 @@ EXIT_REASON_VMLAUNCH
 For turning off the hypervisor, it's better to use one of our IRP Major functions. In our case, we used **DrvClose** as it always gets notified whenever a handle to our device is closed. If you remember from the above, we create a handle from our device using **CreateFile** (**DrvCreate**), and now it's time to close our handle using **DrvClose**.
 
 ```
-NTSTATUS DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
+NTSTATUS
+DrvClose(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     DbgPrint("[*] DrvClose Called !\n");
 
     // executing VMXOFF (From CPUID) on every logical processor
-    Terminate_VMX();
+    TerminateVmx();
 
-
-    Irp->IoStatus.Status = STATUS_SUCCESS;
+    Irp->IoStatus.Status      = STATUS_SUCCESS;
     Irp->IoStatus.Information = 0;
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
 
@@ -1017,9 +1055,9 @@ Nothing special for the above function, just **Terminate\_VMX()**.
 This function is similar to the routine of executing VMLAUNCH, except it runs VMXOFF instead.
 
 ```
-
-void Terminate_VMX(void) {
-
+VOID
+TerminateVmx()
+{
     DbgPrint("\n[*] Terminating VMX...\n");
 
     int LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
@@ -1029,16 +1067,18 @@ void Terminate_VMX(void) {
         DbgPrint("\t\t + Terminating VMX on processor %d\n", i);
         RunOnProcessorForTerminateVMX(i);
 
+        //
         // Free the destination memory
-        MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMXON_REGION));
-        MmFreeContiguousMemory(PhysicalAddress_to_VirtualAddress(vmState[i].VMCS_REGION));
-        MmFreeContiguousMemory(vmState[i].VMM_Stack);
-        MmFreeContiguousMemory(vmState[i].MSRBitMap);
+        //
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(g_GuestState[i].VmxonRegion));
+        MmFreeContiguousMemory(PhysicalToVirtualAddress(g_GuestState[i].VmcsRegion));
+        ExFreePoolWithTag(g_GuestState[i].VmmStack, POOLTAG);
+        ExFreePoolWithTag(g_GuestState[i].MsrBitmap, POOLTAG);
     }
 
     DbgPrint("[*] VMX Operation turned off successfully. \n");
-
 }
+
 ```
 
 As you can see, it executes **RunOnProcessorForTerminateVMX** on all the running logical cores and then frees the allocated buffers for **VMXON\_REGION, VMCS\_REGION,** **VMM\_Stack**, and **MSRBitMap** using Mm**FreeContiguousMemory.** (of course, convert physicals to virtuals whenever needed)
@@ -1073,17 +1113,20 @@ Even if this check is performed, the absence of this check doesn't mean that use
 Now our **RunOnProcessorForTerminateVMX** executes CPUID on all of the cores separately.
 
 ```
-BOOLEAN RunOnProcessorForTerminateVMX(ULONG ProcessorNumber)
+BOOLEAN
+RunOnProcessorForTerminateVMX(ULONG ProcessorNumber)
 {
     KIRQL OldIrql;
+    INT32 CpuInfo[4];
 
     KeSetSystemAffinityThread((KAFFINITY)(1 << ProcessorNumber));
 
     OldIrql = KeRaiseIrqlToDpcLevel();
 
+    //
     // Our routine is VMXOFF
-    INT32 cpu_info[4];
-    __cpuidex(cpu_info, 0x41414141, 0x42424242);
+    //
+    __cpuidex(CpuInfo, 0x41414141, 0x42424242);
 
     KeLowerIrql(OldIrql);
 
@@ -1106,17 +1149,13 @@ Also, we have to increase **GUEST\_RIP** because we want to restore the state af
             // We have to save GUEST_RIP & GUEST_RSP somewhere to restore them directly
 
             ULONG ExitInstructionLength = 0;
-            gGuestRIP = 0;
-            gGuestRSP = 0;
-            __vmx_vmread(GUEST_RIP, &gGuestRIP);
-            __vmx_vmread(GUEST_RSP, &gGuestRSP);
+            g_GuestRIP                  = 0;
+            g_GuestRSP                  = 0;
+            __vmx_vmread(GUEST_RIP, &g_GuestRIP);
+            __vmx_vmread(GUEST_RSP, &g_GuestRSP);
             __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
 
-
-
-            gGuestRIP += ExitInstructionLength;
-
-
+            g_GuestRIP += ExitInstructionLength;
         }
         break;
     }
@@ -1129,8 +1168,8 @@ Let's see it in detail.
 First, we have to extern some previously defined variables.
 
 ```
-EXTERN gGuestRIP:QWORD
-EXTERN gGuestRSP:QWORD
+EXTERN g_GuestRIP:QWORD
+EXTERN g_GuestRSP:QWORD
 ```
 
 Now our **VMExitHandler** works like this, whenever a VM-exit occurs, our logical core executes **VMExitHandler** as it's defined in **HOST\_RIP**, and our **RSP** is set to **HOST\_RSP**, then we have to save all the registers. It means we must create a structure that allows us to read and modify registers in a C-like structure.
@@ -1138,21 +1177,21 @@ Now our **VMExitHandler** works like this, whenever a VM-exit occurs, our logica
 ```
 typedef struct _GUEST_REGS
 {
-    ULONG64 rax;                  // 0x00         // NOT VALID FOR SVM
+    ULONG64 rax; // 0x00         // NOT VALID FOR SVM
     ULONG64 rcx;
-    ULONG64 rdx;                  // 0x10
+    ULONG64 rdx; // 0x10
     ULONG64 rbx;
-    ULONG64 rsp;                  // 0x20         // rsp is not stored here on SVM
+    ULONG64 rsp; // 0x20         // rsp is not stored here on SVM
     ULONG64 rbp;
-    ULONG64 rsi;                  // 0x30
+    ULONG64 rsi; // 0x30
     ULONG64 rdi;
-    ULONG64 r8;                   // 0x40
+    ULONG64 r8; // 0x40
     ULONG64 r9;
-    ULONG64 r10;                  // 0x50
+    ULONG64 r10; // 0x50
     ULONG64 r11;
-    ULONG64 r12;                  // 0x60
+    ULONG64 r12; // 0x60
     ULONG64 r13;
-    ULONG64 r14;                  // 0x70
+    ULONG64 r14; // 0x70
     ULONG64 r15;
 } GUEST_REGS, *PGUEST_REGS;
 ```
@@ -1162,61 +1201,62 @@ Just push all the registers in **\_GUEST\_REGS** order and push the RSP as the f
 You can see the **VMExitHandler** here :
 
 ```
-VMExitHandler PROC
+VmexitHandler PROC
 
-    push r15
-    push r14
-    push r13
-    push r12
-    push r11
-    push r10
-    push r9
-    push r8        
-    push rdi
-    push rsi
-    push rbp
-    push rbp    ; rsp
-    push rbx
-    push rdx
-    push rcx
-    push rax    
-
-
-    mov rcx, rsp        ; Fast call argument to PGUEST_REGS
-    sub rsp, 28h        ; Free some space for Shadow Section
-
-    call    MainVMExitHandler
-
-    add rsp, 28h        ; Restore the state
-
-    ; Check whether we have to turn off VMX or Not (the result is in RAX)
-    CMP al, 1
-    JE      VMXOFFHandler
-
-    ;Restore the state
-    pop rax
-    pop rcx
-    pop rdx
-    pop rbx
-    pop rbp     ; rsp
-    pop rbp
-    pop rsi
-    pop rdi 
-    pop r8
-    pop r9
-    pop r10
-    pop r11
-    pop r12
-    pop r13
-    pop r14
-    pop r15
+    PUSH R15
+    PUSH R14
+    PUSH R13
+    PUSH R12
+    PUSH R11
+    PUSH R10
+    PUSH R9
+    PUSH R8        
+    PUSH RDI
+    PUSH RSI
+    PUSH RBP
+    PUSH RBP	; RSP
+    PUSH RBX
+    PUSH RDX
+    PUSH RCX
+    PUSH RAX	
 
 
-    sub rsp, 0100h ; to avoid error in future functions
-    JMP VM_Resumer
-    
+	MOV RCX, RSP		; Fast CALL argument to PGUEST_REGS
+	SUB	RSP, 28h		; Free some space for Shadow Section
 
-VMExitHandler ENDP
+	CALL	MainVmexitHandler
+
+	ADD	RSP, 28h		; Restore the state
+
+	; Check whether we have to turn off VMX or Not (the result is in RAX)
+
+	CMP	AL, 1
+	JE		VmxoffHandler
+
+	; Restore the state
+	POP RAX
+    POP RCX
+    POP RDX
+    POP RBX
+    POP RBP		; RSP
+    POP RBP
+    POP RSI
+    POP RDI 
+    POP R8
+    POP R9
+    POP R10
+    POP R11
+    POP R12
+    POP R13
+    POP R14
+    POP R15
+
+	SUB RSP, 0100h ; to avoid error in future functions
+
+	JMP VmResumeInstruction
+	
+
+VmexitHandler ENDP
 ```
 
 From the above code, when we return from the **MainVMExitHandler**, we have to check whether the return result of **MainVMExitHandler** (in RAX) tells us to turn off the hypervisor or just continue.
@@ -1226,20 +1266,24 @@ If it needs to be continued, restore the registers state and jump to our **VM\_R
 **VM\_Resumer** executes **\_\_vmx\_vmresume** and the processor sets the RIP register to **GUEST\_RIP**.
 
 ```
-VOID VM_Resumer(VOID)
+VOID
+VmResumeInstruction()
 {
+    ULONG64 ErrorCode = 0;
 
     __vmx_vmresume();
 
-    // if VMRESUME succeeds will never be here !
-
-    ULONG64 ErrorCode = 0;
+    //
+    // if VMRESUME succeeds will never be here!
+    //
     __vmx_vmread(VM_INSTRUCTION_ERROR, &ErrorCode);
     __vmx_off();
     DbgPrint("[*] VMRESUME Error : 0x%llx\n", ErrorCode);
 
-    //It's such a bad error because we don't know where to go!
+    //
+    // It's such a bad error because we don't where to go
     // prefer to break
+    //
     DbgBreakPoint();
 }
 ```
@@ -1248,39 +1292,40 @@ But what if it needs to be turned off?
 
 Then based on **AL**, it jumps to another function called **VMXOFFHandler**. This simple function executes **VMXOFF**, turns off the hypervisor (in the current logical core), and then restores the registers to their previous state as we saved them in **VMExitHandler**.
 
-The only thing we have to do here is changing the stack pointer to **GUEST\_RSP** (We saved them in **gGuestRSP**) and jumped to the **GUEST\_RIP** (saved in **gGuestRIP**).
+The only thing we have to do here is changing the stack pointer to **GUEST\_RSP** (We saved them in **gGuestRSP**) and jump to the **GUEST\_RIP** (saved in **gGuestRIP**).
 
 ```
-VMXOFFHandler PROC
+VmxoffHandler PROC
 
-    ; Turn VMXOFF
-    VMXOFF
+	; Turn VMXOFF
+	VMXOFF
 
-    ;INT        3
-    ;Restore the state
-    pop rax
-    pop rcx
-    pop rdx
-    pop rbx
-    pop rbp     ; rsp
-    pop rbp
-    pop rsi
-    pop rdi 
-    pop r8
-    pop r9
-    pop r10
-    pop r11
-    pop r12
-    pop r13
-    pop r14
-    pop r15
+	; Restore the state
 
-    ; Set guest RIP and RSP
-    MOV     RSP, gGuestRSP
+	POP RAX
+    POP RCX
+    POP RDX
+    POP RBX
+    POP RBP		; RSP
+    POP RBP
+    POP RSI
+    POP RDI 
+    POP R8
+    POP R9
+    POP R10
+    POP R11
+    POP R12
+    POP R13
+    POP R14
+    POP R15
 
-    JMP     gGuestRIP
+	; Set guest RIP and RSP
 
-VMXOFFHandler ENDP
+	MOV		RSP, g_GuestRSP
+
+	JMP		g_GuestRIP
+
+VmxoffHandler ENDP
 ```
 
 Now everything is done, we executed our normal Windows (driver) routine; I mean, start the execution after the last CPUID that was executed from **RunOnProcessorForTerminateVMX** but now we're not in VMX operation.
@@ -1292,12 +1337,12 @@ Putting all the above codes together, now we have to manage different kinds of V
 The first thing we need to manage is to detect every VMX instructions that are executed in VMX non-root operation; it can be done using the following code :
 
 ```
-
+    //
     // 25.1.2  Instructions That Cause VM Exits Unconditionally
     // The following instructions cause VM exits when they are executed in VMX non-root operation: CPUID, GETSEC,
-    // INVD, and XSETBV. This is also true of instructions introduced with VMX, which include: INVEPT, INVVPID, 
+    // INVD, and XSETBV. This is also true of instructions introduced with VMX, which include: INVEPT, INVVPID,
     // VMCALL, VMCLEAR, VMLAUNCH, VMPTRLD, VMPTRST, VMRESUME, VMXOFF, and VMXON.
-
+    //
     case EXIT_REASON_VMCLEAR:
     case EXIT_REASON_VMPTRLD:
     case EXIT_REASON_VMPTRST:
@@ -1308,11 +1353,13 @@ The first thing we need to manage is to detect every VMX instructions that are e
     case EXIT_REASON_VMXON:
     case EXIT_REASON_VMLAUNCH:
     {
-        DbgPrint("\n [*] Target guest tries to execute VM Instruction ,"
-            "it probably causes a fatal error or system halt as the system might"
-            "think it has VMX feature enabled while it's not available due to our use of hypervisor.\n");
+        // DbgBreakPoint();
 
-        DbgBreakPoint();
+        /*	DbgPrint("\n [*] Target guest tries to execute VM Instruction ,"
+                "it probably causes a fatal error or system halt as the system might"
+                " think it has VMX feature enabled while it's not available due to our use of hypervisor.\n");
+                */
+
         ULONG RFLAGS = 0;
         __vmx_vmread(GUEST_RFLAGS, &RFLAGS);
         __vmx_vmwrite(GUEST_RFLAGS, RFLAGS | 0x1); // cf=1 indicate vm instructions fail
@@ -1328,7 +1375,6 @@ If you configured any CPU-based controls or your processor support 1-settings of
     case EXIT_REASON_CR_ACCESS:
     {
         HandleControlRegisterAccess(GuestRegs);
-
         break;
     }
 ```
@@ -1339,7 +1385,8 @@ The same thing is true for MSRs access. If we didn't set any MSR Bit, every RDMS
     case EXIT_REASON_MSR_READ:
     {
         ULONG ECX = GuestRegs->rcx & 0xffffffff;
-        DbgPrint("[*] RDMSR (based on bitmap) : 0x%llx\n", ECX);
+
+        // DbgPrint("[*] RDMSR (based on bitmap) : 0x%llx\n", ECX);
         HandleMSRRead(GuestRegs);
 
         break;
@@ -1352,6 +1399,7 @@ Then this code for managing WRMSR :
     case EXIT_REASON_MSR_WRITE:
     {
         ULONG ECX = GuestRegs->rcx & 0xffffffff;
+
         DbgPrint("[*] WRMSR (based on bitmap) : 0x%llx\n", ECX);
         HandleMSRWrite(GuestRegs);
 
@@ -1387,17 +1435,13 @@ The last thing that is important for us is CPUID Handler. It calls **HandleCPUID
             // We have to save GUEST_RIP & GUEST_RSP somewhere to restore them directly
 
             ULONG ExitInstructionLength = 0;
-            gGuestRIP = 0;
-            gGuestRSP = 0;
-            __vmx_vmread(GUEST_RIP, &gGuestRIP);
-            __vmx_vmread(GUEST_RSP, &gGuestRSP);
+            g_GuestRIP                  = 0;
+            g_GuestRSP                  = 0;
+            __vmx_vmread(GUEST_RIP, &g_GuestRIP);
+            __vmx_vmread(GUEST_RSP, &g_GuestRSP);
             __vmx_vmread(VM_EXIT_INSTRUCTION_LEN, &ExitInstructionLength);
 
-
-
-            gGuestRIP += ExitInstructionLength;
-
-
+            g_GuestRIP += ExitInstructionLength;
         }
         break;
     }
@@ -1449,7 +1493,7 @@ As you can see, **HVFS** (0x48564653) is on **EAX**, so we successfully hooked t
 
 The above picture shows the HYPERV\_CPUID\_INTERFACE without the hypervisor.
 
-Now you have to close the user-mode app window so it executes VMXOFF on all cores. Let's test the above example again.
+Now you have to close the user-mode app window, so it executes VMXOFF on all cores. Let's test the above example again.
 
 ![](../../assets/images/cpuid-handle-4.png)
 

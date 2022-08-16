@@ -337,7 +337,7 @@ AsmVmxoffAndRestoreState ENDP
 ```
 
 At last, we need to precisely clear the stack. Previously we called the `LaunchVm` function and ended up in a new **RIP**.
-To continue the execution normally, we need to clear the stack and return to the location where we called the `LaunchVm` function. Therefore, in the last part of the above assembly code, which is the "return section", I used IDA Pro to see the disassembly of the `LaunchVm`, so we can see how this function clears the stack, and we perform the same so we can return the previous system state gracefully. Hence, the "return section" is copied from the disassemblies of the **LaunchVm** in IDA Pro.
+To continue the execution normally, we need to clear the stack and return to the location where we called the `LaunchVm` function. Therefore, in the last part of the above assembly code, which is the "return section", I used IDA Pro to see the disassembly of the `LaunchVm`, so we can see how this function clears the stack, and we perform the same so we can return the previous system state gracefully. Hence, the "return section" is copied from the disassemblies of the `LaunchVm` in IDA Pro.
 
 ![LaunchVm Return Frame](../../assets/images/launch-vm-return.png)
 
@@ -789,7 +789,7 @@ enum VMCS_FIELDS {
 };
 ```
 
-Ok, let's continue with our configuration.
+OK, let's continue with our configuration.
 
 The next step is configuring **host** Segment Registers.
 
@@ -803,7 +803,7 @@ The next step is configuring **host** Segment Registers.
     __vmx_vmwrite(HOST_TR_SELECTOR, GetTr() & 0xF8);
 ```
 
-Keep in mind that those fields that start with **HOST\_** are related to the state in which the hypervisor sets whenever a VM-exit occurs, and those which begin with **GUEST\_** are related to the state in which the hypervisor sets for guest when a **VMLAUNCH** executed.
+Keep in mind that those fields that start with "**HOST\_**" are related to the state in which the hypervisor sets whenever a VM-exit occurs, and those which begin with "**GUEST\_**" are related to the state in which the hypervisor sets for guest when a **VMLAUNCH** executed.
 
 The purpose of `& 0xF8` is that Intel mentioned that the three less significant bits must be cleared; otherwise, it leads to an error as the **VMLAUNCH** is executed with an _Invalid Host State_ error.
 
