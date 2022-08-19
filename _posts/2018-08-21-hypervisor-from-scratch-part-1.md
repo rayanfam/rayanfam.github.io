@@ -27,7 +27,7 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-1-cover.png)
 
-**Notice**: The **Hypervisor From Scratch** tutorial is completely revised in **August 2022**. Codes from all parts are updated, unnecessary details are removed, and new explanations and materials are added to the tutorial.
+**Notice**: The _**Hypervisor From Scratch**_ tutorial is completely revised in **August 2022**. Codes from all parts are updated, unnecessary details are removed, and new explanations and materials are added to the tutorial.
 
 ## **Introduction**
 
