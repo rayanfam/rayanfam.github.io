@@ -199,7 +199,7 @@ Like the regular paging mechanism, each entry in all EPT tables is 64-bit long. 
 
 An EPT entry is something like this:
 
-![EPT Entries](../../assets/images/EPT-entries.png)
+![EPT Entries](../../assets/images/ept-entries.png)
 
 Ok, Now we should implement tables; the first table is PML4. The following table shows the format of an EPT PML4 Entry (PML4E).
 
@@ -529,7 +529,7 @@ All the above page tables should be aligned to 4KByte boundaries, but as long as
 
 Our implementation consists of 4 tables; therefore, the full layout is like this:
 
-![EPT Layout](../../assets/images/EPT-layout.png)
+![EPT Layout](../../assets/images/EPT-Layout.png)
 
 ### **Accessed and Dirty Flags in EPTP**
 
