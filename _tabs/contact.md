@@ -8,4 +8,6 @@ order: 7
 
 Sina (sina **AT** hyperdbg **DOT** org)
 
+Sina (saleh **AT** hyperdbg **DOT** org)
+
 Shahriar (shahriar **AT** rayanfam **DOT** com)
