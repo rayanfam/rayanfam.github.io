@@ -61,7 +61,7 @@ Please bear in mind, as you read the rest of this article, it is written by some
 	- Analog Signals/Protocols
 	- Digital Signals/Protocols
 - **Source Code**
-- **Moore's Law \& Amdahl's Law**
+- **Moore's Law & Amdahl's Law**
 - **Terms**
 - **Hardware Description Languages (SystemVerilog, Verilog, VHDL)**
 - **Generating Hardware Using Chisel**
@@ -134,7 +134,7 @@ Having the above knowledge, let's explore each step more comprehensively. The re
 The full source code of the codes used in this blog post is available on GitHub :
 \[[https://github.com/SinaKarvandi/hardware-design-stack](https://github.com/SinaKarvandi/hardware-design-stack)\]
 
-## Moore's Law \& Amdahl's Law
+## Moore's Law & Amdahl's Law
 
 There are two important laws in computer architecture. One is Moore's law and the other is Amdahl's law.
 
@@ -459,7 +459,7 @@ class ToggleTest extends AnyFlatSpec with ChiselScalatestTester {
 
 This is a Chisel testbench to test a Chisel circuit with specific input conditions and check the output to determine if the circuit behaves as expected.
 
-Initially, the `start` input is set to 0 using `poke`. The circuit is advanced by one clock cycle using `dut.clock.step(1)`. Then, a test value is calculated using a function named `TestingSample.SampleFormulaFunctions(1, 2)` and converted to an integer. The `start"` input is set to 1 to enable the circuit. The `in1` input is set to the previously calculated test value using `poke`. The circuit is advanced by one clock cycle again. Finally, the output from `out1` is checked. If it matches the expected value (0), it prints `[*] Successful`, otherwise `[x] NOT successful!`.
+Initially, the `start` input is set to 0 using `poke`. The circuit is advanced by one clock cycle using `dut.clock.step(1)`. Then, a test value is calculated using a function named `TestingSample.SampleFormulaFunctions(1, 2)` and converted to an integer. The `start` input is set to 1 to enable the circuit. The `in1` input is set to the previously calculated test value using `poke`. The circuit is advanced by one clock cycle again. Finally, the output from `out1` is checked. If it matches the expected value (0), it prints `[*] Successful`, otherwise `[x] NOT successful!`.
 
 After that, you can run your test by using [sbt](https://www.scala-sbt.org/), and it will make a `.vcd` file. The VCD file is passed as an input to the [GTKWave](https://gtkwave.sourceforge.net/) and you can see different signals and what happens in each clock cycle and the final outputs. Of course, the results can be automatically tested with Scala but if you want to debug and find possible errors, you can see the signal waves.
 
