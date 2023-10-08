@@ -683,6 +683,19 @@ Static RAM (SRAM) consists of flip-flops, a bistable circuit composed of four to
 
 Now let's talk about different types of memories used in FPGAs and ASIC design.
 
+### Distributed RAMs in FPGAs
+
+In FPGAs, there are Block RAMs (BRAMs) and distributed RAMs. Distributed RAM is made up of LUTs and is used when the size of memory is small. For instance, in your code, you have a memory with a depth of 64 and a word size of 32. This one will be inferred into Distributed RAM, not BRAM.
+
+Let's define a memory in VHDL:
+
+```vhdl
+type ram_type is array (0 to 3) of STD_LOGIC_VECTOR(7 downto 0);
+signal ram: ram_type := (others => "00000000");
+```
+
+The above code defines an array type with four elements, indexed from 0 to 3. Each element of this array is a `STD_LOGIC_VECTOR` type, which represents an array of bits. In this case, each element is an 8-bit wide `STD_LOGIC_VECTOR` (ranging from bit 7 to bit 0), effectively creating a 4x8-bit memory structure. The FPGA will infer it as a distributed RAM, not Block RAM (BRAM) because the size is relatively small.
+
 ### Block RAM (BRAM) in FPGAs
 
 Block RAM (or BRAM) stands for Block Random Access Memory and is used for storing large amounts of data inside of your FPGA. BRAMs are usually external or embedded chips in the FPGA. For example, the following chip is the external design (port map) of a 36-KB BRAM used in Xilinx FPGAs.
