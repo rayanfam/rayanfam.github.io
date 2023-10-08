@@ -75,7 +75,8 @@ Please bear in mind, as you read the rest of this article, it is written by some
 	- Programming Xilinx FPGAs Using Vivado
 	- Vivado Netlists
 - **The Memory**
-	- Block RAM (BRAM) in FPGAs
+	- Distributed RAMs in FPGAs
+  - Block RAM (BRAM) in FPGAs
 	- Static RAM (SRAM) in ASIC
 - **Elaborating ASIC Designs**
 - **Building Hardware Layout (GDSII)**
