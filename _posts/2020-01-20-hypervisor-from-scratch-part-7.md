@@ -34,6 +34,8 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-7-cover.png)
 
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+
 ## **Introduction**
 
 This is the 7th part of the tutorial Hypervisor From Scratch, and it's about using the **E**xtended **P**age **T**able (**EPT**) in an already running system. As you might know, paging is an essential part of managing memory on modern operating systems. Hypervisors use an additional paging table; this gives us an excellent opportunity to monitor different aspects of memory (**R**ead-**W**rite-**E**xecute) without modifying the operating systems page-tables. EPT is a hardware mechanism, so it's fast, but on the other hand, we have to deal with different caching and synchronization problems.
@@ -69,6 +71,8 @@ The source code of this part changed drastically compared to the previous part; 
 The full source code of this tutorial is available on GitHub :
 
 \[[https://github.com/SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)\]
+
+Note: Remember that hypervisors change over time because new features are added to the operating systems or new technologies are used. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors. So, if you want to use Hypervisor From Scratch in your projects, research, or whatever, you should use the [**HyperDbg**](https://github.com/HyperDbg/HyperDbg) drivers. **HyperDbg** is actively maintained, stable, and reliable, ensuring you avoid the errors and instability problems that can arise from using older parts of the tutorial series.
 
 # **Table of Contents**
 
@@ -2133,7 +2137,7 @@ Finally, you can see the following picture which shows whether our hook successf
 
 # **Discussion**
 
-This part is added to answer to questions about EPT, we'll discuss different approaches and pros and cons of them, so this part will be actively updated. Thanks to Petr for answering these questions.
+This part is added to answer to questions about EPT, we'll discuss different approaches and pros and cons of them. Thanks to Petr for answering these questions.
 
 **1\. Why there are limitations on calling NT functions in VMX Root Mode?**
 

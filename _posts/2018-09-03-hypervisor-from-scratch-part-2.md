@@ -24,6 +24,8 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-2-cover.png)
 
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+
 ## **Introduction**
 
 It's the second part of a multiple series of a tutorial called "**Hypervisor From Scratch**". First, please consider reading the [first part](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/) (Basic Concepts & Configure Testing Environment) before reading this part, as it contains the essential knowledge you need to know in order to understand the rest of this tutorial. In this part, we'll talk about WDK drivers and finally start enabling VT-x.
@@ -491,7 +493,7 @@ In this part, we learned about the basic stuff we need to know to create a Windo
 
 In the third part, we're getting deeper with Intel VT-x and making our driver even more advanced.
 
-Note: Remember that hypervisors change over time because new features are added to the operating systems or using new technologies. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors, so if you want to use Hypervisor From Scratch in your projects, research, or whatever, you have to use the driver from the latest parts of these tutorial series as this tutorial is actively updated and changes are applied to the newer parts (earlier parts keep untouched) so you might encounter errors and instability problems in the earlier parts thus make sure to use the latest parts in real-world projects.
+Note: Remember that hypervisors change over time because new features are added to the operating systems or new technologies are used. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors. So, if you want to use Hypervisor From Scratch in your projects, research, or whatever, you should use the [**HyperDbg**](https://github.com/HyperDbg/HyperDbg) drivers. **HyperDbg** is actively maintained, stable, and reliable, ensuring you avoid the errors and instability problems that can arise from using older parts of the tutorial series.
 
 The third part is also available [here].(https://rayanfam.com/topics/hypervisor-from-scratch-part-3/).
 

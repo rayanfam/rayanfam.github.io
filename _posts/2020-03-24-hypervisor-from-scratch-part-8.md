@@ -32,6 +32,8 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-8-cover.png)
 
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+
 ## **Introduction**
 
 Hi guys,

@@ -26,6 +26,8 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-part-5-cover.png)
 
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+
 ## **Introduction**
 
 Hello and welcome to the fifth part of the "**Hypervisor From Scratch**" tutorial series. Today we will spend our time studying different parts of Virtual Machine Control Structure (VMCS), implementing additional VMX instructions, creating a restore point, setting different VMCS control structures, and at last, we execute **VMLAUNCH** and enter the hardware virtualization world! 
@@ -72,7 +74,7 @@ The full source code of this tutorial is available on GitHub :
 
 \[[https://github.com/SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)\]
 
-**Note**: Remember that hypervisors change over time because new features are added to the operating systems or using new technologies. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors, so if you want to use Hypervisor From Scratch in your projects, research, or whatever, you have to use the driver from the latest parts of these tutorial series as this tutorial is actively updated and changes are applied to the newer parts (earlier parts keep untouched) so you might encounter errors and instability problems in the earlier parts thus make sure to use the latest parts in real-world projects.
+Note: Remember that hypervisors change over time because new features are added to the operating systems or new technologies are used. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors. So, if you want to use Hypervisor From Scratch in your projects, research, or whatever, you should use the [**HyperDbg**](https://github.com/HyperDbg/HyperDbg) drivers. **HyperDbg** is actively maintained, stable, and reliable, ensuring you avoid the errors and instability problems that can arise from using older parts of the tutorial series.
 
 ![](../../assets/images/anime-girl-in-city.png)
 

@@ -29,6 +29,8 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-3-cover.png)
 
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+
 ## **Introduction**
 
 This is the third part of the tutorial "**Hypervisor From Scratch**". In this part, we'll continue our journey toward learning hypervisors and how to start creating our custom VMM. In the previous part, we learned how to make WDK drivers that handle user-mode requests and enable the VMX bit in our processor. In this part, we extend our driver and add VMX functionalities to our VMM. At last, we use different VT-x instructions in the VMM.
@@ -852,7 +854,7 @@ In the future, we'll focus on Exteneded Page Table (EPT), VMCS, and different ac
 
 The fourth part is also available [here].(https://rayanfam.com/topics/hypervisor-from-scratch-part-4/).
 
-Note: Remember that hypervisors change over time because new features are added to the operating systems or using new technologies. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors, so if you want to use Hypervisor From Scratch in your projects, research, or whatever, you have to use the driver from the latest parts of these tutorial series as this tutorial is actively updated and changes are applied to the newer parts (earlier parts keep untouched) so you might encounter errors and instability problems in the earlier parts thus make sure to use the latest parts in real-world projects.
+Note: Remember that hypervisors change over time because new features are added to the operating systems or new technologies are used. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors. So, if you want to use Hypervisor From Scratch in your projects, research, or whatever, you should use the [**HyperDbg**](https://github.com/HyperDbg/HyperDbg) drivers. **HyperDbg** is actively maintained, stable, and reliable, ensuring you avoid the errors and instability problems that can arise from using older parts of the tutorial series.
 
 ## **References**
 

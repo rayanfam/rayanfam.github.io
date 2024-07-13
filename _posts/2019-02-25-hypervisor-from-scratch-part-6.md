@@ -25,6 +25,8 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-6-cover.png)
 
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+
 ## Introduction
 
 Hello and welcome to the 6th part of the tutorial **Hypervisor From Scratch**. In this part, we'll learn how to virtualize an already running system using our custom-made hypervisor. Like other parts, this part depends on the previous parts, so make sure to read them first.
@@ -69,7 +71,7 @@ The full source code of this tutorial is available on GitHub :
 
 \[[https://github.com/SinaKarvandi/Hypervisor-From-Scratch](https://github.com/SinaKarvandi/Hypervisor-From-Scratch)\]
 
-**Note:** Please keep in mind that hypervisors change during the time because new features are added to the operating systems or using new technologies. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors, so if you want to use Hypervisor From Scratch in your projects, research, or whatever, you have to use the driver from the latest parts of these tutorial series as this tutorial is actively updated and changes are applied to the newer parts (earlier parts keep untouched) so you might encounter errors and instability problems in the earlier parts thus make sure to use the latest parts in real-world projects.
+Note: Remember that hypervisors change over time because new features are added to the operating systems or new technologies are used. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors. So, if you want to use Hypervisor From Scratch in your projects, research, or whatever, you should use the [**HyperDbg**](https://github.com/HyperDbg/HyperDbg) drivers. **HyperDbg** is actively maintained, stable, and reliable, ensuring you avoid the errors and instability problems that can arise from using older parts of the tutorial series.
 
 Please make sure to have your own lab to test your hypervisor. I tested my hypervisor on the 7th generation of Intel processors, so if you use an older processor, it might not support some features on your processor, and without a remote kernel debugger (not the local kernel debugger), you might see your system halting or BSODs without understanding the actual error.
 

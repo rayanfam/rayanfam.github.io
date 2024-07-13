@@ -31,6 +31,8 @@ author:
 
 ![](../../assets/images/hypervisor-from-scratch-4-cover.png)
 
+**If you're looking to use a hypervisor for analysis and reverse engineering tasks, check out [HyperDbg](https://github.com/HyperDbg/HyperDbg) Debugger. It's a hypervisor-based debugger designed specifically for analyzing, fuzzing, and reversing applications.**
+
 ## **Introduction**
 
 Welcome to the 4th part of the "**Hypervisor From Scratch**". This part primarily involves translating guest addresses through **Extended Page Table (EPT)** and its implementation. We also see how shadow tables work and basic concepts about EPT.
@@ -65,6 +67,8 @@ The full source code of this tutorial is available on GitHub :
 Before starting, I should give my thanks to [Petr Beneš](https://twitter.com/PetrBenes), as this part would never have been completed without his help.
 
 **Note:** This part tends to give you basic information about EPT. The main implementation of EPT for our hypervisor is explained in [part 7](https://rayanfam.com/topics/hypervisor-from-scratch-part-7/). In part 7, we used the concept we learned here to implement EPT on an already virtualized system.
+
+Note: Remember that hypervisors change over time because new features are added to the operating systems or new technologies are used. For example, updates to Meltdown & Spectre have made a lot of changes to the hypervisors. So, if you want to use Hypervisor From Scratch in your projects, research, or whatever, you should use the [**HyperDbg**](https://github.com/HyperDbg/HyperDbg) drivers. **HyperDbg** is actively maintained, stable, and reliable, ensuring you avoid the errors and instability problems that can arise from using older parts of the tutorial series.
 
 ## **Second Level Address Translation (SLAT)**
 
