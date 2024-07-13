@@ -12,7 +12,7 @@ tags:
 coverImage: "../../assets/images/kids-watching-laptop.jpg"
 comments: true
 author:
-  name: Mohammad Sina Karvandi
+  name: Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 

@@ -17,7 +17,7 @@ tags:
 coverImage: "../../assets/images/pykd-cover.png"
 comments: true
 author:
-  name: Mohammad Sina Karvandi
+  name: Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 

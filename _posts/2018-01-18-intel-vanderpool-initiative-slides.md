@@ -12,7 +12,7 @@ tags:
 coverImage: "../../assets/images/virtualization-technology-vanderpool.png"
 comments: true
 author:
-  name: Mohammad Sina Karvandi
+  name: Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 

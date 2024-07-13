@@ -18,7 +18,7 @@ tags:
 coverImage: "../../assets/images/HyperDbg-v0.1-1-compressed.jpg"
 comments: true
 author:
-  name: Saleh Monfared, and Mohammad Sina Karvandi
+  name: Saleh Monfared, and Sina Karvandi
   link: https://twitter.com/sal3hh
 ---
 

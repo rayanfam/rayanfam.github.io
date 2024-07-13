@@ -20,7 +20,7 @@ tags:
 coverImage: "../../assets/images/chameleon-2.jpeg"
 comments: true
 author:
-  name: Mohammad Sina Karvandi
+  name: Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 

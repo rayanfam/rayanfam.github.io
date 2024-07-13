@@ -20,7 +20,7 @@ tags:
 coverImage: "../../assets/images/access-rights-cover.png"
 comments: true
 author:
-  name: Mohammad Sina Karvandi
+  name: Sina Karvandi
   link: https://twitter.com/Intel80x86
 ---
 
