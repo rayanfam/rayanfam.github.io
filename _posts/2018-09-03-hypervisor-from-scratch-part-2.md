@@ -237,13 +237,16 @@ Unfortunately, for some unknown reason, I'm unable to view the result of `DbgPri
 
 As I mentioned in [part 1](https://rayanfam.com/topics/hypervisor-from-scratch-part-1/):
 
-In "regedit.exe", add a key:
+Save the following content as `dbgview.reg`.
 
 ```
-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter]
+"DEFAULT"=dword:0000000f
 ```
 
-Under that, add a DWORD value named IHVDRIVER with a value of 0xFFFF.
+Double-click on `dbgview.reg`. Reboot the machine, and it’s good to go.
 
 This method should solve the problem, but if the problem still persists, we have another option. For this purpose, we can use WinDbg to find a Windows Kernel global variable called `nt!Kd\_DEFAULT\_Mask`. This variable is responsible for showing the results in DbgView. It has a mask that I'm not aware of, so I just put a `0xffffffff` into it to simply make it show everything!
 
