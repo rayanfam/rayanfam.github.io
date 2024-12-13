@@ -225,15 +225,16 @@ The latest thing I remember is enabling Windows Debugging messages through the r
 
 Just perform the following steps:
 
-In the **Regedit**, add a key:
+Save the following content as `dbgview.reg`.
 
 ```
-HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter]
+"DEFAULT"=dword:0000000f
 ```
 
-Under that, add a DWORD value named IHVDRIVER with a value of 0xFFFF.
-
-Reboot the machine, and it's good to go.
+Double-click on `dbgview.reg`. Reboot the machine, and it’s good to go.
 
 ## **Nested-virtualization**
 
