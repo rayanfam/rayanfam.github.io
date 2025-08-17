@@ -98,7 +98,7 @@ If you remember from the previous part, we used the above function in 4 situatio
 
 ```
     __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_ACTIVATE_MSR_BITMAP | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS, MSR_IA32_VMX_PROCBASED_CTLS));
-    __vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS, MSR_IA32_VMX_PROCBASED_CTLS2));
+    __vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS | CPU_BASED_CTL2_ENABLE_USER_WAIT_PAUSE, MSR_IA32_VMX_PROCBASED_CTLS2));
 
     __vmx_vmwrite(PIN_BASED_VM_EXEC_CONTROL, AdjustControls(0, MSR_IA32_VMX_PINBASED_CTLS));
     __vmx_vmwrite(VM_EXIT_CONTROLS, AdjustControls(VM_EXIT_IA32E_MODE /* | VM_EXIT_ACK_INTR_ON_EXIT */, MSR_IA32_VMX_EXIT_CTLS));
@@ -231,15 +231,17 @@ All the VMCS fields are the same as the last part, except for the configuration 
 
 ```
     DbgPrint("[*] MSR_IA32_VMX_PROCBASED_CTLS : 0x%llx\n", AdjustControls(CPU_BASED_ACTIVATE_MSR_BITMAP | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS, MSR_IA32_VMX_PROCBASED_CTLS));
-    DbgPrint("[*] MSR_IA32_VMX_PROCBASED_CTLS2 : 0x%llx\n", AdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS, MSR_IA32_VMX_PROCBASED_CTLS2));
+    DbgPrint("[*] MSR_IA32_VMX_PROCBASED_CTLS2 : 0x%llx\n", AdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS | CPU_BASED_CTL2_ENABLE_USER_WAIT_PAUSE, MSR_IA32_VMX_PROCBASED_CTLS2));
 
     __vmx_vmwrite(CPU_BASED_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_ACTIVATE_MSR_BITMAP | CPU_BASED_ACTIVATE_SECONDARY_CONTROLS , MSR_IA32_VMX_PROCBASED_CTLS));
-    __vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS, MSR_IA32_VMX_PROCBASED_CTLS2));
+    __vmx_vmwrite(SECONDARY_VM_EXEC_CONTROL, AdjustControls(CPU_BASED_CTL2_RDTSCP | CPU_BASED_CTL2_ENABLE_INVPCID | CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS | CPU_BASED_CTL2_ENABLE_USER_WAIT_PAUSE, MSR_IA32_VMX_PROCBASED_CTLS2));
 ```
 
 As you can see, for the **CPU\_BASED\_VM\_EXEC\_CONTROL**, we set **CPU\_BASED\_ACTIVATE\_MSR\_BITMAP**; this way, we can enable the MSR BITMAP filter (described later in this part). Setting this field is somehow mandatory. As you might guess, Windows accesses lots of MSRs during a simple kernel execution, so if we don't set this bit, then we'll exit on each MSR access, and of course, our VMX Exit-Handler is called, hence clearing this bit to zero makes the system substantially slower.
 
 For the **SECONDARY\_VM\_EXEC\_CONTROL**, we use **CPU\_BASED\_CTL2\_RDTSCP** to enable **RDTSCP**, **CPU\_BASED\_CTL2\_ENABLE\_INVPCID** to enable **INVPCID** and the **CPU\_BASED\_CTL2\_ENABLE\_XSAVE\_XRSTORS** to enable **XSAVE** and **XRSTORS**.
+
+Starting from Windows 11 24h2, Windows uses the `TPAUSE` instruction. Because of this, we also add **CPU\_BASED\_CTL2\_ENABLE\_USER\_WAIT\_PAUSE** to enable this instruction.
 
 It's because I run the above code in my Windows 10 1809 and see that Windows uses **INVPCID** and **XSAVE** for its internal use (in the processors that support these features), so if you didn't enable them before virtualizing the core, then it probably leads to error.
 
